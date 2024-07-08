@@ -12,31 +12,46 @@ namespace Numerics.Primitives
 
     public abstract class Numeric<T> where T : 
 		Numeric<T>, 
-		IAdditionOperators<T, T, T>
+		IAdditionOperators<T, T, T>,
+		ISubtractionOperators<T, T, T>,
+        IMultiplyOperators<T, T, T>,
+        IDivisionOperators<T, T, T>, 
+        IAdditiveIdentity<T, T>,
+        IMultiplicativeIdentity<T, T>,
+        IIncrementOperators<T>,
+        IDecrementOperators<T>
+
     {
         public long Start { get; set; }
         public long End { get; set; }
-        public long Length { get; protected set; }
+        public long Length => End - Start;
 
         public abstract void Add(T other);
-
-        public static T operator +(Numeric<T> left, Numeric<T> right)
-        {
-            var result = (T)left.MemberwiseClone();
-            result.Add((T)right);
-            return result;
-        }
+        public abstract void Subtract(T other);
+        public abstract void Multiply(T other);
+        public abstract void Divide(T other);
     }
 
     public class Focal : 
-		Numeric<Focal>, 
-		IAdditionOperators<Focal, Focal, Focal>
+		Numeric<Focal>,
+        IAdditionOperators<Focal, Focal, Focal>,
+        ISubtractionOperators<Focal, Focal, Focal>,
+        IMultiplyOperators<Focal, Focal, Focal>,
+        IDivisionOperators<Focal, Focal, Focal>,
+        IAdditiveIdentity<Focal, Focal>,
+        IMultiplicativeIdentity<Focal, Focal>,
+        IIncrementOperators<Focal>,
+        IDecrementOperators<Focal>
     {
+        #region Add
         public override void Add(Focal other)
         {
             this.Start += other.Start;
             this.End += other.End;
-            this.Length += other.Length;
+        }
+        public static Focal Add(Focal left, Focal right)
+        {
+            return left + right;
         }
         public static Focal operator +(Focal left, Focal right)
         {
@@ -44,26 +59,113 @@ namespace Numerics.Primitives
             result.Add(right);
             return result;
         }
+        static Focal IAdditionOperators<Focal, Focal, Focal>.operator +(Focal left, Focal right)
+        {
+            return left + right;
+        }
 
+        public static Focal AdditiveIdentity => new Focal { Start = 0, End = 0 }; 
+        public static Focal operator ++(Focal value)
+        {
+            var result = (Focal)value.MemberwiseClone();
+            result.Start++;
+            result.End++;
+            return result;
+        }
+
+        #endregion
+        #region Subtract
+        public override void Subtract(Focal other)
+        {
+            this.Start -= other.Start;
+            this.End -= other.End;
+        }
+        public static Focal Subtract(Focal left, Focal right)
+        {
+            return left - right;
+        }
+        public static Focal operator -(Focal left, Focal right)
+        {
+            var result = (Focal)left.MemberwiseClone();
+            result.Subtract(right);
+            return result;
+        }
+        static Focal ISubtractionOperators<Focal, Focal, Focal>.operator -(Focal left, Focal right)
+        {
+            return left - right;
+        }
+        public static Focal operator --(Focal value)
+        {
+            var result = (Focal)value.MemberwiseClone();
+            result.Start--;
+            result.End--;
+            return result;
+        }
+        #endregion
+        #region Multiply
+        public override void Multiply(Focal other)
+        {
+            this.Start *= other.Start;
+            this.End *= other.End;
+        }
+        public static Focal Multiply(Focal left, Focal right)
+        {
+            return left * right;
+        }
+        public static Focal operator *(Focal left, Focal right)
+        {
+            var result = (Focal)left.MemberwiseClone();
+            result.Multiply(right);
+            return result;
+        }
+        static Focal IMultiplyOperators<Focal, Focal, Focal>.operator *(Focal left, Focal right)
+        {
+            return left * right;
+        }
+        public static Focal MultiplicativeIdentity => new Focal { Start = 0, End = 1 };
+        #endregion
+        #region Divide
+        public override void Divide(Focal other)
+        {
+            this.Start /= other.Start;
+            this.End /= other.End;
+        }
+        public static Focal Divide(Focal left, Focal right)
+        {
+            return left / right;
+        }
+        public static Focal operator /(Focal left, Focal right)
+        {
+            var result = (Focal)left.MemberwiseClone();
+            result.Divide(right);
+            return result;
+        }
+        static Focal IDivisionOperators<Focal, Focal, Focal>.operator /(Focal left, Focal right)
+        {
+            return left / right;
+        }
+        #endregion
     }
- //   public abstract class Numeric :
-	//INumeric,
- //   IAdditionOperators<Numeric, Numeric, Numeric>
- //   {
- //       public long Start { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
- //       public long End { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
- //       public long Length { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
- //       public static Numeric operator +(Numeric left, Numeric right)
- //       {
- //           throw new NotImplementedException();
- //       }
- //   }
+
+    //   public abstract class Numeric :
+    //INumeric,
+    //   IAdditionOperators<Numeric, Numeric, Numeric>
+    //   {
+    //       public long Start { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    //       public long End { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    //       public long Length { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    //       public static Numeric operator +(Numeric left, Numeric right)
+    //       {
+    //           throw new NotImplementedException();
+    //       }
+    //   }
     public interface INumeric
     {
         long Start { get; set; }
         long End { get; set; }
-        long Length { get; protected set; }
+        long Length { get; }
         /*
  INumber<long> 
 	 Clamp, 
