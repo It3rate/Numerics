@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -10,7 +12,7 @@ namespace Numerics.Primitives
     // Eventually the core number will be nbit aware and take advantage of simD/gpu capabilities.
     //public interface IPosition {}
 
-    public abstract class Numeric<T> where T : 
+    public interface Numeric<T> where T : 
 		Numeric<T>, 
 		IAdditionOperators<T, T, T>,
 		ISubtractionOperators<T, T, T>,
@@ -19,20 +21,18 @@ namespace Numerics.Primitives
         IAdditiveIdentity<T, T>,
         IMultiplicativeIdentity<T, T>,
         IIncrementOperators<T>,
-        IDecrementOperators<T>
-
+        IDecrementOperators<T>,
+        IUnaryNegationOperators<T, T>,
+        IUnaryPlusOperators<T, T>,
+        IMinMaxValue<T>
     {
-        public long Start { get; set; }
-        public long End { get; set; }
-        public long Length => End - Start;
+        long Start { get; set; }
+        long End { get; set; }
+        long Length => End - Start;
 
-        public abstract void Add(T other);
-        public abstract void Subtract(T other);
-        public abstract void Multiply(T other);
-        public abstract void Divide(T other);
     }
 
-    public class Focal : 
+    public struct Focal : 
 		Numeric<Focal>,
         IAdditionOperators<Focal, Focal, Focal>,
         ISubtractionOperators<Focal, Focal, Focal>,
@@ -41,112 +41,95 @@ namespace Numerics.Primitives
         IAdditiveIdentity<Focal, Focal>,
         IMultiplicativeIdentity<Focal, Focal>,
         IIncrementOperators<Focal>,
-        IDecrementOperators<Focal>
+        IDecrementOperators<Focal>, 
+        IUnaryNegationOperators<Focal, Focal>,
+        IUnaryPlusOperators<Focal, Focal>,
+        IMinMaxValue<Focal>
     {
-        #region Add
-        public override void Add(Focal other)
+        public long Start { get; set; }
+        public long End { get; set; }
+        public long Length => End - Start;
+
+        public Focal(long start, long end)
         {
-            this.Start += other.Start;
-            this.End += other.End;
-        }
-        public static Focal Add(Focal left, Focal right)
-        {
-            return left + right;
-        }
-        public static Focal operator +(Focal left, Focal right)
-        {
-            var result = (Focal)left.MemberwiseClone();
-            result.Add(right);
-            return result;
-        }
-        static Focal IAdditionOperators<Focal, Focal, Focal>.operator +(Focal left, Focal right)
-        {
-            return left + right;
+            Start = start;
+            End = end;
         }
 
-        public static Focal AdditiveIdentity => new Focal { Start = 0, End = 0 }; 
-        public static Focal operator ++(Focal value)
-        {
-            var result = (Focal)value.MemberwiseClone();
-            result.Start++;
-            result.End++;
-            return result;
-        }
+        #region Add
+        public static Focal Add(Focal left, Focal right) => left + right;
+        public static Focal operator +(Focal left, Focal right) => new(left.Start + right.Start, left.End + right.End);
+        static Focal IAdditionOperators<Focal, Focal, Focal>.operator +(Focal left, Focal right) => left + right;
+
+        public static Focal AdditiveIdentity => new (0, 0); 
+        public static Focal operator ++(Focal value) => new (value.Start + 1, value.End + 1);
+        public static Focal operator +(Focal value) => new(value.Start, value.End);
 
         #endregion
         #region Subtract
-        public override void Subtract(Focal other)
-        {
-            this.Start -= other.Start;
-            this.End -= other.End;
-        }
-        public static Focal Subtract(Focal left, Focal right)
-        {
-            return left - right;
-        }
-        public static Focal operator -(Focal left, Focal right)
-        {
-            var result = (Focal)left.MemberwiseClone();
-            result.Subtract(right);
-            return result;
-        }
-        static Focal ISubtractionOperators<Focal, Focal, Focal>.operator -(Focal left, Focal right)
-        {
-            return left - right;
-        }
-        public static Focal operator --(Focal value)
-        {
-            var result = (Focal)value.MemberwiseClone();
-            result.Start--;
-            result.End--;
-            return result;
-        }
+        public static Focal Subtract(Focal left, Focal right) => left - right;
+        public static Focal operator -(Focal left, Focal right) => new(left.Start - right.Start, left.End - right.End);
+        static Focal ISubtractionOperators<Focal, Focal, Focal>.operator -(Focal left, Focal right) => left - right;
+
+        public static Focal operator --(Focal value) => new(value.Start - 1, value.End - 1);
+        public static Focal operator -(Focal value) => new(-value.Start, -value.End);
         #endregion
         #region Multiply
-        public override void Multiply(Focal other)
-        {
-            this.Start *= other.Start;
-            this.End *= other.End;
-        }
         public static Focal Multiply(Focal left, Focal right)
         {
             return left * right;
         }
-        public static Focal operator *(Focal left, Focal right)
-        {
-            var result = (Focal)left.MemberwiseClone();
-            result.Multiply(right);
-            return result;
-        }
-        static Focal IMultiplyOperators<Focal, Focal, Focal>.operator *(Focal left, Focal right)
-        {
-            return left * right;
-        }
-        public static Focal MultiplicativeIdentity => new Focal { Start = 0, End = 1 };
+        public static Focal operator *(Focal left, Focal right) => new(
+            left.Start * right.End + left.End * right.Start, 
+            left.End * right.End - left.Start * right.Start);
+
+        static Focal IMultiplyOperators<Focal, Focal, Focal>.operator *(Focal left, Focal right) => left * right;
+        public static Focal MultiplicativeIdentity => new (0, 1);
+
         #endregion
         #region Divide
-        public override void Divide(Focal other)
-        {
-            this.Start /= other.Start;
-            this.End /= other.End;
-        }
         public static Focal Divide(Focal left, Focal right)
         {
             return left / right;
         }
+
         public static Focal operator /(Focal left, Focal right)
         {
-            var result = (Focal)left.MemberwiseClone();
-            result.Divide(right);
+            Focal result;
+            double leftEnd = left.End;
+            double leftStart = left.Start;
+            double rightEnd = right.End;
+            double rightStart = right.Start;
+            if (Math.Abs(rightStart) < Math.Abs(rightEnd))
+            {
+                double num = rightStart / rightEnd;
+                result = new Focal(
+                    (long)((leftStart - leftEnd * num) / (rightEnd + rightStart * num)), 
+                    (long)((leftEnd + leftStart * num) / (rightEnd + rightStart * num)));
+            }
+            else
+            {
+                double num1 = rightEnd / rightStart;
+                result = new Focal(
+                    (long)((-leftEnd + leftStart * num1) / (rightStart + rightEnd * num1)),
+                    (long)((leftStart + leftEnd * num1) / (rightStart + rightEnd * num1)));
+            }
             return result;
         }
-        static Focal IDivisionOperators<Focal, Focal, Focal>.operator /(Focal left, Focal right)
-        {
-            return left / right;
-        }
-        #endregion
-    }
+        static Focal IDivisionOperators<Focal, Focal, Focal>.operator /(Focal left, Focal right) =>  left / right;
 
+        #endregion
+        #region MinMax
+        public static Focal MaxValue => new(long.MaxValue, long.MaxValue);
+        public static Focal MinValue => new(long.MinValue, long.MinValue);
+
+        #endregion
+        // IsFractional, IsInverted, IsNegative, IsNormalized, IsZero, IsOne, IsZeroStart, IsPoint, IsOverflow, IsUnderflow
+        // IsLessThanBasis, IsGrowable, IsBasisLength, IsMin, HasMask, IsArray, IsMultiDim, IsCalculated, IsRandom
+        // Domain: IsTickLessThanBasis, IsBasisInMinmax, IsTiling, IsClamping, IsInvertable, IsNegateable, IsPoly, HasTrait
+
+
+    }
 
     //   public abstract class Numeric :
     //INumeric,
