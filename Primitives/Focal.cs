@@ -28,9 +28,9 @@ public class Focal :
     IAdditionOperators<Focal, Focal, Focal>,   
     ISubtractionOperators<Focal, Focal, Focal>,
     IAdditiveIdentity<Focal, Focal>,
-    //IMultiplyOperators<Focal, Focal, Focal>,
-    //IDivisionOperators<Focal, Focal, Focal>,
-    //IMultiplicativeIdentity<Focal, Focal>,
+    IMultiplyOperators<Focal, Focal, Focal>,
+    IDivisionOperators<Focal, Focal, Focal>,
+    IMultiplicativeIdentity<Focal, Focal>,
      IIncrementOperators<Focal>,
     IDecrementOperators<Focal>,
     IUnaryNegationOperators<Focal, Focal>,
@@ -87,15 +87,15 @@ public class Focal :
     public static Focal operator --(Focal value) => new(value.StartTick - 1, value.EndTick - 1);
     public static Focal operator -(Focal value) => new(-value.StartTick, -value.EndTick);
     #endregion
-    /*
+
     #region Multiply
     public static Focal Multiply(Focal left, Focal right)
     {
         return left * right;
     }
     public static Focal operator *(Focal left, Focal right) => new(
-        left.Start * right.End + left.End * right.Start,
-        left.End * right.End - left.Start * right.Start);
+        left.StartTick * right.EndTick + left.EndTick * right.StartTick,
+        left.EndTick * right.EndTick - left.StartTick * right.StartTick);
 
     static Focal IMultiplyOperators<Focal, Focal, Focal>.operator *(Focal left, Focal right) => left * right;
     public static Focal MultiplicativeIdentity => new(0, 1);
@@ -110,10 +110,10 @@ public class Focal :
     public static Focal operator /(Focal left, Focal right)
     {
         Focal result;
-        double leftEnd = left.End;
-        double leftStart = left.Start;
-        double rightEnd = right.End;
-        double rightStart = right.Start;
+        double leftEnd = left.EndTick;
+        double leftStart = left.StartTick;
+        double rightEnd = right.EndTick;
+        double rightStart = right.StartTick;
         if (Math.Abs(rightStart) < Math.Abs(rightEnd))
         {
             double num = rightStart / rightEnd;
@@ -133,19 +133,20 @@ public class Focal :
     static Focal IDivisionOperators<Focal, Focal, Focal>.operator /(Focal left, Focal right) => left / right;
 
     #endregion
-    */
 
     #region MinMax
     public static Focal MaxValue => new(long.MaxValue, long.MaxValue);
     public static Focal MinValue => new(long.MinValue, long.MinValue);
 
-    #endregion
+	#endregion
 
 
-    // IsFractional, IsInverted, IsNegative, IsNormalized, IsZero, IsOne, IsZeroStart, IsPoint, IsOverflow, IsUnderflow
-    // IsLessThanBasis, IsGrowable, IsBasisLength, IsMin, HasMask, IsArray, IsMultiDim, IsCalculated, IsRandom
-    // Domain: IsTickLessThanBasis, IsBasisInMinmax, IsTiling, IsClamping, IsInvertable, IsNegateable, IsPoly, HasTrait
-    // scale
+	// IsFractional, IsInverted, IsNegative, IsNormalized, IsZero, IsOne, IsZeroStart, IsPoint, IsOverflow, IsUnderflow
+	// IsLessThanBasis, IsGrowable, IsBasisLength, IsMin, HasMask, IsArray, IsMultiDim, IsCalculated, IsRandom
+	// Domain: IsTickLessThanBasis, IsBasisInMinmax, IsTiling, IsClamping, IsInvertable, IsNegateable, IsPoly, HasTrait
+	// scale
 
+	public Focal Expand(long multiple) => new(StartTick * multiple, EndTick * multiple);
+	public Focal Contract(long divisor) => new(StartTick / divisor, EndTick / divisor);
 
 }

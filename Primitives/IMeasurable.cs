@@ -32,21 +32,6 @@ namespace Numerics.Primitives
         IMinMaxValue<T>
     {
     }
-    public interface Numeric<T> where T :
-        Numeric<T>,
-        IAdditionOperators<T, T, T>,
-        ISubtractionOperators<T, T, T>,
-        IAdditiveIdentity<T, T>,
-        IMultiplyOperators<T, T, T>,
-        IDivisionOperators<T, T, T>,
-        IMultiplicativeIdentity<T, T>,
-        IIncrementOperators<T>,
-        IDecrementOperators<T>,
-        IUnaryNegationOperators<T, T>,
-        IUnaryPlusOperators<T, T>,
-        IMinMaxValue<T>
-    {
-    }
 
     /*
 INumber<long> 

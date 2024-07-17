@@ -29,5 +29,7 @@ public class Domain
     {
         var result = new Domain(Trait, BasisFocal, MinMaxFocal);
         return result;
-    }
+	}
+	public Number AdditiveIdentity => new Number(this, new Focal(BasisFocal.StartTick, BasisFocal.StartTick));
+	public Number MultiplicativeIdentity => new Number(this, BasisFocal);
 }
