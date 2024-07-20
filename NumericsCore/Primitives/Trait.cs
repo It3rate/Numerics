@@ -7,7 +7,7 @@ namespace Numerics.Primitives;
 public class Trait
 {
     public virtual string Name { get; private set; }
-    protected Trait(string name)
+    public Trait(string name)
     {
         Name = name;
     }

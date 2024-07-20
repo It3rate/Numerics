@@ -17,7 +17,7 @@ public class Domain
     public Focal MinMaxFocal { get; set; }
     public long TickSize { get; protected set; } = 1;
     public bool BasisIsReciprocal => Math.Abs(TickSize) > BasisFocal.AbsTickLength;
-    public double TickToBasisRatio => TickSize / BasisFocal.TickLength;
+    public double TickToBasisRatio => TickSize / BasisFocal.NonZeroTickLength;
 
     public Domain(Trait trait, Focal basisFocal, Focal minMaxFocal)
     {
