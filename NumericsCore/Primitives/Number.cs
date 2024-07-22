@@ -40,6 +40,7 @@ public class Number :
     private Focal _focal;
     public Domain Domain => _domain;
     private Domain _domain;
+	public bool Polarity { get; set; } = true;
     public long StartTick { get => _focal.StartTick; set => _focal.StartTick = value; }
     public long EndTick { get => _focal.EndTick; set => _focal.EndTick = value; }
 
@@ -47,14 +48,19 @@ public class Number :
 
     public long AbsTickLength => _focal.AbsTickLength;
 
-    public Number(Domain domain, Focal focal)
+	public Number(Domain domain, Focal focal, bool polarity = true)
     {
         _domain = domain;
         _focal = focal;
+		Polarity = polarity;
 	}
 	#region Add
 	public static Number Add(Number left, Number right) => left + right;
-	public static Number operator +(Number left, Number right) => new(left._domain, left._focal + right._focal);
+	public static Number operator +(Number left, Number right)
+	{
+		var num = left.Domain.ConvertNumber(right);
+        return new(left._domain, left._focal + num._focal);
+    }
 	static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => left + right;
 
 	public static Number operator ++(Number value) => new(value._domain, value._focal++);
@@ -64,8 +70,12 @@ public class Number :
 	#endregion
 	#region Subtract
 	public static Number Subtract(Number left, Number right) => left - right;
-	public static Number operator -(Number left, Number right) => new(left._domain, left._focal - right._focal);
-	static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => left - right;
+	public static Number operator -(Number left, Number right)
+    {
+        var num = left.Domain.ConvertNumber(right);
+        return new(left._domain, left._focal - num._focal);
+    }
+    static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => left - right;
 
 	public static Number operator --(Number value) => new(value._domain, value._focal--);
 	public static Number operator -(Number value) => new(value._domain, -value._focal);
@@ -75,9 +85,15 @@ public class Number :
 	{
 		return left * right;
 	}
-	public static Number operator *(Number left, Number right) => new(
-		left._domain,
-		(left._focal * right._focal).Contract(left.Domain.TickSize * right.Domain.TickSize)); // todo: expand for rounded tick size
+	public static Number operator *(Number left, Number right)
+    {
+        var aligned = left.Domain.ConvertNumber(right);
+		var startTick = left.Focal.StartTick;
+        var leftOffset = left.Focal.GetOffset(-startTick);
+        var rightOffset = aligned.Focal.GetOffset(-startTick);
+		var product = leftOffset * rightOffset;
+        return new(left._domain, product.GetOffset(startTick));
+    }
 
 	static Number IMultiplyOperators<Number, Number, Number>.operator *(Number left, Number right) => left * right;
 	public Number MultiplicativeIdentity => _domain.MultiplicativeIdentity;
@@ -89,9 +105,24 @@ public class Number :
 		return left / right;
 	}
 
-	public static Number operator /(Number left, Number right) => new(
-		left._domain,
-		(left._focal / right._focal).Contract(left._domain.TickSize * right.Domain.TickSize));
+	public static Number operator /(Number left, Number right)
+    {
+        var aligned = left.Domain.ConvertNumber(right);
+        var startTick = left.Focal.StartTick;
+        var leftOffset = left.Focal.GetOffset(-startTick);
+        var rightOffset = aligned.Focal.GetOffset(-startTick);
+        var product = leftOffset / rightOffset;
+        return new(left._domain, product.GetOffset(startTick));
+    }
 
-	#endregion
+    #endregion
+
+    #region Conversions
+    public double DecimalValue(long tick) => _domain.DecimalValue(tick);
+    public long TickValue(double value) => _domain.TickValue(value);
+    #endregion
+    public Number Clone()
+	{
+		return new Number(_domain, _focal.Clone(), Polarity);
+	}
 }

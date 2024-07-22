@@ -151,6 +151,8 @@ public class Focal :
 	public Focal Expand(long multiple) => new(StartTick * multiple, EndTick * multiple);
 	public Focal Contract(long divisor) => new(StartTick / divisor, EndTick / divisor);
 
+    public Focal GetOffset(long offset) => new(StartTick + offset, EndTick + offset);
+    public Focal Clone() => new(StartTick, EndTick);
     public static Focal Zero => new Focal(0, 0);
     public static Focal One => new Focal(0, 1);
 }

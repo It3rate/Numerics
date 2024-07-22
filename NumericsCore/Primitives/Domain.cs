@@ -12,22 +12,75 @@ namespace Numerics.Primitives;
 // Min size is tick size. BasisFocal is start/end point (only one focal allowed for a unit). MinMaxFocal is bounds in ticks. todo: add conversion methods etc.
 public class Domain
 {
-    public Trait Trait { get; protected set; }
+    public Trait? Trait { get; protected set; }
     public Focal BasisFocal { get; protected set; }
-    public Focal MinMaxFocal { get; set; }
+    public Focal LimitsFocal { get; set; }
     public long TickSize { get; protected set; } = 1;
+    public long AbsBasisSize => BasisFocal.AbsTickLength;
+    public long AbsLimitsSize => LimitsFocal.AbsTickLength;
     public bool BasisIsReciprocal => Math.Abs(TickSize) > BasisFocal.AbsTickLength;
     public double TickToBasisRatio => TickSize / BasisFocal.NonZeroTickLength;
 
-    public Domain(Trait trait, Focal basisFocal, Focal minMaxFocal)
+    public Domain(Trait trait, Focal basisFocal, Focal limitsFocal)
     {
         Trait = trait;
         BasisFocal = basisFocal;
-        MinMaxFocal = minMaxFocal;
+        LimitsFocal = limitsFocal;
     }
+    private Domain(Focal basisFocal, Focal limitsFocal)
+    {
+        Trait = Trait.WorkingTrait;
+        BasisFocal = basisFocal;
+        LimitsFocal = limitsFocal;
+    }
+
+    public Number ConvertNumber(Number value)
+    {
+        Number result = value;
+        if(value.Domain != this)
+        {
+            var start = value.DecimalValue(value.StartTick);
+            var end = value.DecimalValue(value.EndTick);
+            var focal = new Focal(TickValue(start), TickValue(end));
+            result = new(this, focal, value.Polarity);
+        }
+        return result;
+    }
+    #region Conversions
+    public static Domain CommonDomain(Domain left, Domain right)
+    {
+        var result = left;
+        if (left != right)
+        {
+            var maxBasis = left.AbsBasisSize >= right.AbsBasisSize ? left.BasisFocal : right.BasisFocal;
+            var maxLimits = left.AbsLimitsSize >= right.AbsLimitsSize ? left.LimitsFocal : right.LimitsFocal;
+            result = new Domain(maxBasis, maxLimits);
+        }
+        return result;
+    }
+    public double DecimalValue(long tick)
+    {
+        var clamped =
+            (tick < LimitsFocal.StartTick) ? LimitsFocal.StartTick :
+            (tick > LimitsFocal.EndTick) ? LimitsFocal.EndTick : tick;
+        var offset = clamped - BasisFocal.StartTick;
+        var result = offset / (double)BasisFocal.NonZeroTickLength;
+        return result;
+    }
+    public long TickValue(double value)
+    {
+        var result = (long)(value * BasisFocal.NonZeroTickLength);
+        result += BasisFocal.StartTick;
+        result =
+            (result < LimitsFocal.StartTick) ? LimitsFocal.StartTick :
+            (result > LimitsFocal.EndTick) ? LimitsFocal.EndTick : result;
+        return result;
+    }
+    #endregion
+
     public Domain Duplicate()
     {
-        var result = new Domain(Trait, BasisFocal, MinMaxFocal);
+        var result = new Domain(Trait, BasisFocal, LimitsFocal);
         return result;
 	}
 	public Number AdditiveIdentity => new Number(this, new Focal(BasisFocal.StartTick, BasisFocal.StartTick));
