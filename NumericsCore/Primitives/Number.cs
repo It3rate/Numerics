@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using NumericsCore.Primitives;
 
 namespace Numerics.Primitives;
 
@@ -40,15 +41,24 @@ public class Number :
     private Focal _focal;
     public Domain Domain => _domain;
     private Domain _domain;
-	public bool Polarity { get; set; } = true;
+	public Polarity Polarity { get; set; }
     public long StartTick { get => _focal.StartTick; set => _focal.StartTick = value; }
     public long EndTick { get => _focal.EndTick; set => _focal.EndTick = value; }
 
     public long TickLength => _focal.TickLength;
 
     public long AbsTickLength => _focal.AbsTickLength;
+    public int PolarityDirection => IsAligned ? 1 : IsInverted ? -1 : 0;
+    public bool IsAligned => Polarity == Polarity.Aligned;
+    public bool HasPolairty => Polarity == Polarity.Aligned || Polarity == Polarity.Inverted;
+    public bool IsInverted => !IsAligned;
 
-	public Number(Domain domain, Focal focal, bool polarity = true)
+    // IsFractional, IsInverted, IsNegative, IsNormalized, IsZero, IsOne, IsZeroStart, IsPoint, IsOverflow, IsUnderflow
+    // IsLessThanBasis, IsGrowable, IsBasisLength, IsMin, HasMask, IsArray, IsMultiDim, IsCalculated, IsRandom
+    // Domain: IsTickLessThanBasis, IsBasisInMinmax, IsTiling, IsClamping, IsInvertable, IsNegateable, IsPoly, HasTrait
+    // scale
+
+    public Number(Domain domain, Focal focal, Polarity polarity = Polarity.Aligned)
     {
         _domain = domain;
         _focal = focal;
@@ -59,7 +69,11 @@ public class Number :
 	public static Number operator +(Number left, Number right)
 	{
 		var num = left.Domain.ConvertNumber(right);
-        return new(left._domain, left._focal + num._focal);
+        var offset = left._domain.BasisFocal.StartTick;
+        return new(left._domain, new Focal(
+            (left._focal.StartTick + num._focal.StartTick) - offset,
+            (left._focal.EndTick + num._focal.EndTick) - offset
+            ));
     }
 	static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => left + right;
 
@@ -73,7 +87,11 @@ public class Number :
 	public static Number operator -(Number left, Number right)
     {
         var num = left.Domain.ConvertNumber(right);
-        return new(left._domain, left._focal - num._focal);
+        var offset = left._domain.BasisFocal.StartTick;
+        return new(left._domain, new Focal(
+            (left._focal.StartTick - num._focal.StartTick) + offset,
+            (left._focal.EndTick - num._focal.EndTick) + offset
+            ));
     }
     static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => left - right;
 
@@ -88,11 +106,16 @@ public class Number :
 	public static Number operator *(Number left, Number right)
     {
         var aligned = left.Domain.ConvertNumber(right);
-		var startTick = left.Focal.StartTick;
-        var leftOffset = left.Focal.GetOffset(-startTick);
-        var rightOffset = aligned.Focal.GetOffset(-startTick);
-		var product = leftOffset * rightOffset;
-        return new(left._domain, product.GetOffset(startTick));
+        var len = (double)left.Domain.BasisFocal.TickLength;
+        var offset = left.Domain.BasisFocal.StartTick;
+        var leftOffset = left.Focal.GetOffset(-offset);
+        var rightOffset = aligned.Focal.GetOffset(-offset);
+
+        var result = new Number(left.Domain,new (
+            (long)((leftOffset.StartTick * rightOffset.EndTick + leftOffset.EndTick * rightOffset.StartTick) / len) + offset,
+            (long)((leftOffset.EndTick * rightOffset.EndTick - leftOffset.StartTick * rightOffset.StartTick) / len) + offset));
+
+        return result;
     }
 
 	static Number IMultiplyOperators<Number, Number, Number>.operator *(Number left, Number right) => left * right;
@@ -108,21 +131,111 @@ public class Number :
 	public static Number operator /(Number left, Number right)
     {
         var aligned = left.Domain.ConvertNumber(right);
-        var startTick = left.Focal.StartTick;
-        var leftOffset = left.Focal.GetOffset(-startTick);
-        var rightOffset = aligned.Focal.GetOffset(-startTick);
-        var product = leftOffset / rightOffset;
-        return new(left._domain, product.GetOffset(startTick));
+
+        Focal focalResult;
+        var offset = left.Domain.BasisFocal.StartTick;
+        var len = left.Domain.BasisFocal.TickLength;
+        double leftEnd = left.EndTick - offset;
+        double leftStart = left.StartTick - offset;
+        double rightEnd = aligned.EndTick - offset;
+        double rightStart = aligned.StartTick - offset;
+        if (Math.Abs(rightStart) < Math.Abs(rightEnd))
+        {
+            double num = rightStart / rightEnd;
+            focalResult = new Focal(
+                (long)(((leftStart - leftEnd * num) / (rightEnd + rightStart * num)) * len),
+                (long)(((leftEnd + leftStart * num) / (rightEnd + rightStart * num)) * len));
+        }
+        else
+        {
+            double num1 = rightEnd / rightStart;
+            focalResult = new Focal(
+                (long)(((-leftEnd + leftStart * num1) / (rightStart + rightEnd * num1)) * len),
+                (long)(((leftStart + leftEnd * num1) / (rightStart + rightEnd * num1)) * len));
+        }
+        return new Number(left.Domain, focalResult.GetOffset(offset));
+
+
+
+
+        //var result = left.Focal / aligned.Focal;
+        //result = result.Expand(left.Domain.BasisFocal.AbsTickLength);
+        //return new(left._domain, result);
+        //var startTick = left.Domain.BasisFocal.StartTick;
+        //var leftOffset = left.Focal.GetOffset(-startTick).Expand(left.Domain.BasisFocal.AbsTickLength);
+        //var rightOffset = aligned.Focal.GetOffset(-startTick);
+        //var result = leftOffset / rightOffset;
+        //result = result.GetOffset(startTick);
+        ////result = result.Expand(left.Domain.BasisFocal.AbsTickLength);
+        //return new(left._domain, result);
     }
 
     #endregion
 
     #region Conversions
+    public double StartValue => _domain.DecimalValue(StartTick);
+    public double EndValue => _domain.DecimalValue(EndTick);
     public double DecimalValue(long tick) => _domain.DecimalValue(tick);
     public long TickValue(double value) => _domain.TickValue(value);
     #endregion
-    public Number Clone()
-	{
-		return new Number(_domain, _focal.Clone(), Polarity);
-	}
+
+    #region Equality
+    public Number Clone() => new Number(Domain, Focal.Clone(), Polarity);
+    public static bool operator ==(Number? a, Number? b)
+    {
+        if (a is null && b is null)
+        {
+            return true;
+        }
+        if (a is null || b is null)
+        {
+            return false;
+        }
+        return a.Equals(b);
+    }
+    public static bool operator !=(Number? a, Number? b)
+    {
+        return !(a == b);
+    }
+    public override bool Equals(object? obj)
+    {
+        return obj is Number other && Equals(other);
+    }
+    public bool Equals(Number? value)
+    {
+        if (value is null) { return false; }
+        return ReferenceEquals(this, value) ||
+                (
+                Polarity == value.Polarity &&
+                Focal.Equals(this.Focal, value.Focal)
+                );
+    }
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            var hashCode = Focal.GetHashCode() * 17 ^ ((int)Polarity + 27) * 397;// + (IsValid ? 77 : 33);
+            return hashCode;
+        }
+    }
+    #endregion
+
+    public override string ToString()
+    {
+        string result;
+        var vStart = Domain.DecimalValue(StartTick);
+        var vEnd = Domain.DecimalValue(EndTick);
+        if (Polarity == Polarity.None)
+        {
+            result = $"x({vStart:0.##}_{-vEnd:0.##})"; // no polarity, so just list values
+        }
+        else
+        {
+            var midSign = vEnd > 0 ? " + " : " ";
+            result = IsAligned ?
+                $"({vStart:0.##}i{midSign}{vEnd:0.##}r)" :
+                $"~({vEnd:0.##}r{midSign}{vStart:0.##}i)";
+        }
+        return result;
+    }
 }

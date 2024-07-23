@@ -24,14 +24,15 @@ namespace Numerics.Primitives;
 
 public class Focal :
     IMeasurable,
-    Measurable<Focal>,
+    Measurable<Focal>, 
+    IEquatable<Focal>,
     IAdditionOperators<Focal, Focal, Focal>,   
     ISubtractionOperators<Focal, Focal, Focal>,
     IAdditiveIdentity<Focal, Focal>,
     IMultiplyOperators<Focal, Focal, Focal>,
     IDivisionOperators<Focal, Focal, Focal>,
     IMultiplicativeIdentity<Focal, Focal>,
-     IIncrementOperators<Focal>,
+    IIncrementOperators<Focal>,
     IDecrementOperators<Focal>,
     IUnaryNegationOperators<Focal, Focal>,
     IUnaryPlusOperators<Focal, Focal>,
@@ -61,8 +62,13 @@ public class Focal :
     public long AbsTickLength => Math.Abs(EndTick - StartTick); // can't have zero length (that would be null/no focus, and this is a focal)
     public int Direction => StartTick > EndTick ? 1 : StartTick < EndTick ? -1 : 0; // zero is unknown
     public int AbsDirection => EndTick >= StartTick ? 1 : -1; // default to positive direction when unknown
-    public bool IsPositiveDirection => Direction > 0;
     public virtual long InvertedEndPosition => StartTick - AbsTickLength;
+
+    public bool IsZeroAnchored => StartTick == 0;
+    public bool IsZero => StartTick == 0 && EndTick == 0;
+    public bool IsPositiveDirection => Direction > 0;
+    public bool IsNegativeDirection => Direction < 0;
+    public bool IsPoint => StartTick == EndTick;
 
     public Focal(long start, long end)
     {
@@ -70,6 +76,8 @@ public class Focal :
         StartTick = start;
         EndTick = end;
     }
+
+
 
     #region Add
     public static Focal Add(Focal left, Focal right) => left + right;
@@ -89,7 +97,6 @@ public class Focal :
     public static Focal operator --(Focal value) => new(value.StartTick - 1, value.EndTick - 1);
     public static Focal operator -(Focal value) => new(-value.StartTick, -value.EndTick);
     #endregion
-
     #region Multiply
     public static Focal Multiply(Focal left, Focal right)
     {
@@ -135,26 +142,60 @@ public class Focal :
     static Focal IDivisionOperators<Focal, Focal, Focal>.operator /(Focal left, Focal right) => left / right;
 
     #endregion
-
-    #region MinMax
+    #region Limits
     public static Focal MaxValue => new(long.MaxValue, long.MaxValue);
     public static Focal MinValue => new(long.MinValue, long.MinValue);
 
 	#endregion
 
 
-	// IsFractional, IsInverted, IsNegative, IsNormalized, IsZero, IsOne, IsZeroStart, IsPoint, IsOverflow, IsUnderflow
-	// IsLessThanBasis, IsGrowable, IsBasisLength, IsMin, HasMask, IsArray, IsMultiDim, IsCalculated, IsRandom
-	// Domain: IsTickLessThanBasis, IsBasisInMinmax, IsTiling, IsClamping, IsInvertable, IsNegateable, IsPoly, HasTrait
-	// scale
 
 	public Focal Expand(long multiple) => new(StartTick * multiple, EndTick * multiple);
 	public Focal Contract(long divisor) => new(StartTick / divisor, EndTick / divisor);
 
     public Focal GetOffset(long offset) => new(StartTick + offset, EndTick + offset);
-    public Focal Clone() => new(StartTick, EndTick);
+
     public static Focal Zero => new Focal(0, 0);
     public static Focal One => new Focal(0, 1);
+
+    #region Equality
+    public Focal Clone() => new (StartTick, EndTick);
+    public override bool Equals(object? obj)
+    {
+        return obj is Focal other && Equals(other);
+    }
+    public bool Equals(Focal? value)
+    {
+        return ReferenceEquals(this, value) || StartTick.Equals(value.StartTick) && EndTick.Equals(value.EndTick);
+    }
+
+    public static bool operator ==(Focal? a, Focal? b)
+    {
+        if (a is null && b is null)
+        {
+            return true;
+        }
+        if (a is null || b is null)
+        {
+            return false;
+        }
+        return a.Equals(b);
+    }
+
+    public static bool operator !=(Focal? a, Focal? b)
+    {
+        return !(a == b);
+    }
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            var hashCode = StartTick.GetHashCode();
+            hashCode = (hashCode * 397) ^ EndTick.GetHashCode();
+            return hashCode;
+        }
+    }
+    #endregion
 
     public override string ToString() => $"[{StartTick} : {EndTick}]";
 }

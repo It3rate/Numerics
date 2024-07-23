@@ -168,12 +168,16 @@ public struct PRange
         if (Math.Abs(imaginary2) < Math.Abs(real2))
         {
             double num = imaginary2 / real2;
-            result = new PRange((imaginary1 - real1 * num) / (real2 + imaginary2 * num), (real1 + imaginary1 * num) / (real2 + imaginary2 * num));
+            result = new PRange(
+                (imaginary1 - real1 * num) / (real2 + imaginary2 * num), 
+                (real1 + imaginary1 * num) / (real2 + imaginary2 * num));
         }
         else
         {
             double num1 = real2 / imaginary2;
-            result = new PRange((-real1 + imaginary1 * num1) / (imaginary2 + real2 * num1), (imaginary1 + real1 * num1) / (imaginary2 + real2 * num1));
+            result = new PRange(
+                (-real1 + imaginary1 * num1) / (imaginary2 + real2 * num1), 
+                (imaginary1 + real1 * num1) / (imaginary2 + real2 * num1));
         }
         result.Polarity = left.Polarity;
         result = result.SolvePolarityWith(right.Polarity);

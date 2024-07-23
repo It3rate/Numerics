@@ -15,6 +15,9 @@ public class Domain
     public Trait? Trait { get; protected set; }
     public Focal BasisFocal { get; protected set; }
     public Focal LimitsFocal { get; set; }
+
+    public Number BasisNumber => new(this, BasisFocal);
+    public Number LimitsNumber => new(this, LimitsFocal);
     public long TickSize { get; protected set; } = 1;
     public long AbsBasisSize => BasisFocal.AbsTickLength;
     public long AbsLimitsSize => LimitsFocal.AbsTickLength;
