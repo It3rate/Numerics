@@ -33,7 +33,8 @@ public class Number :
 	IIncrementOperators<Number>,
 	IDecrementOperators<Number>,
 	IUnaryNegationOperators<Number, Number>,
-	IUnaryPlusOperators<Number, Number>
+    IUnaryPlusOperators<Number, Number>,
+    IPolarityOperators<Number, Number, Number>
 //IMinMaxValue<Number>
 
 {
@@ -127,7 +128,6 @@ public class Number :
 	{
 		return left / right;
 	}
-
 	public static Number operator /(Number left, Number right)
     {
         var aligned = left.Domain.ConvertNumber(right);
@@ -169,6 +169,20 @@ public class Number :
         ////result = result.Expand(left.Domain.BasisFocal.AbsTickLength);
         //return new(left._domain, result);
     }
+    #endregion
+
+    #region Polarity
+    public static Number operator ~(Number value) => InvertPolarityAndDirection(value);
+    public static Number InvertPolarity(Number value) => new(value.Domain, value.Focal, value.Polarity.Invert());
+    public static Number InvertRange(Number value) => new(value.Domain, value.Focal.FlipAroundStart(), value.Polarity);
+    public static Number InvertPolarityAndDirection(Number value) => new(
+        value.Domain, 
+        value.Focal.FlipAroundStart(), 
+        value.Polarity.Invert());
+    public static Number PolarityProduct(Number left, Number right) => new(
+        left.Domain, 
+        left.Focal, 
+        left.Polarity.SolvePolarity(right.Polarity));
 
     #endregion
 
@@ -178,7 +192,6 @@ public class Number :
     public double DecimalValue(long tick) => _domain.DecimalValue(tick);
     public long TickValue(double value) => _domain.TickValue(value);
     #endregion
-
     #region Equality
     public Number Clone() => new Number(Domain, Focal.Clone(), Polarity);
     public static bool operator ==(Number? a, Number? b)
