@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using NumericsCore.Primitives;
+using NumericsCore.Utils;
 
 namespace Numerics.Primitives;
 
@@ -51,7 +52,7 @@ public class Number :
     public long AbsTickLength => _focal.AbsTickLength;
     public int PolarityDirection => IsAligned ? 1 : IsInverted ? -1 : 0;
     public bool IsAligned => Polarity == Polarity.Aligned;
-    public bool HasPolairty => Polarity == Polarity.Aligned || Polarity == Polarity.Inverted;
+    public bool HasPolarity => Polarity == Polarity.Aligned || Polarity == Polarity.Inverted;
     public bool IsInverted => !IsAligned;
 
     // IsFractional, IsInverted, IsNegative, IsNormalized, IsZero, IsOne, IsZeroStart, IsPoint, IsOverflow, IsUnderflow
@@ -114,9 +115,10 @@ public class Number :
 
         var result = new Number(left.Domain,new (
             (long)((leftOffset.StartTick * rightOffset.EndTick + leftOffset.EndTick * rightOffset.StartTick) / len) + offset,
-            (long)((leftOffset.EndTick * rightOffset.EndTick - leftOffset.StartTick * rightOffset.StartTick) / len) + offset));
+            (long)((leftOffset.EndTick * rightOffset.EndTick - leftOffset.StartTick * rightOffset.StartTick) / len) + offset),
+            left.Polarity);
 
-        return result;
+        return result.SolvePolarityWith(right);
     }
 
 	static Number IMultiplyOperators<Number, Number, Number>.operator *(Number left, Number right) => left * right;
@@ -135,6 +137,7 @@ public class Number :
         Focal focalResult;
         var offset = left.Domain.BasisFocal.StartTick;
         var len = left.Domain.BasisFocal.TickLength;
+        var polarity = left.Polarity.SolvePolarity(right.Polarity);
         double leftEnd = left.EndTick - offset;
         double leftStart = left.StartTick - offset;
         double rightEnd = aligned.EndTick - offset;
@@ -153,36 +156,33 @@ public class Number :
                 (long)(((-leftEnd + leftStart * num1) / (rightStart + rightEnd * num1)) * len),
                 (long)(((leftStart + leftEnd * num1) / (rightStart + rightEnd * num1)) * len));
         }
-        return new Number(left.Domain, focalResult.GetOffset(offset));
-
-
-
-
-        //var result = left.Focal / aligned.Focal;
-        //result = result.Expand(left.Domain.BasisFocal.AbsTickLength);
-        //return new(left._domain, result);
-        //var startTick = left.Domain.BasisFocal.StartTick;
-        //var leftOffset = left.Focal.GetOffset(-startTick).Expand(left.Domain.BasisFocal.AbsTickLength);
-        //var rightOffset = aligned.Focal.GetOffset(-startTick);
-        //var result = leftOffset / rightOffset;
-        //result = result.GetOffset(startTick);
-        ////result = result.Expand(left.Domain.BasisFocal.AbsTickLength);
-        //return new(left._domain, result);
+        var result =  new Number(left.Domain, focalResult.GetOffset(offset), left.Polarity);
+        return result.SolvePolarityWith(right);
     }
     #endregion
 
     #region Polarity
-    public static Number operator ~(Number value) => InvertPolarityAndDirection(value);
-    public static Number InvertPolarity(Number value) => new(value.Domain, value.Focal, value.Polarity.Invert());
-    public static Number InvertRange(Number value) => new(value.Domain, value.Focal.FlipAroundStart(), value.Polarity);
-    public static Number InvertPolarityAndDirection(Number value) => new(
-        value.Domain, 
-        value.Focal.FlipAroundStart(), 
-        value.Polarity.Invert());
-    public static Number PolarityProduct(Number left, Number right) => new(
-        left.Domain, 
-        left.Focal, 
-        left.Polarity.SolvePolarity(right.Polarity));
+    public static Number operator ~(Number value) => value.InvertPolarityAndDirection();
+    public Number InvertPolarity() => new(Domain, Focal, Polarity.Invert());
+    public Number InvertDirection() => new(Domain, Focal.FlipAroundStart(), Polarity);
+    public Number InvertPolarityAndDirection() => new(Domain, Focal.FlipAroundStart(), Polarity.Invert());
+    public Number SolvePolarityWith(Number right)
+    {
+        Number result;
+        if (Polarity == Polarity.Inverted && right.Polarity == Polarity.Inverted)
+        {
+            result = InvertPolarityAndDirection();
+        }
+        else if (Polarity == Polarity.Aligned && right.Polarity == Polarity.Inverted)
+        {
+            result = InvertPolarity();
+        }
+        else
+        {
+            result = Clone();
+        }
+        return result;
+    }
 
     #endregion
 

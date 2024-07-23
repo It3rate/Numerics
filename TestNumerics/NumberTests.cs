@@ -10,7 +10,7 @@ using NumericsCore.Utils;
 namespace TestNumerics;
 
 [TestClass]
-public class NumericTests
+public class NumberTests
 {
     private Trait _trait = null!;
     private Focal _basisFocal = null!;
@@ -21,7 +21,7 @@ public class NumericTests
     [TestInitialize]
     public void Init()
     {
-        _trait = new Numerics.Primitives.Trait("numericTests");
+        _trait = new Trait("numberTests");
         _basisFocal = new Focal(2, 8);
         _limits = new Focal(-1000, 1010);
         _domain = new Domain(_trait, _basisFocal, _limits);

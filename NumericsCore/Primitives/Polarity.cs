@@ -15,6 +15,7 @@ public static class PolarityExtension
 {
     public static bool HasPolarity(this Polarity polarity) => polarity == Polarity.Aligned || polarity == Polarity.Inverted;
     public static bool IsTrue(this Polarity polarity) => polarity == Polarity.Aligned;
+    public static bool IsFalse(this Polarity polarity) => polarity == Polarity.Inverted;
 
     public static Polarity Invert(this Polarity polarity)
     {
@@ -40,10 +41,10 @@ public interface IPolarityOperators<TSelf, TOther, TResult>
     where TSelf : IPolarityOperators<TSelf, TOther, TResult>?
 {
     static abstract TResult operator ~(TSelf value);
-    static abstract TResult InvertPolarity(TSelf value);
-    static abstract TResult InvertRange(TSelf value);
-    static abstract TResult InvertPolarityAndDirection(TSelf value);
-    static abstract TResult PolarityProduct(TSelf left, TOther right);
+    TResult InvertPolarity();
+    TResult InvertDirection();
+    TResult InvertPolarityAndDirection();
+    TResult SolvePolarityWith(TOther right);
 }
 //public interface IBitwiseOperators<TSelf, TOther, TResult> where TSelf : IBitwiseOperators<TSelf, TOther, TResult>?
 //{
