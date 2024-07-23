@@ -121,4 +121,40 @@ public class PolarityTests
         Assert.AreEqual(0, product.StartTick);
         Assert.AreEqual(250, product.EndTick);
     }
+    [TestMethod]
+    public void AddTest()
+    {
+        var number200 = new Number(_zeroDomain, new(0, 200));
+        var number300 = new Number(_zeroDomain, new(0, 300));
+
+        var product = number200 + number300;
+        Assert.AreEqual(Polarity.Aligned, product.Polarity);
+        Assert.AreEqual(0, product.StartTick);
+        Assert.AreEqual(500, product.EndTick);
+        Assert.AreEqual(0.5, product.EndValue, _delta);
+
+        number200.Polarity = Polarity.Inverted;
+        product = number200 + number300;
+        Assert.AreEqual(Polarity.Inverted, product.Polarity);
+        Assert.AreEqual(300, product.StartTick);
+        Assert.AreEqual(200, product.EndTick);
+        Assert.AreEqual(0.3, product.StartValue, _delta);
+        Assert.AreEqual(0.2, product.EndValue, _delta);
+
+        number300.Polarity = Polarity.Inverted;
+        product = number200 + number300;
+        Assert.AreEqual(Polarity.Inverted, product.Polarity);
+        Assert.AreEqual(0, product.StartTick);
+        Assert.AreEqual(500, product.EndTick);
+        Assert.AreEqual(0, product.StartValue, _delta);
+        Assert.AreEqual(0.5, product.EndValue, _delta);
+
+        number200.Polarity = Polarity.Aligned;
+        product = number200 + number300;
+        Assert.AreEqual(Polarity.Aligned, product.Polarity);
+        Assert.AreEqual(300, product.StartTick);
+        Assert.AreEqual(200, product.EndTick);
+        Assert.AreEqual(0.3, product.StartValue, _delta);
+        Assert.AreEqual(0.2, product.EndValue, _delta);
+    }
 }

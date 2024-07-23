@@ -39,13 +39,17 @@ public class Domain
 
     public Number ConvertNumber(Number value)
     {
-        Number result = value;
+        Number result;
         if(value.Domain != this)
         {
             var start = value.DecimalValue(value.StartTick);
             var end = value.DecimalValue(value.EndTick);
             var focal = new Focal(TickValue(start), TickValue(end));
             result = new(this, focal, value.Polarity);
+        }
+        else 
+        {
+            result = value.Clone();
         }
         return result;
     }

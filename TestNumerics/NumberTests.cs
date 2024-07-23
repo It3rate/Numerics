@@ -75,6 +75,7 @@ public class NumberTests
         var number1 = new Number(_domain, focal1);
         var number2 = new Number(_domain, focal2);
         var result = number1 + number2;
+
         Assert.AreEqual(3, result.StartTick);
         Assert.AreEqual(11, result.EndTick);
         Assert.AreEqual(0.1666, result.StartValue, _delta);

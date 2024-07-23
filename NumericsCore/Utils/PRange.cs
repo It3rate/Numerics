@@ -266,10 +266,14 @@ public struct PRange
     #region Conversions
     public Focal ToFocal() => new((long)Start, (long)End);
     public static PRange FromFocal(Focal value) => new(value.StartTick, value.EndTick);
-    public Number ToNumber(Domain domain) => new(domain, new(domain.TickValue(Start), domain.TickValue(End)));
+    public Number ToNumber(Domain domain) => new(
+        domain, 
+        new(domain.TickValue(Start), domain.TickValue(End)),
+        Polarity);
     public static PRange FromNumber(Number value) => new(
         value.Domain.DecimalValue(value.StartTick),
-        value.Domain.DecimalValue(value.EndTick));
+        value.Domain.DecimalValue(value.EndTick), 
+        value.IsAligned);
     #endregion
 
     #region Equality

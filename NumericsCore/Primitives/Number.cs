@@ -46,6 +46,16 @@ public class Number :
 	public Polarity Polarity { get; set; }
     public long StartTick { get => _focal.StartTick; set => _focal.StartTick = value; }
     public long EndTick { get => _focal.EndTick; set => _focal.EndTick = value; }
+    public long UnitTick 
+    {
+        get => IsAligned ? EndTick : StartTick;
+        set { if (IsAligned) { EndTick = value; } else { StartTick = value; } }
+    }
+    public long UnotTick
+    {
+        get => IsAligned ? StartTick : EndTick;
+        set { if (IsAligned) { StartTick = value; } else { EndTick = value; } }
+    }
 
     public long TickLength => _focal.TickLength;
 
@@ -70,12 +80,12 @@ public class Number :
 	public static Number Add(Number left, Number right) => left + right;
 	public static Number operator +(Number left, Number right)
 	{
-		var num = left.Domain.ConvertNumber(right);
+		var convertedRight = left.Domain.ConvertNumber(right);
         var offset = left._domain.BasisFocal.StartTick;
-        return new(left._domain, new Focal(
-            (left._focal.StartTick + num._focal.StartTick) - offset,
-            (left._focal.EndTick + num._focal.EndTick) - offset
-            ));
+        var result = left.Clone();
+        result.UnotTick += convertedRight.UnotTick - offset;
+        result.UnitTick += convertedRight.UnitTick - offset;
+        return result;
     }
 	static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => left + right;
 
@@ -88,12 +98,18 @@ public class Number :
 	public static Number Subtract(Number left, Number right) => left - right;
 	public static Number operator -(Number left, Number right)
     {
-        var num = left.Domain.ConvertNumber(right);
+        var convertedRight = left.Domain.ConvertNumber(right);
         var offset = left._domain.BasisFocal.StartTick;
-        return new(left._domain, new Focal(
-            (left._focal.StartTick - num._focal.StartTick) + offset,
-            (left._focal.EndTick - num._focal.EndTick) + offset
-            ));
+        var result = left.Clone();
+        result.UnotTick = (left.UnotTick - convertedRight.UnotTick) + offset;
+        result.UnitTick = (left.UnitTick - convertedRight.UnitTick) + offset;
+        return result;
+
+        //var offset = left._domain.BasisFocal.StartTick;
+        //return new(left._domain, new Focal(
+        //    (left._focal.StartTick - num._focal.StartTick) + offset,
+        //    (left._focal.EndTick - num._focal.EndTick) + offset
+        //    ));
     }
     static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => left - right;
 
