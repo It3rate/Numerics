@@ -103,7 +103,6 @@ public class NumbersTestsV1
         Assert.AreEqual(1, n3.StartValue);
         Assert.AreEqual(4, n3.EndValue);
     }
-
     [TestMethod]
     public void CoreNumberTests()
     {

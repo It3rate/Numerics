@@ -59,9 +59,9 @@ public class FocalTests
         var focal1 = new Focal(10, 20);
         var focal2 = new Focal(20, 10);
         var focal3 = new Focal(10, 10);
-        int absDirection1 = focal1.AbsDirection;
-        int absDirection2 = focal2.AbsDirection;
-        int absDirection3 = focal3.AbsDirection;
+        int absDirection1 = focal1.NonZeroDirection;
+        int absDirection2 = focal2.NonZeroDirection;
+        int absDirection3 = focal3.NonZeroDirection;
         Assert.AreEqual(1, absDirection1);
         Assert.AreEqual(-1, absDirection2);
         Assert.AreEqual(1, absDirection3); // Default to positive direction when unknown

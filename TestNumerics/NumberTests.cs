@@ -43,7 +43,6 @@ public class NumberTests
         Assert.AreEqual(_basisFocal, number.Focal);
         Assert.AreEqual(Polarity.Inverted, number.Polarity);
     }
-
     [TestMethod]
     public void TickLength_ValidValues_CalculatesCorrectly()
     {
@@ -54,7 +53,6 @@ public class NumberTests
         number = new Number(_domain, focal);
         Assert.AreEqual(-6, number.TickLength);
     }
-
     [TestMethod]
     public void AbsTickLength_ValidValues_CalculatesCorrectly()
     {
@@ -66,7 +64,6 @@ public class NumberTests
         number = new Number(_domain, focal);
         Assert.AreEqual(6, number.AbsTickLength);
     }
-
     [TestMethod]
     public void Add_ValidValues_CalculatesCorrectly()
     {
@@ -76,8 +73,8 @@ public class NumberTests
         var number2 = new Number(_domain, focal2);
         var result = number1 + number2;
 
-        Assert.AreEqual(3, result.EndTick);
-        Assert.AreEqual(11, result.StartTick);
+        Assert.AreEqual(3, result.StartTick);
+        Assert.AreEqual(11, result.EndTick);
         Assert.AreEqual(-0.1666, result.StartValue, _delta);
         Assert.AreEqual(1.5000, result.EndValue, _delta);
 
@@ -85,7 +82,6 @@ public class NumberTests
         Assert.AreEqual(prResult.Start, result.StartValue, _delta);
         Assert.AreEqual(prResult.End, result.EndValue, _delta);
     }
-
     [TestMethod]
     public void Subtract_ValidValues_CalculatesCorrectly()
     {
@@ -97,8 +93,8 @@ public class NumberTests
         var number1 = new Number(_domain, focal1);
         var number2 = new Number(_domain, focal2);
         var result = number1 - number2;
-        Assert.AreEqual(100, result.EndTick);
         Assert.AreEqual(100, result.StartTick);
+        Assert.AreEqual(100, result.EndTick);
         Assert.AreEqual(0.1666, result.StartValue, _delta);
         Assert.AreEqual(-0.1666, result.EndValue, _delta);
 
@@ -106,7 +102,6 @@ public class NumberTests
         Assert.AreEqual(prResult.Start, result.StartValue, _delta);
         Assert.AreEqual(prResult.End, result.EndValue, _delta);
     }
-
     [TestMethod]
     public void Multiply_ValidValues_CalculatesCorrectly()
     {
@@ -144,8 +139,8 @@ public class NumberTests
         number1 = new Number(_domain, focal1);
         number2 = new Number(_domain, focal2);
         result = number1 * number2;
-        Assert.AreEqual(266, result.EndTick);
-        Assert.AreEqual(533, result.StartTick);
+        Assert.AreEqual(266, result.StartTick);
+        Assert.AreEqual(533, result.EndTick);
         Assert.AreEqual(-0.11, result.StartValue, _delta);
         Assert.AreEqual(0.555, result.EndValue, _delta);
 
@@ -153,7 +148,6 @@ public class NumberTests
         Assert.AreEqual(prResult.Start, result.StartValue, .01);
         Assert.AreEqual(prResult.End, result.EndValue, .01);
     }
-
     [TestMethod]
     public void Divide_ValidValues_CalculatesCorrectly()
     {
@@ -200,6 +194,11 @@ public class NumberTests
         var pr2 = PRange.FromNumber(number2);
         var prResult = pr1 / pr2; // {0.46, 1.71}
 
+        Assert.AreEqual(0.7683, result.StartValue, _delta);
+        Assert.AreEqual(7.845, result.EndValue, _delta);
+        Assert.AreEqual(prResult.Start, result.StartValue, .01);
+        Assert.AreEqual(prResult.End, result.EndValue, .01);
+
         //Assert.AreEqual(16, result.StartTick);
         //Assert.AreEqual(9, result.EndTick);
         //Assert.AreEqual(2.3333, result.StartValue, _delta);
@@ -208,7 +207,28 @@ public class NumberTests
         //Assert.AreEqual(prResult.Start, result.StartValue, _delta);
         //Assert.AreEqual(prResult.End, result.EndValue, _delta);
     }
+    [TestMethod]
+    public void Divide_OffsetBasis_CalculatesCorrectly()
+    {
+        _basisFocal = new Focal(1000, 600);
+        _limits = new Focal(-100000, 100000);
+        _domain = new Domain(_trait, _basisFocal, _limits);
 
+        var focal1 = new Focal(600, 4200);
+        var focal2 = new Focal(300, 700);
+        var number1 = new Number(_domain, focal1);
+        var number2 = new Number(_domain, focal2);
+        var result = number1 / number2;
+
+        var pr1 = PRange.FromNumber(number1);
+        var pr2 = PRange.FromNumber(number2);
+        var prResult = pr1 / pr2;
+
+        Assert.AreEqual(-4.0675, result.StartValue, _delta);
+        Assert.AreEqual(-1.17, result.EndValue, _delta);
+        Assert.AreEqual(prResult.Start, result.StartValue, .01);
+        Assert.AreEqual(prResult.End, result.EndValue, .01);
+    }
     [TestMethod]
     public void DecimalValue_ValidTick_CalculatesCorrectly()
     {
@@ -217,7 +237,6 @@ public class NumberTests
         Assert.AreEqual(0, number.StartValue, _delta);
         Assert.AreEqual(1, number.EndValue, _delta);
     }
-
     [TestMethod]
     public void TickValue_ValidDecimalValue_CalculatesCorrectly()
     {
@@ -225,7 +244,6 @@ public class NumberTests
         var tick = _domain.BasisNumber.TickValue(decimalValue);
         Assert.AreEqual(5, tick);
     }
-
     [TestMethod]
     public void Clone_ValidNumber_CreatesNewInstance()
     {

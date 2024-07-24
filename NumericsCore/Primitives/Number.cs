@@ -39,27 +39,27 @@ public class Number :
 //IMinMaxValue<Number>
 
 {
-    public Focal Focal => _focal;
-    private Focal _focal;
-    public Domain Domain => _domain;
-    private Domain _domain;
+    public Focal Focal { get; private set; }
+    public Domain Domain { get; private set; }
 	public Polarity Polarity { get; set; }
-    public double StartValue => -_domain.DecimalValue(EndTick);
-    public double EndValue => _domain.DecimalValue(StartTick);
-    public long StartTick 
+    public long StartTick
     {
-        get => IsAligned ? Focal.LastTick : Focal.FirstTick;
-        set { if (IsAligned) { Focal.LastTick = value; } else { Focal.FirstTick = value; } }
+        get => Focal.FirstTick; // IsAligned ? Focal.FirstTick : Focal.LastTick;
+        set => Focal.FirstTick = value; // { if (IsAligned) { Focal.FirstTick = value; } else { Focal.LastTick = value; } }
     }
-    public long EndTick
+    public long EndTick 
     {
-        get => IsAligned ? Focal.FirstTick : Focal.LastTick;
-        set { if (IsAligned) { Focal.FirstTick = value; } else { Focal.LastTick = value; } }
+        get => Focal.LastTick; // IsAligned ? Focal.LastTick : Focal.FirstTick;
+        set => Focal.LastTick = value; // { if (IsAligned) { Focal.LastTick = value; } else { Focal.FirstTick = value; } }
     }
 
-    public long TickLength => _focal.TickLength;
+    public PRange Value => GetRange();
+    public double StartValue => GetRange().Start;// -Domain.DecimalValue(StartTick);
+    public double EndValue => GetRange().End;//Domain.DecimalValue(EndTick);
 
-    public long AbsTickLength => _focal.AbsTickLength;
+    public long TickLength => Focal.TickLength;
+
+    public long AbsTickLength => Focal.AbsTickLength;
 
     // IsFractional, IsInverted, IsNegative, IsNormalized, IsZero, IsOne, IsZeroStart, IsPoint, IsOverflow, IsUnderflow
     // IsLessThanBasis, IsGrowable, IsBasisLength, IsMin, HasMask, IsArray, IsMultiDim, IsCalculated, IsRandom
@@ -68,8 +68,8 @@ public class Number :
 
     public Number(Domain domain, Focal focal, Polarity polarity = Polarity.Aligned)
     {
-        _domain = domain;
-        _focal = focal;
+        Domain = domain;
+        Focal = focal;
 		Polarity = polarity;
 	}
 	#region Add
@@ -77,17 +77,18 @@ public class Number :
 	public static Number operator +(Number left, Number right)
 	{
 		var convertedRight = left.Domain.ConvertNumber(right);
-        var offset = left._domain.BasisFocal.FirstTick;
+        var offset = left.Domain.BasisFocal.FirstTick;
+        var dir = left.Domain.BasisFocal.NonZeroDirection;
         var result = left.Clone();
-        result.EndTick += convertedRight.EndTick - offset;
-        result.StartTick += convertedRight.StartTick - offset;
+        result.StartTick += convertedRight.StartTick * dir - offset;
+        result.EndTick += convertedRight.EndTick * dir - offset;
         return result;
     }
 	static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => left + right;
 
-	public static Number operator ++(Number value) => new(value._domain, value._focal++);
-	public static Number operator +(Number value) => new(value._domain, value._focal);
-	public Number AdditiveIdentity => _domain.AdditiveIdentity;
+	public static Number operator ++(Number value) => new(value.Domain, value.Focal++);
+	public static Number operator +(Number value) => new(value.Domain, value.Focal);
+	public Number AdditiveIdentity => Domain.AdditiveIdentity;
 
 	#endregion
 	#region Subtract
@@ -95,22 +96,23 @@ public class Number :
 	public static Number operator -(Number left, Number right)
     {
         var convertedRight = left.Domain.ConvertNumber(right);
-        var offset = left._domain.BasisFocal.FirstTick;
+        var offset = left.Domain.BasisFocal.FirstTick;
+        var dir = left.Domain.BasisFocal.NonZeroDirection;
         var result = left.Clone();
-        result.EndTick = (left.EndTick - convertedRight.EndTick) + offset;
-        result.StartTick = (left.StartTick - convertedRight.StartTick) + offset;
+        result.StartTick = (left.StartTick - convertedRight.StartTick * dir) + offset;
+        result.EndTick = (left.EndTick - convertedRight.EndTick * dir) + offset;
         return result;
 
-        //var offset = left._domain.BasisFocal.StartTick;
-        //return new(left._domain, new Focal(
-        //    (left._focal.StartTick - num._focal.StartTick) + offset,
-        //    (left._focal.EndTick - num._focal.EndTick) + offset
+        //var offset = left.Domain.BasisFocal.StartTick;
+        //return new(left.Domain, new Focal(
+        //    (left.Focal.StartTick - num.Focal.StartTick) + offset,
+        //    (left.Focal.EndTick - num.Focal.EndTick) + offset
         //    ));
     }
     static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => left - right;
 
-	public static Number operator --(Number value) => new(value._domain, value._focal--);
-	public static Number operator -(Number value) => new(value._domain, -value._focal);
+	public static Number operator --(Number value) => new(value.Domain, value.Focal--);
+	public static Number operator -(Number value) => new(value.Domain, -value.Focal);
 	#endregion
 	#region Multiply
 	public static Number Multiply(Number left, Number right)
@@ -120,21 +122,22 @@ public class Number :
 	public static Number operator *(Number left, Number right)
     {
         var aligned = left.Domain.ConvertNumber(right);
+        var dir = left.Domain.BasisFocal.NonZeroDirection;
         var len = (double)left.Domain.BasisFocal.TickLength;
         var offset = left.Domain.BasisFocal.FirstTick;
         var leftOffset = left.Focal.GetOffset(-offset);
         var rightOffset = aligned.Focal.GetOffset(-offset);
 
         var result = new Number(left.Domain,new (
-            (long)((leftOffset.FirstTick * rightOffset.LastTick + leftOffset.LastTick * rightOffset.FirstTick) / len) + offset,
-            (long)((leftOffset.LastTick * rightOffset.LastTick - leftOffset.FirstTick * rightOffset.FirstTick) / len) + offset),
+            (long)((leftOffset.FirstTick * rightOffset.LastTick + leftOffset.LastTick  * rightOffset.FirstTick) / len) + offset,
+            (long)((leftOffset.LastTick  * rightOffset.LastTick - leftOffset.FirstTick * rightOffset.FirstTick) / len) + offset),
             left.Polarity);
 
         return result.SolvePolarityWith(right);
     }
 
 	static Number IMultiplyOperators<Number, Number, Number>.operator *(Number left, Number right) => left * right;
-	public Number MultiplicativeIdentity => _domain.MultiplicativeIdentity;
+	public Number MultiplicativeIdentity => Domain.MultiplicativeIdentity;
 
 	#endregion
 	#region Divide
@@ -172,9 +175,8 @@ public class Number :
         return result.SolvePolarityWith(right);
     }
     #endregion
-
     #region Polarity
-    public int PolarityDirection => IsAligned ? 1 : IsInverted ? -1 : 0;
+    public int PolarityDirection => Polarity.Direction();
     public bool IsAligned => Polarity == Polarity.Aligned;
     public bool HasPolarity => Polarity == Polarity.Aligned || Polarity == Polarity.Inverted;
     public bool IsInverted => !IsAligned;
@@ -186,11 +188,15 @@ public class Number :
     public Number SolvePolarityWith(Number right)
     {
         Number result;
-        if (Polarity == Polarity.Inverted && right.Polarity == Polarity.Inverted)
-        {
-            result = InvertPolarityAndDirection();
-        }
-        else if (Polarity == Polarity.Aligned && right.Polarity == Polarity.Inverted)
+        //if (Polarity == Polarity.Inverted && right.Polarity == Polarity.Inverted)
+        //{
+        //    result = InvertPolarityAndDirection();
+        //}
+        //else if (Polarity == Polarity.Aligned && right.Polarity == Polarity.Inverted)
+        //{
+        //    result = InvertPolarity();
+        //}
+        if (right.Polarity == Polarity.Inverted)
         {
             result = InvertPolarity();
         }
@@ -204,8 +210,26 @@ public class Number :
     #endregion
 
     #region Conversions
-    public double DecimalValue(long tick) => _domain.DecimalValue(tick);
-    public long TickValue(double value) => _domain.TickValue(value);
+    //public double DecimalValue(long tick) => Domain.DecimalValue(tick);
+    public long TickValue(double value) => Domain.TickValue(value);
+
+    public PRange GetRange()//Focal numFocal, Focal basis, bool isReciprocal, bool isAligned)
+    {
+        var basis = Domain.BasisFocal;
+        var len = (double)basis.NonZeroTickLength * Polarity.ForceValue(); //AlignedNonZeroLength(isAligned);// 
+        var start = (StartTick - basis.FirstTick) / len;
+        var end = (EndTick - basis.FirstTick) / len;
+        if (Domain.BasisIsReciprocal)
+        {
+            start = Math.Round(start) * Math.Abs(len);
+            end = Math.Round(end) * Math.Abs(len);
+        }
+        //start = IsAligned ? -start : start;
+        //end = IsAligned ? end : -end;
+        var result = new PRange(-start, end, IsAligned);
+        return result;
+    }
+
     #endregion
     #region Equality
     public Number Clone() => new Number(Domain, Focal.Clone(), Polarity);
@@ -251,18 +275,19 @@ public class Number :
     public override string ToString()
     {
         string result;
-        var vStart = Domain.DecimalValue(Focal.FirstTick);
-        var vEnd = Domain.DecimalValue(Focal.LastTick);
+        var val = GetRange();
+        //var vStart = Domain.DecimalValue(Focal.FirstTick);
+        //var vEnd = Domain.DecimalValue(Focal.LastTick);
         if (Polarity == Polarity.None)
         {
-            result = $"x({vStart:0.##}_{-vEnd:0.##})"; // no polarity, so just list values
+            result = $"x({val.Start:0.##}_{val.End:0.##})"; // no polarity, so just list values
         }
         else
         {
-            var midSign = vEnd > 0 ? " + " : " ";
+            var midSign = val.End > 0 ? " + " : " ";
             result = IsAligned ?
-                $"({vStart:0.##}i{midSign}{vEnd:0.##}r)" :
-                $"~({vEnd:0.##}r{midSign}{vStart:0.##}i)";
+                $"({val.Start:0.##}s{midSign}{val.End:0.##}e)" :
+                $"~({val.End:0.##}s{midSign}{val.Start:0.##}e)";
         }
         return result;
     }

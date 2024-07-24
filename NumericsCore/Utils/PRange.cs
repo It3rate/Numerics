@@ -19,60 +19,59 @@ public struct PRange
     public static readonly double Tolerance = 0.000000001;
 
     public Polarity Polarity { get; private set; }
-    public int PolarityDirection => IsAligned ? 1 : -1;
+    public int PolarityDirection => Polarity.Direction();
     public bool IsAligned => Polarity == Polarity.Aligned;
     public bool IsInverted => Polarity == Polarity.Inverted;
 
-    public double Start { get; private set; }
+    private readonly bool _hasValue;
+    private double _start;
+    private double _end;
+    public double Start
+    {
+        get => IsAligned ? _start : _end;
+        set { if (IsAligned) { _start = value; } else { _end = value; } }
+    }
     public double End
     {
-        get;
-        private set;
+        get => IsAligned ? _end : _start;
+        private set { if (IsAligned) { _end = value; } else { _start = value; } }
     }
-    private readonly bool _hasValue;
-    public double UnitValue
-    {
-        get => IsAligned ? End : Start;
-        set { if (IsAligned) { End = value; } else { Start = value; } }
-    }
-    public double UnotValue
-    {
-        get => IsAligned ? Start : End;
-        set { if (IsAligned) { Start = value; } else { End = value; } }
-    }
+
     public float StartF => (float)Start;
     public float EndF => (float)End;
-    public float RenderStart => (float)(IsAligned ? Start : -Start);
-    public float RenderEnd => (float)(IsAligned ? End : -End);
+    public float RenderStart => (float)(IsAligned ? _start : -_start);
+    public float RenderEnd => (float)(IsAligned ? _end : -_end);
 
-    public PRange(int start, int end, bool isAligned = true)
-    {
-        _hasValue = true;
-        Start = start;
-        End = end;
-        Polarity = isAligned ? Polarity.Aligned : Polarity.Inverted;
-    }
+    public PRange(PRange value, bool isAligned = true) : this(value.Start, value.End, isAligned) { }
+
     public PRange(double start, double end, bool isAligned = true)
     {
         _hasValue = true;
-        Start = start;
-        End = end;
         Polarity = isAligned ? Polarity.Aligned : Polarity.Inverted;
+        _start = start;
+        _end = end;
     }
-    public PRange(PRange value, bool isAligned = true)
+    public PRange(Number num)
     {
         _hasValue = true;
-        Start = value.Start;
-        End = value.End;
-        Polarity = isAligned ? Polarity.Aligned : Polarity.Inverted;
+        Polarity = num.Polarity;
+        if(IsInverted)
+        {
+            _start = num.EndValue;
+            _end = num.StartValue;
+        }
+        else
+        {
+            _start = num.StartValue;
+            _end = num.EndValue;
+        }
     }
+    public static PRange FromNumber(Number value) => new(value);
 
-    private PRange(double start, double end, bool isEmpty, bool isAligned = true) // empty ctor
+    private PRange(bool isEmpty) // empty ctor
     {
-        _hasValue = !isEmpty;
-        Start = start;
-        End = end;
-        Polarity = isAligned ? Polarity.Aligned : Polarity.Inverted;
+        _hasValue = false;
+        Polarity = Polarity.None;
     }
 
     public bool IsEmpty => _hasValue;
@@ -139,16 +138,16 @@ public struct PRange
     public static PRange operator -(PRange value) => new PRange(-value.Start, -value.End);
     public static PRange operator +(PRange left, PRange right)
     {
-        var result = right.Clone();
-        result.UnitValue += left.UnitValue;
-        result.UnotValue += left.UnotValue;
+        var result = left.Clone();
+        result.Start += right.Start;
+        result.End += right.End;
         return result;
     }
     public static PRange operator -(PRange left, PRange right)
     {
         var result = left.Clone();
-        result.UnitValue -= right.UnitValue;
-        result.UnotValue -= right.UnotValue;
+        result.Start -= right.Start;
+        result.End -= right.End;
         return result;
     }
     public static PRange operator *(PRange left, PRange right)
@@ -270,7 +269,6 @@ public struct PRange
         domain, 
         new(domain.TickValue(Start), domain.TickValue(End)),
         Polarity);
-    public static PRange FromNumber(Number value) => new( value.StartValue, value.EndValue, value.IsAligned);
     #endregion
 
     #region Equality
@@ -304,8 +302,23 @@ public struct PRange
 
     public override string ToString()
     {
-        var prefix = Polarity == Polarity.Inverted ? "~" : "";
-        return $"{prefix}[{Start:0.00}->{End:0.00}]";
+        //var prefix = Polarity == Polarity.Inverted ? "~" : "";
+        //var midSign = End > 0 ? " + " : " ";
+        //return $"{prefix}[{Start:0.00}{midSign}{End:0.00}]";
+
+        string result;
+        if (Polarity == Polarity.None)
+        {
+            result = $"x({Start:0.##}_{End:0.##})"; // no polarity, so just list values
+        }
+        else
+        {
+            var midSign = End > 0 ? " + " : " ";
+            result = IsAligned ?
+                $"({Start:0.##}s{midSign}{End:0.##}e)" :
+                $"~({End:0.##}s{midSign}{Start:0.##}e)";
+        }
+        return result;
     }
 
 }

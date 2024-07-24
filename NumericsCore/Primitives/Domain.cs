@@ -1,4 +1,6 @@
 ﻿
+using NumericsCore.Utils;
+
 namespace Numerics.Primitives;
 
 // this constrains the significant figures of a measurement, unit/not is the minimum tick size, and range is the max possible.
@@ -65,15 +67,16 @@ public class Domain
         }
         return result;
     }
-    public double DecimalValue(long tick)
-    {
-        var clamped =
-            (tick < LimitsFocal.FirstTick) ? LimitsFocal.FirstTick :
-            (tick > LimitsFocal.LastTick) ? LimitsFocal.LastTick : tick;
-        var offset = clamped - BasisFocal.FirstTick;
-        var result = offset / (double)BasisFocal.NonZeroTickLength;
-        return result;
-    }
+    //public double DecimalValue(long tick)
+    //{
+    //    var clamped =
+    //        (tick < LimitsFocal.FirstTick) ? LimitsFocal.FirstTick :
+    //        (tick > LimitsFocal.LastTick) ? LimitsFocal.LastTick : tick;
+    //    var offset = clamped - BasisFocal.FirstTick;
+    //    var result = offset / (double)BasisFocal.NonZeroTickLength;
+    //    return result;
+    //}
+
     public Focal FocalFromDecimal(double start, double end)
     {
         return new Focal(
