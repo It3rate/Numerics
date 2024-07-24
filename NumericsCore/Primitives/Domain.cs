@@ -68,9 +68,9 @@ public class Domain
     public double DecimalValue(long tick)
     {
         var clamped =
-            (tick < LimitsFocal.StartTick) ? LimitsFocal.StartTick :
-            (tick > LimitsFocal.EndTick) ? LimitsFocal.EndTick : tick;
-        var offset = clamped - BasisFocal.StartTick;
+            (tick < LimitsFocal.FirstTick) ? LimitsFocal.FirstTick :
+            (tick > LimitsFocal.LastTick) ? LimitsFocal.LastTick : tick;
+        var offset = clamped - BasisFocal.FirstTick;
         var result = offset / (double)BasisFocal.NonZeroTickLength;
         return result;
     }
@@ -83,10 +83,10 @@ public class Domain
     public long TickValue(double value)
     {
         var result = (long)(value * BasisFocal.NonZeroTickLength);
-        result += BasisFocal.StartTick;
+        result += BasisFocal.FirstTick;
         result =
-            (result < LimitsFocal.StartTick) ? LimitsFocal.StartTick :
-            (result > LimitsFocal.EndTick) ? LimitsFocal.EndTick : result;
+            (result < LimitsFocal.FirstTick) ? LimitsFocal.FirstTick :
+            (result > LimitsFocal.LastTick) ? LimitsFocal.LastTick : result;
         return result;
     }
     #endregion
@@ -96,6 +96,6 @@ public class Domain
         var result = new Domain(Trait, BasisFocal, LimitsFocal);
         return result;
 	}
-	public Number AdditiveIdentity => new Number(this, new Focal(BasisFocal.StartTick, BasisFocal.StartTick));
+	public Number AdditiveIdentity => new Number(this, new Focal(BasisFocal.FirstTick, BasisFocal.FirstTick));
 	public Number MultiplicativeIdentity => new Number(this, BasisFocal);
 }

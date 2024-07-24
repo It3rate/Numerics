@@ -265,7 +265,7 @@ public struct PRange
 
     #region Conversions
     public Focal ToFocal() => new((long)Start, (long)End);
-    public static PRange FromFocal(Focal value) => new(value.StartTick, value.EndTick);
+    public static PRange FromFocal(Focal value) => new(value.FirstTick, value.LastTick);
     public Number ToNumber(Domain domain) => new(
         domain, 
         new(domain.TickValue(Start), domain.TickValue(End)),

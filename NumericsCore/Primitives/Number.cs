@@ -44,17 +44,17 @@ public class Number :
     public Domain Domain => _domain;
     private Domain _domain;
 	public Polarity Polarity { get; set; }
-    public long StartTick { get => _focal.StartTick; set => _focal.StartTick = value; }
-    public long EndTick { get => _focal.EndTick; set => _focal.EndTick = value; }
-    public long UnitTick 
+    public double StartValue => -_domain.DecimalValue(EndTick);
+    public double EndValue => _domain.DecimalValue(StartTick);
+    public long StartTick 
     {
-        get => IsAligned ? EndTick : StartTick;
-        set { if (IsAligned) { EndTick = value; } else { StartTick = value; } }
+        get => IsAligned ? Focal.LastTick : Focal.FirstTick;
+        set { if (IsAligned) { Focal.LastTick = value; } else { Focal.FirstTick = value; } }
     }
-    public long UnotTick
+    public long EndTick
     {
-        get => IsAligned ? StartTick : EndTick;
-        set { if (IsAligned) { StartTick = value; } else { EndTick = value; } }
+        get => IsAligned ? Focal.FirstTick : Focal.LastTick;
+        set { if (IsAligned) { Focal.FirstTick = value; } else { Focal.LastTick = value; } }
     }
 
     public long TickLength => _focal.TickLength;
@@ -77,10 +77,10 @@ public class Number :
 	public static Number operator +(Number left, Number right)
 	{
 		var convertedRight = left.Domain.ConvertNumber(right);
-        var offset = left._domain.BasisFocal.StartTick;
+        var offset = left._domain.BasisFocal.FirstTick;
         var result = left.Clone();
-        result.UnotTick += convertedRight.UnotTick - offset;
-        result.UnitTick += convertedRight.UnitTick - offset;
+        result.EndTick += convertedRight.EndTick - offset;
+        result.StartTick += convertedRight.StartTick - offset;
         return result;
     }
 	static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => left + right;
@@ -95,10 +95,10 @@ public class Number :
 	public static Number operator -(Number left, Number right)
     {
         var convertedRight = left.Domain.ConvertNumber(right);
-        var offset = left._domain.BasisFocal.StartTick;
+        var offset = left._domain.BasisFocal.FirstTick;
         var result = left.Clone();
-        result.UnotTick = (left.UnotTick - convertedRight.UnotTick) + offset;
-        result.UnitTick = (left.UnitTick - convertedRight.UnitTick) + offset;
+        result.EndTick = (left.EndTick - convertedRight.EndTick) + offset;
+        result.StartTick = (left.StartTick - convertedRight.StartTick) + offset;
         return result;
 
         //var offset = left._domain.BasisFocal.StartTick;
@@ -121,13 +121,13 @@ public class Number :
     {
         var aligned = left.Domain.ConvertNumber(right);
         var len = (double)left.Domain.BasisFocal.TickLength;
-        var offset = left.Domain.BasisFocal.StartTick;
+        var offset = left.Domain.BasisFocal.FirstTick;
         var leftOffset = left.Focal.GetOffset(-offset);
         var rightOffset = aligned.Focal.GetOffset(-offset);
 
         var result = new Number(left.Domain,new (
-            (long)((leftOffset.StartTick * rightOffset.EndTick + leftOffset.EndTick * rightOffset.StartTick) / len) + offset,
-            (long)((leftOffset.EndTick * rightOffset.EndTick - leftOffset.StartTick * rightOffset.StartTick) / len) + offset),
+            (long)((leftOffset.FirstTick * rightOffset.LastTick + leftOffset.LastTick * rightOffset.FirstTick) / len) + offset,
+            (long)((leftOffset.LastTick * rightOffset.LastTick - leftOffset.FirstTick * rightOffset.FirstTick) / len) + offset),
             left.Polarity);
 
         return result.SolvePolarityWith(right);
@@ -147,13 +147,13 @@ public class Number :
         var aligned = left.Domain.ConvertNumber(right);
 
         Focal focalResult;
-        var offset = left.Domain.BasisFocal.StartTick;
+        var offset = left.Domain.BasisFocal.FirstTick;
         var len = left.Domain.BasisFocal.TickLength;
         var polarity = left.Polarity.SolvePolarity(right.Polarity);
-        double leftEnd = left.EndTick - offset;
-        double leftStart = left.StartTick - offset;
-        double rightEnd = aligned.EndTick - offset;
-        double rightStart = aligned.StartTick - offset;
+        double leftEnd = left.Focal.LastTick - offset;
+        double leftStart = left.Focal.FirstTick - offset;
+        double rightEnd = aligned.Focal.LastTick - offset;
+        double rightStart = aligned.Focal.FirstTick - offset;
         if (Math.Abs(rightStart) < Math.Abs(rightEnd))
         {
             double num = rightStart / rightEnd;
@@ -204,8 +204,6 @@ public class Number :
     #endregion
 
     #region Conversions
-    public double StartValue => -_domain.DecimalValue(UnotTick);
-    public double EndValue => _domain.DecimalValue(UnitTick);
     public double DecimalValue(long tick) => _domain.DecimalValue(tick);
     public long TickValue(double value) => _domain.TickValue(value);
     #endregion
@@ -253,8 +251,8 @@ public class Number :
     public override string ToString()
     {
         string result;
-        var vStart = Domain.DecimalValue(StartTick);
-        var vEnd = Domain.DecimalValue(EndTick);
+        var vStart = Domain.DecimalValue(Focal.FirstTick);
+        var vEnd = Domain.DecimalValue(Focal.LastTick);
         if (Polarity == Polarity.None)
         {
             result = $"x({vStart:0.##}_{-vEnd:0.##})"; // no polarity, so just list values

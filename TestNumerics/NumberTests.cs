@@ -76,8 +76,8 @@ public class NumberTests
         var number2 = new Number(_domain, focal2);
         var result = number1 + number2;
 
-        Assert.AreEqual(3, result.StartTick);
-        Assert.AreEqual(11, result.EndTick);
+        Assert.AreEqual(3, result.EndTick);
+        Assert.AreEqual(11, result.StartTick);
         Assert.AreEqual(-0.1666, result.StartValue, _delta);
         Assert.AreEqual(1.5000, result.EndValue, _delta);
 
@@ -97,8 +97,8 @@ public class NumberTests
         var number1 = new Number(_domain, focal1);
         var number2 = new Number(_domain, focal2);
         var result = number1 - number2;
-        Assert.AreEqual(100, result.StartTick);
         Assert.AreEqual(100, result.EndTick);
+        Assert.AreEqual(100, result.StartTick);
         Assert.AreEqual(0.1666, result.StartValue, _delta);
         Assert.AreEqual(-0.1666, result.EndValue, _delta);
 
@@ -144,8 +144,8 @@ public class NumberTests
         number1 = new Number(_domain, focal1);
         number2 = new Number(_domain, focal2);
         result = number1 * number2;
-        Assert.AreEqual(266, result.StartTick);
-        Assert.AreEqual(533, result.EndTick);
+        Assert.AreEqual(266, result.EndTick);
+        Assert.AreEqual(533, result.StartTick);
         Assert.AreEqual(-0.11, result.StartValue, _delta);
         Assert.AreEqual(0.555, result.EndValue, _delta);
 

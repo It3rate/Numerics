@@ -16,8 +16,8 @@ public class FocalTests
         long start = 10;
         long end = 20;
         var focal = new Focal(start, end);
-        Assert.AreEqual(start, focal.StartTick);
-        Assert.AreEqual(end, focal.EndTick);
+        Assert.AreEqual(start, focal.FirstTick);
+        Assert.AreEqual(end, focal.LastTick);
     }
 
     [TestMethod]
@@ -92,12 +92,12 @@ public class FocalTests
         var focal1 = new Focal(10, 20);
         var focal2 = new Focal(5, 15);
         var result = focal1 + focal2;
-        Assert.AreEqual(15, result.StartTick);
-        Assert.AreEqual(35, result.EndTick);
+        Assert.AreEqual(15, result.FirstTick);
+        Assert.AreEqual(35, result.LastTick);
 
         var prResult = PRange.FromFocal(focal1) + PRange.FromFocal(focal2);
-        Assert.AreEqual(prResult.Start, result.StartTick);
-        Assert.AreEqual(prResult.End, result.EndTick);
+        Assert.AreEqual(prResult.Start, result.FirstTick);
+        Assert.AreEqual(prResult.End, result.LastTick);
     }
 
     [TestMethod]
@@ -106,12 +106,12 @@ public class FocalTests
         var focal1 = new Focal(10, 20);
         var focal2 = new Focal(5, 15);
         var result = focal1 - focal2;
-        Assert.AreEqual(5, result.StartTick);
-        Assert.AreEqual(5, result.EndTick);
+        Assert.AreEqual(5, result.FirstTick);
+        Assert.AreEqual(5, result.LastTick);
 
         var prResult = PRange.FromFocal(focal1) - PRange.FromFocal(focal2);
-        Assert.AreEqual(prResult.Start, result.StartTick);
-        Assert.AreEqual(prResult.End, result.EndTick);
+        Assert.AreEqual(prResult.Start, result.FirstTick);
+        Assert.AreEqual(prResult.End, result.LastTick);
     }
 
     [TestMethod]
@@ -120,12 +120,12 @@ public class FocalTests
         var focal1 = new Focal(2, 4);
         var focal2 = new Focal(3, 6);
         var result = focal1 * focal2;
-        Assert.AreEqual(24, result.StartTick);
-        Assert.AreEqual(18, result.EndTick);
+        Assert.AreEqual(24, result.FirstTick);
+        Assert.AreEqual(18, result.LastTick);
 
         var prResult = PRange.FromFocal(focal1) * PRange.FromFocal(focal2);
-        Assert.AreEqual(prResult.Start, result.StartTick);
-        Assert.AreEqual(prResult.End, result.EndTick);
+        Assert.AreEqual(prResult.Start, result.FirstTick);
+        Assert.AreEqual(prResult.End, result.LastTick);
     }
 
     [TestMethod]
@@ -134,12 +134,12 @@ public class FocalTests
         var focal1 = new Focal(10, 20);
         var focal2 = new Focal(2, 4);
         var result = focal1 / focal2;
-        Assert.AreEqual(0, result.StartTick);
-        Assert.AreEqual(5, result.EndTick);
+        Assert.AreEqual(0, result.FirstTick);
+        Assert.AreEqual(5, result.LastTick);
 
         var prResult = PRange.FromFocal(focal1) / PRange.FromFocal(focal2);
-        Assert.AreEqual(prResult.Start, result.StartTick);
-        Assert.AreEqual(prResult.End, result.EndTick);
+        Assert.AreEqual(prResult.Start, result.FirstTick);
+        Assert.AreEqual(prResult.End, result.LastTick);
     }
 
     [TestMethod]
@@ -148,12 +148,12 @@ public class FocalTests
         var focal = new Focal(10, 20);
         long multiple = 3;
         var result = focal.Expand(multiple);
-        Assert.AreEqual(30, result.StartTick);
-        Assert.AreEqual(60, result.EndTick);
+        Assert.AreEqual(30, result.FirstTick);
+        Assert.AreEqual(60, result.LastTick);
 
         var prResult = PRange.FromFocal(focal) * multiple;
-        Assert.AreEqual(prResult.Start, result.StartTick);
-        Assert.AreEqual(prResult.End, result.EndTick);
+        Assert.AreEqual(prResult.Start, result.FirstTick);
+        Assert.AreEqual(prResult.End, result.LastTick);
     }
 
     [TestMethod]
@@ -162,12 +162,12 @@ public class FocalTests
         var focal = new Focal(30, 60);
         long divisor = 3;
         var result = focal.Contract(divisor);
-        Assert.AreEqual(10, result.StartTick);
-        Assert.AreEqual(20, result.EndTick);
+        Assert.AreEqual(10, result.FirstTick);
+        Assert.AreEqual(20, result.LastTick);
 
         var prResult = PRange.FromFocal(focal) / divisor;
-        Assert.AreEqual(prResult.Start, result.StartTick);
-        Assert.AreEqual(prResult.End, result.EndTick);
+        Assert.AreEqual(prResult.Start, result.FirstTick);
+        Assert.AreEqual(prResult.End, result.LastTick);
     }
 
     [TestMethod]
@@ -176,8 +176,8 @@ public class FocalTests
         var focal = new Focal(10, 20);
         long offset = 5;
         var result = focal.GetOffset(offset);
-        Assert.AreEqual(15, result.StartTick);
-        Assert.AreEqual(25, result.EndTick);
+        Assert.AreEqual(15, result.FirstTick);
+        Assert.AreEqual(25, result.LastTick);
     }
 
     [TestMethod]
@@ -186,23 +186,23 @@ public class FocalTests
         var focal = new Focal(10, 20);
         var clone = focal.Clone();
         Assert.AreNotSame(focal, clone);
-        Assert.AreEqual(focal.StartTick, clone.StartTick);
-        Assert.AreEqual(focal.EndTick, clone.EndTick);
+        Assert.AreEqual(focal.FirstTick, clone.FirstTick);
+        Assert.AreEqual(focal.LastTick, clone.LastTick);
     }
 
     [TestMethod]
     public void Zero_ReturnsCorrectInstance()
     {
         var zero = Focal.Zero;
-        Assert.AreEqual(0, zero.StartTick);
-        Assert.AreEqual(0, zero.EndTick);
+        Assert.AreEqual(0, zero.FirstTick);
+        Assert.AreEqual(0, zero.LastTick);
     }
 
     [TestMethod]
     public void One_ReturnsCorrectInstance()
     {
         var one = Focal.One;
-        Assert.AreEqual(0, one.StartTick);
-        Assert.AreEqual(1, one.EndTick);
+        Assert.AreEqual(0, one.FirstTick);
+        Assert.AreEqual(1, one.LastTick);
     }
 }
