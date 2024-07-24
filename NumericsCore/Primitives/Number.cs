@@ -128,12 +128,13 @@ public class Number :
         var leftOffset = left.Focal.GetOffset(-offset);
         var rightOffset = aligned.Focal.GetOffset(-offset);
 
-        var result = new Number(left.Domain,new (
-            (long)((leftOffset.FirstTick * rightOffset.LastTick + leftOffset.LastTick  * rightOffset.FirstTick) / len) + offset,
-            (long)((leftOffset.LastTick  * rightOffset.LastTick - leftOffset.FirstTick * rightOffset.FirstTick) / len) + offset),
+        var raw = new Number(left.Domain,new (
+            (long)((leftOffset.FirstTick * rightOffset.LastTick + leftOffset.LastTick  * rightOffset.FirstTick) / len),
+            (long)((leftOffset.LastTick  * rightOffset.LastTick - leftOffset.FirstTick * rightOffset.FirstTick) / len)),
             left.Polarity);
 
-        return result.SolvePolarityWith(right);
+        Number? result = raw.SolvePolarityWith(right);
+        return new Number(result.Domain, result.Focal.GetOffset(offset), result.Polarity);
     }
 
 	static Number IMultiplyOperators<Number, Number, Number>.operator *(Number left, Number right) => left * right;
@@ -171,8 +172,10 @@ public class Number :
                 (long)(((-leftEnd + leftStart * num1) / (rightStart + rightEnd * num1)) * len),
                 (long)(((leftStart + leftEnd * num1) / (rightStart + rightEnd * num1)) * len));
         }
-        var result =  new Number(left.Domain, focalResult.GetOffset(offset), left.Polarity);
-        return result.SolvePolarityWith(right);
+        var raw =  new Number(left.Domain, focalResult, left.Polarity);
+        //return result.SolvePolarityWith(right);
+        Number? result = raw.SolvePolarityWith(right);
+        return new Number(result.Domain, result.Focal.GetOffset(offset), result.Polarity);
     }
     #endregion
     #region Polarity
@@ -188,18 +191,18 @@ public class Number :
     public Number SolvePolarityWith(Number right)
     {
         Number result;
-        //if (Polarity == Polarity.Inverted && right.Polarity == Polarity.Inverted)
-        //{
-        //    result = InvertPolarityAndDirection();
-        //}
-        //else if (Polarity == Polarity.Aligned && right.Polarity == Polarity.Inverted)
-        //{
-        //    result = InvertPolarity();
-        //}
-        if (right.Polarity == Polarity.Inverted)
+        if (Polarity == Polarity.Inverted && right.Polarity == Polarity.Inverted)
+        {
+            result = InvertPolarityAndDirection();
+        }
+        else if (Polarity == Polarity.Aligned && right.Polarity == Polarity.Inverted)
         {
             result = InvertPolarity();
         }
+        //if (right.Polarity == Polarity.Inverted)
+        //{
+        //    result = InvertPolarity();
+        //}
         else
         {
             result = Clone();
