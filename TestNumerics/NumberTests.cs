@@ -78,7 +78,7 @@ public class NumberTests
 
         Assert.AreEqual(3, result.StartTick);
         Assert.AreEqual(11, result.EndTick);
-        Assert.AreEqual(0.1666, result.StartValue, _delta);
+        Assert.AreEqual(-0.1666, result.StartValue, _delta);
         Assert.AreEqual(1.5000, result.EndValue, _delta);
 
         var prResult = PRange.FromNumber(number1) + PRange.FromNumber(number2);
@@ -99,7 +99,7 @@ public class NumberTests
         var result = number1 - number2;
         Assert.AreEqual(100, result.StartTick);
         Assert.AreEqual(100, result.EndTick);
-        Assert.AreEqual(-0.1666, result.StartValue, _delta);
+        Assert.AreEqual(0.1666, result.StartValue, _delta);
         Assert.AreEqual(-0.1666, result.EndValue, _delta);
 
         var prResult = PRange.FromNumber(number1) - PRange.FromNumber(number2); // {-.17,-.17}
@@ -127,7 +127,7 @@ public class NumberTests
         number1 = new Number(_domain, focal1);
         number2 = new Number(_domain, focal2);
         result = number1 * number2;
-        Assert.AreEqual(4.00, result.StartValue, _delta);
+        Assert.AreEqual(-4.00, result.StartValue, _delta);
         Assert.AreEqual(8.00, result.EndValue, _delta);
 
         var prResult = PRange.FromNumber(number1) * PRange.FromNumber(number2);
@@ -146,7 +146,7 @@ public class NumberTests
         result = number1 * number2;
         Assert.AreEqual(266, result.StartTick);
         Assert.AreEqual(533, result.EndTick);
-        Assert.AreEqual(0.11, result.StartValue, _delta);
+        Assert.AreEqual(-0.11, result.StartValue, _delta);
         Assert.AreEqual(0.555, result.EndValue, _delta);
 
        prResult = PRange.FromNumber(number1) * PRange.FromNumber(number2);// {.11, .56}
@@ -174,7 +174,7 @@ public class NumberTests
         number1 = new Number(_domain, focal1);
         number2 = new Number(_domain, focal2);
         result = number1 / number2;
-        Assert.AreEqual(5.00, result.StartValue, _delta);
+        Assert.AreEqual(-5.00, result.StartValue, _delta);
         Assert.AreEqual(10.00, result.EndValue, _delta);
 
         _basisFocal = new Focal(1000, 2000);
@@ -184,7 +184,7 @@ public class NumberTests
         number1 = new Number(_domain, focal1);
         number2 = new Number(_domain, focal2);
         result = number1 / number2;
-        Assert.AreEqual(5.00, result.StartValue, _delta);
+        Assert.AreEqual(-5.00, result.StartValue, _delta);
         Assert.AreEqual(10.00, result.EndValue, _delta);
 
         _basisFocal = new Focal(200, 800);
@@ -195,7 +195,6 @@ public class NumberTests
         number1 = new Number(_domain, focal1);
         number2 = new Number(_domain, focal2);
         result = number1 / number2;
-        var sv = result.StartValue;
 
         var pr1 = PRange.FromNumber(number1);
         var pr2 = PRange.FromNumber(number2);
@@ -215,9 +214,8 @@ public class NumberTests
     {
         var focal = new Focal(2, 8);
         var number = new Number(_domain, focal);
-        long tick = 4;
-        var decimalValue = number.DecimalValue(tick);
-        Assert.AreEqual(0.3333, decimalValue, _delta);
+        Assert.AreEqual(0, number.StartValue, _delta);
+        Assert.AreEqual(1, number.EndValue, _delta);
     }
 
     [TestMethod]

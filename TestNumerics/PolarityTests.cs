@@ -75,7 +75,8 @@ public class PolarityTests
         Assert.AreEqual(Polarity.Inverted, product.Polarity);
         Assert.AreEqual(0, product.StartTick);
         Assert.AreEqual(60, product.EndTick);
-        Assert.AreEqual(0.06, product.EndValue, _delta);
+        Assert.AreEqual(-0.06, product.StartValue, _delta);
+        Assert.AreEqual(0, product.EndValue, _delta);
 
         number300.Polarity = Polarity.Inverted;
         product = number200 * number300;
@@ -89,7 +90,8 @@ public class PolarityTests
         Assert.AreEqual(Polarity.Inverted, product.Polarity);
         Assert.AreEqual(0, product.StartTick);
         Assert.AreEqual(60, product.EndTick);
-        Assert.AreEqual(0.06, product.EndValue, _delta);
+        Assert.AreEqual(-0.06, product.StartValue, _delta);
+        Assert.AreEqual(0, product.EndValue, _delta);
     }
     [TestMethod]
     public void DivideTest()
@@ -138,23 +140,23 @@ public class PolarityTests
         Assert.AreEqual(Polarity.Inverted, product.Polarity);
         Assert.AreEqual(300, product.StartTick);
         Assert.AreEqual(200, product.EndTick);
-        Assert.AreEqual(0.3, product.StartValue, _delta);
-        Assert.AreEqual(0.2, product.EndValue, _delta);
+        Assert.AreEqual(-0.2, product.StartValue, _delta);
+        Assert.AreEqual(0.3, product.EndValue, _delta);
 
         number300.Polarity = Polarity.Inverted;
         product = number200 + number300;
         Assert.AreEqual(Polarity.Inverted, product.Polarity);
         Assert.AreEqual(0, product.StartTick);
         Assert.AreEqual(500, product.EndTick);
-        Assert.AreEqual(0, product.StartValue, _delta);
-        Assert.AreEqual(0.5, product.EndValue, _delta);
+        Assert.AreEqual(-0.5, product.StartValue, _delta);
+        Assert.AreEqual(0, product.EndValue, _delta);
 
         number200.Polarity = Polarity.Aligned;
         product = number200 + number300;
         Assert.AreEqual(Polarity.Aligned, product.Polarity);
         Assert.AreEqual(300, product.StartTick);
         Assert.AreEqual(200, product.EndTick);
-        Assert.AreEqual(0.3, product.StartValue, _delta);
+        Assert.AreEqual(-0.3, product.StartValue, _delta);
         Assert.AreEqual(0.2, product.EndValue, _delta);
     }
 }

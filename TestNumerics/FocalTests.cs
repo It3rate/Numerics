@@ -48,8 +48,8 @@ public class FocalTests
         int direction1 = focal1.Direction;
         int direction2 = focal2.Direction;
         int direction3 = focal3.Direction;
-        Assert.AreEqual(-1, direction1);
-        Assert.AreEqual(1, direction2);
+        Assert.AreEqual(1, direction1);
+        Assert.AreEqual(-1, direction2);
         Assert.AreEqual(0, direction3);
     }
 
@@ -74,8 +74,8 @@ public class FocalTests
         var focal2 = new Focal(20, 10);
         bool isPositiveDirection1 = focal1.IsPositiveDirection;
         bool isPositiveDirection2 = focal2.IsPositiveDirection;
-        Assert.IsFalse(isPositiveDirection1);
-        Assert.IsTrue(isPositiveDirection2);
+        Assert.IsTrue(isPositiveDirection1);
+        Assert.IsFalse(isPositiveDirection2);
     }
 
     [TestMethod]

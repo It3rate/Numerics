@@ -60,10 +60,6 @@ public class Number :
     public long TickLength => _focal.TickLength;
 
     public long AbsTickLength => _focal.AbsTickLength;
-    public int PolarityDirection => IsAligned ? 1 : IsInverted ? -1 : 0;
-    public bool IsAligned => Polarity == Polarity.Aligned;
-    public bool HasPolarity => Polarity == Polarity.Aligned || Polarity == Polarity.Inverted;
-    public bool IsInverted => !IsAligned;
 
     // IsFractional, IsInverted, IsNegative, IsNormalized, IsZero, IsOne, IsZeroStart, IsPoint, IsOverflow, IsUnderflow
     // IsLessThanBasis, IsGrowable, IsBasisLength, IsMin, HasMask, IsArray, IsMultiDim, IsCalculated, IsRandom
@@ -178,6 +174,11 @@ public class Number :
     #endregion
 
     #region Polarity
+    public int PolarityDirection => IsAligned ? 1 : IsInverted ? -1 : 0;
+    public bool IsAligned => Polarity == Polarity.Aligned;
+    public bool HasPolarity => Polarity == Polarity.Aligned || Polarity == Polarity.Inverted;
+    public bool IsInverted => !IsAligned;
+    public int Direction => Domain.BasisFocal.Direction * PolarityDirection;
     public static Number operator ~(Number value) => value.InvertPolarityAndDirection();
     public Number InvertPolarity() => new(Domain, Focal, Polarity.Invert());
     public Number InvertDirection() => new(Domain, Focal.FlipAroundStart(), Polarity);
@@ -203,8 +204,8 @@ public class Number :
     #endregion
 
     #region Conversions
-    public double StartValue => _domain.DecimalValue(StartTick);
-    public double EndValue => _domain.DecimalValue(EndTick);
+    public double StartValue => -_domain.DecimalValue(UnotTick);
+    public double EndValue => _domain.DecimalValue(UnitTick);
     public double DecimalValue(long tick) => _domain.DecimalValue(tick);
     public long TickValue(double value) => _domain.TickValue(value);
     #endregion

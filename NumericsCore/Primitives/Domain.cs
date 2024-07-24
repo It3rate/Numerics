@@ -42,8 +42,8 @@ public class Domain
         Number result;
         if(value.Domain != this)
         {
-            var start = value.DecimalValue(value.StartTick);
-            var end = value.DecimalValue(value.EndTick);
+            var start = value.StartValue;
+            var end = value.EndValue;
             var focal = new Focal(TickValue(start), TickValue(end));
             result = new(this, focal, value.Polarity);
         }
@@ -73,6 +73,12 @@ public class Domain
         var offset = clamped - BasisFocal.StartTick;
         var result = offset / (double)BasisFocal.NonZeroTickLength;
         return result;
+    }
+    public Focal FocalFromDecimal(double start, double end)
+    {
+        return new Focal(
+            (long)(-start * BasisFocal.TickLength),
+            (long)(end * BasisFocal.TickLength));
     }
     public long TickValue(double value)
     {

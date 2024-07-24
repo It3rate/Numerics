@@ -270,10 +270,7 @@ public struct PRange
         domain, 
         new(domain.TickValue(Start), domain.TickValue(End)),
         Polarity);
-    public static PRange FromNumber(Number value) => new(
-        value.Domain.DecimalValue(value.StartTick),
-        value.Domain.DecimalValue(value.EndTick), 
-        value.IsAligned);
+    public static PRange FromNumber(Number value) => new( value.StartValue, value.EndValue, value.IsAligned);
     #endregion
 
     #region Equality
