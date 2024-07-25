@@ -62,7 +62,8 @@ public class Focal :
     public long AbsTickLength => Math.Abs(LastTick - FirstTick); // can't have zero length (that would be null/no focus, and this is a focal)
     public int Direction => FirstTick < LastTick ? 1 : FirstTick > LastTick ? -1 : 0; // zero is unknown
     public int NonZeroDirection => LastTick >= FirstTick ? 1 : -1; // default to positive direction when unknown
-    public virtual long InvertedEndPosition => FirstTick - TickLength;
+    public long InvertedFirstPosition => LastTick + TickLength;
+    public long InvertedLastPosition => FirstTick - TickLength;
 
     public bool IsZeroAnchored => FirstTick == 0;
     public bool IsZero => FirstTick == 0 && LastTick == 0;
@@ -151,7 +152,8 @@ public class Focal :
 
     public Focal Reverse() => new Focal(LastTick, FirstTick);
     public Focal Forward() => Direction >= 0 ? Clone() : Reverse();
-    public Focal FlipAroundStart() => new Focal(FirstTick, InvertedEndPosition);
+    public Focal FlipAroundFirst() => new Focal(FirstTick, InvertedLastPosition);
+    public Focal FlipAroundLast() => new Focal(FirstTick, InvertedFirstPosition);
     public Focal Negate() => new Focal(-FirstTick, -LastTick);
     public Focal Expand(long multiple) => new(FirstTick * multiple, LastTick * multiple);
 	public Focal Contract(long divisor) => new(FirstTick / divisor, LastTick / divisor);

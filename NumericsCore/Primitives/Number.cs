@@ -126,6 +126,10 @@ public class Number :
         var len = (double)left.Domain.BasisFocal.TickLength;
         var offset = left.Domain.BasisFocal.FirstTick;
         var leftOffset = left.Focal.GetOffset(-offset);
+        if (left.IsInverted)
+        {
+            leftOffset = leftOffset.Reverse(); // todo: clarify this in code.
+        }
         var rightOffset = aligned.Focal.GetOffset(-offset);
 
         var raw = new Number(left.Domain,new (
@@ -134,7 +138,12 @@ public class Number :
             left.Polarity);
 
         Number? result = raw.SolvePolarityWith(right);
-        return new Number(result.Domain, result.Focal.GetOffset(offset), result.Polarity);
+        if (left.IsInverted)
+        {
+            result = new Number(result.Domain, result.Focal.Negate(), result.Polarity);// todo: clarify this in code.
+        }
+        result =  new Number(result.Domain, result.Focal.GetOffset(offset), result.Polarity);
+        return result;
     }
 
 	static Number IMultiplyOperators<Number, Number, Number>.operator *(Number left, Number right) => left * right;
@@ -186,8 +195,8 @@ public class Number :
     public int Direction => Domain.BasisFocal.Direction * PolarityDirection;
     public static Number operator ~(Number value) => value.InvertPolarityAndDirection();
     public Number InvertPolarity() => new(Domain, Focal, Polarity.Invert());
-    public Number InvertDirection() => new(Domain, Focal.FlipAroundStart(), Polarity);
-    public Number InvertPolarityAndDirection() => new(Domain, Focal.FlipAroundStart(), Polarity.Invert());
+    public Number InvertDirection() => new(Domain, Focal.FlipAroundFirst(), Polarity);
+    public Number InvertPolarityAndDirection() => new(Domain, Focal.FlipAroundFirst(), Polarity.Invert());
     public Number SolvePolarityWith(Number right)
     {
         Number result;

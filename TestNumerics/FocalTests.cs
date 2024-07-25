@@ -82,7 +82,7 @@ public class FocalTests
     public void InvertedEndPosition_ValidValues_CalculatesCorrectly()
     {
         var focal = new Focal(11, 21);
-        long invertedEndPosition = focal.InvertedEndPosition;
+        long invertedEndPosition = focal.InvertedLastPosition;
         Assert.AreEqual(1, invertedEndPosition);
     }
 
