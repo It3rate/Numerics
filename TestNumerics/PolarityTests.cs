@@ -103,27 +103,27 @@ public class PolarityTests
         Assert.AreEqual(6, value.EndValue, _delta);
 
         number200.Polarity = Polarity.Inverted;
-        value = number200 * number300;
+        value = number200 * number300; // -2i * 3 = -6i
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0, value.Focal.FirstTick);
         Assert.AreEqual(6000, value.Focal.LastTick);
-        Assert.AreEqual(-6, value.StartValue, _delta);
-        Assert.AreEqual(0, value.EndValue, _delta);
+        Assert.AreEqual(0, value.StartValue, _delta);
+        Assert.AreEqual(-6, value.EndValue, _delta);
 
         number300.Polarity = Polarity.Inverted;
-        value = number200 * number300;
+        value = number200 * number300; // -2i * -3i = 6
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(0, value.Focal.FirstTick);
         Assert.AreEqual(-6000, value.Focal.LastTick);
         Assert.AreEqual(-6, value.EndValue, _delta);
 
         number200.Polarity = Polarity.Aligned;
-        value = number200 * number300;
+        value = number200 * number300; // 2 * -3i = -6i
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0, value.Focal.FirstTick);
         Assert.AreEqual(6000, value.Focal.LastTick);
-        Assert.AreEqual(-6, value.StartValue, _delta);
-        Assert.AreEqual(0, value.EndValue, _delta);
+        Assert.AreEqual(0, value.StartValue, _delta);
+        Assert.AreEqual(-6, value.EndValue, _delta);
     }
     [TestMethod]
     public void MultiplyInverted2Test()
@@ -146,8 +146,8 @@ public class PolarityTests
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         //Assert.AreEqual(0, value.Focal.FirstTick);
         //Assert.AreEqual(6000, value.Focal.LastTick);
-        Assert.AreEqual(-6, value.StartValue, _delta);
-        Assert.AreEqual(0, value.EndValue, _delta);
+        Assert.AreEqual(0, value.StartValue, _delta);
+        Assert.AreEqual(-6, value.EndValue, _delta);
 
         number300.Polarity = Polarity.Inverted; // -3i
         value = number200 * number300; // (-2i * -3i) = -6 [8000:32000]
@@ -162,8 +162,8 @@ public class PolarityTests
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         //Assert.AreEqual(0, value.Focal.FirstTick);
         //Assert.AreEqual(6000, value.Focal.LastTick);
-        Assert.AreEqual(-6, value.StartValue, _delta);
-        Assert.AreEqual(0, value.EndValue, _delta);
+        Assert.AreEqual(0, value.StartValue, _delta);
+        Assert.AreEqual(-6, value.EndValue, _delta);
     }
     [TestMethod]
     public void MultiplyInverted3Test()
@@ -352,9 +352,9 @@ public class PolarityTests
         var number300 = new Number(_zeroDomain, new(100, 300));
 
         number200.Polarity = Polarity.Inverted;
-        var value = number200 + number300;
-        Assert.AreEqual(-0.5, value.StartValue, _delta);
-        Assert.AreEqual(0.2, value.EndValue, _delta);
+        var value = number200 + number300;// (0.1 - 0.2i) + (-0.1i + 0.3) = (0.4 - 0.3i)
+        Assert.AreEqual(0.4, value.StartValue, _delta);
+        Assert.AreEqual(-0.3, value.EndValue, _delta);
 
         number200 = new Number(_zeroDomain, new(0, 200));
         number300 = new Number(_zeroDomain, new(0, 300));
@@ -367,28 +367,28 @@ public class PolarityTests
         Assert.AreEqual(0.5, value.EndValue, _delta);
 
         number200.Polarity = Polarity.Inverted;
-        value = number200 + number300;
+        value = number200 + number300; // (-0.2i) + (0.3) = (0.3 - 0.2i)
 
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
-        Assert.AreEqual(0, value.Focal.FirstTick);
-        Assert.AreEqual(500, value.Focal.LastTick);
-        Assert.AreEqual(-0.5, value.StartValue, _delta);
-        Assert.AreEqual(0, value.EndValue, _delta);
+        Assert.AreEqual(300, value.Focal.FirstTick);
+        Assert.AreEqual(200, value.Focal.LastTick);
+        Assert.AreEqual(0.3, value.StartValue, _delta);
+        Assert.AreEqual(-0.2, value.EndValue, _delta);
 
         number300.Polarity = Polarity.Inverted;
-        value = number200 + number300;
+        value = number200 + number300; //  (-0.2i) + (-0.3i) = (-0.5i)
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
-        Assert.AreEqual(0, value.Focal.FirstTick);
-        Assert.AreEqual(500, value.Focal.LastTick);
-        Assert.AreEqual(-0.5, value.StartValue, _delta);
-        Assert.AreEqual(0, value.EndValue, _delta);
-
-        number200.Polarity = Polarity.Aligned;
-        value = number200 + number300;
-        Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(0, value.Focal.FirstTick);
         Assert.AreEqual(500, value.Focal.LastTick);
         Assert.AreEqual(0, value.StartValue, _delta);
-        Assert.AreEqual(0.5, value.EndValue, _delta);
+        Assert.AreEqual(-0.5, value.EndValue, _delta);
+
+        number200.Polarity = Polarity.Aligned;
+        value = number200 + number300; //  (0.2) + (-0.3i) = (-0.3i + 0.2)
+        Assert.AreEqual(Polarity.Aligned, value.Polarity);
+        Assert.AreEqual(300, value.Focal.FirstTick);
+        Assert.AreEqual(200, value.Focal.LastTick);
+        Assert.AreEqual(-0.3, value.StartValue, _delta);
+        Assert.AreEqual(0.2, value.EndValue, _delta);
     }
 }
