@@ -46,7 +46,7 @@ public interface IPolarityOperators<TSelf, TOther, TResult>
     TResult InvertPolarity();
     TResult InvertDirection();
     TResult InvertPolarityAndDirection();
-    TResult SolvePolarityWith(TOther right);
+    //TResult SolvePolarityWith(TOther right);
 }
 //public interface IBitwiseOperators<TSelf, TOther, TResult> where TSelf : IBitwiseOperators<TSelf, TOther, TResult>?
 //{

@@ -111,7 +111,7 @@ public class PolarityTests
         Assert.AreEqual(-6, value.EndValue, _delta);
 
         number300.Polarity = Polarity.Inverted;
-        value = number200 * number300; // -2i * -3i = 6
+        value = number200 * number300; // -2i * -3i = -6
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(0, value.Focal.FirstTick);
         Assert.AreEqual(-6000, value.Focal.LastTick);
@@ -191,16 +191,16 @@ public class PolarityTests
 
 
         number300.Polarity = Polarity.Inverted;
-        value = number200 * number300; //  (2 + -1.5i) * (2 + -3i) = (-9i - 5)
+        value = number200 * number300; //  (2 + -1.5i) * (2 + -3i) = (-9i - 0.5)
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(-9, value.StartValue, _delta);
-        Assert.AreEqual(-5, value.EndValue, _delta);
+        Assert.AreEqual(-0.5, value.EndValue, _delta);
 
         number200.Polarity = Polarity.Aligned;
-        value = number200 * number300;
+        value = number200 * number300; //  (-2i + 1.5) * (2 - 3i) = (-3 - 8.5i)
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
-        Assert.AreEqual(0.9469, value.StartValue, _delta);
-        Assert.AreEqual(2.4394, value.EndValue, _delta);
+        Assert.AreEqual(-3, value.StartValue, _delta);
+        Assert.AreEqual(-8.5, value.EndValue, _delta);
     }
     [TestMethod]
     public void DivideTest()
@@ -208,36 +208,36 @@ public class PolarityTests
         var number200 = new Number(_zeroDomain, new(0, 2000));
         var number300 = new Number(_zeroDomain, new(0, 8000));
 
-        var value = number200 / number300;
+        var value = number200 / number300; // 2 / 8 = 0.25
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(0, value.Focal.FirstTick);
         Assert.AreEqual(250, value.Focal.LastTick);
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.25, value.EndValue, _delta);
 
-        number200.Polarity = Polarity.Inverted;
-        value = number200 / number300;
+        number200.Polarity = Polarity.Inverted; // ~ +
+        value = number200 / number300;// -2i / 8 = -0.25i
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0, value.Focal.FirstTick);
         Assert.AreEqual(250, value.Focal.LastTick);
-        Assert.AreEqual(-0.25, value.StartValue, _delta);
-        Assert.AreEqual(0, value.EndValue, _delta);
+        Assert.AreEqual(0, value.StartValue, _delta);
+        Assert.AreEqual(-0.25, value.EndValue, _delta);
 
-        number300.Polarity = Polarity.Inverted;
-        value = number200 / number300;
+        number300.Polarity = Polarity.Inverted; // ~ ~
+        value = number200 / number300; // -2i / -8i = -0.25
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(0, value.Focal.FirstTick);
         Assert.AreEqual(-250, value.Focal.LastTick);
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(-0.25, value.EndValue, _delta);
 
-        number200.Polarity = Polarity.Aligned;
-        value = number200 / number300;
+        number200.Polarity = Polarity.Aligned; // + ~
+        value = number200 / number300; // 2 / -8i = -0.25i
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0, value.Focal.FirstTick);
         Assert.AreEqual(250, value.Focal.LastTick);
-        Assert.AreEqual(-0.25, value.StartValue, _delta);
-        Assert.AreEqual(0, value.EndValue, _delta);
+        Assert.AreEqual(0, value.StartValue, _delta);
+        Assert.AreEqual(-0.25, value.EndValue, _delta);
     }
     [TestMethod]
     public void DivideOffsetTest()
@@ -389,6 +389,52 @@ public class PolarityTests
         Assert.AreEqual(300, value.Focal.FirstTick);
         Assert.AreEqual(200, value.Focal.LastTick);
         Assert.AreEqual(-0.3, value.StartValue, _delta);
+        Assert.AreEqual(0.2, value.EndValue, _delta);
+    }
+    [TestMethod]
+    public void SubtractTest()
+    {
+        var number200 = new Number(_zeroDomain, new(100, 200));
+        var number300 = new Number(_zeroDomain, new(100, 300));
+
+        number200.Polarity = Polarity.Inverted;
+        var value = number200 - number300;// (0.1 - 0.2i) - (-0.1i + 0.3) = (-0.2 - 0.1i)
+        Assert.AreEqual(-0.2, value.StartValue, _delta);
+        Assert.AreEqual(-0.1, value.EndValue, _delta);
+
+        number200 = new Number(_zeroDomain, new(0, 200));
+        number300 = new Number(_zeroDomain, new(0, 300));
+
+        value = number200 - number300;// (0.2) - (0.3) = (-0.1)
+        Assert.AreEqual(Polarity.Aligned, value.Polarity);
+        Assert.AreEqual(0, value.Focal.FirstTick);
+        Assert.AreEqual(-100, value.Focal.LastTick);
+        Assert.AreEqual(0, value.StartValue, _delta);
+        Assert.AreEqual(-0.1, value.EndValue, _delta);
+
+        number200.Polarity = Polarity.Inverted;
+        value = number200 - number300; // (-0.2i) - (0.3) = (-0.3 - 0.2i)
+
+        Assert.AreEqual(Polarity.Inverted, value.Polarity);
+        Assert.AreEqual(-300, value.Focal.FirstTick);
+        Assert.AreEqual(200, value.Focal.LastTick);
+        Assert.AreEqual(-0.3, value.StartValue, _delta);
+        Assert.AreEqual(-0.2, value.EndValue, _delta);
+
+        number300.Polarity = Polarity.Inverted;
+        value = number200 - number300; //  (-0.2i) - (-0.3i) = (0.1i)
+        Assert.AreEqual(Polarity.Inverted, value.Polarity);
+        Assert.AreEqual(0, value.Focal.FirstTick);
+        Assert.AreEqual(-100, value.Focal.LastTick);
+        Assert.AreEqual(0, value.StartValue, _delta);
+        Assert.AreEqual(0.1, value.EndValue, _delta);
+
+        number200.Polarity = Polarity.Aligned;
+        value = number200 - number300; //  (0.2) - (-0.3i) = (+0.3i + 0.2)
+        Assert.AreEqual(Polarity.Aligned, value.Polarity);
+        Assert.AreEqual(-300, value.Focal.FirstTick);
+        Assert.AreEqual(200, value.Focal.LastTick);
+        Assert.AreEqual(0.3, value.StartValue, _delta);
         Assert.AreEqual(0.2, value.EndValue, _delta);
     }
 }
