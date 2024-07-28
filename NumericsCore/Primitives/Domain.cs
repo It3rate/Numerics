@@ -39,19 +39,15 @@ public class Domain
         LimitsFocal = limitsFocal;
     }
 
-    public Number ConvertNumber(Number value)
+    public Number AlignedDomain(Number value)
     {
-        Number result;
+        Number result = value;
         if(value.Domain != this)
         {
             var start = value.StartValue;
             var end = value.EndValue;
             var focal = new Focal(TickValue(start), TickValue(end));
             result = new(this, focal, value.Polarity);
-        }
-        else 
-        {
-            result = value.Clone();
         }
         return result;
     }
