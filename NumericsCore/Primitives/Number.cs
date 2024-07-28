@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -135,10 +136,53 @@ public PRange Value => GetRange();
         var offset = left.Domain.BasisFocal.FirstTick;
         var leftDir = left.PolarityDirection;
         var rightDir = right.PolarityDirection;
-        var l0 = (left._iTick - offset) * leftDir;
-        var l1 = (left._rTick - offset) * leftDir;
-        var r0 = (aligned._iTick - offset) * rightDir;
-        var r1 = (aligned._rTick - offset) * rightDir;
+        long l0, l1, r0, r1;
+        Polarity polarity;
+        if (leftDir == 1)
+        {
+            // focals do not change sign as they have no polarity,
+            // they do change direction if inverted though.
+
+            if (rightDir == 1) // + + = + remains aligned
+            {
+                polarity = Polarity.Aligned;
+                l0 = (left.FirstTick - offset);
+                l1 = (left.LastTick - offset);
+                r0 = (aligned.FirstTick - offset);
+                r1 = (aligned.LastTick - offset);
+            }
+            else // + ~ = ~ make inverted result
+            {
+                polarity = Polarity.Inverted;
+                l0 = (left.FirstTick - offset);
+                l1 = (left.LastTick - offset);
+                r0 = -(aligned.LastTick - offset);
+                r1 = -(aligned.FirstTick - offset);
+            }
+        }
+        else 
+        {
+            if (rightDir == 1) // ~ + = + make inverted result
+            {
+                polarity = Polarity.Inverted;
+                l0 = -(left.LastTick - offset);
+                l1 = -(left.FirstTick - offset);
+                r0 = (aligned.FirstTick - offset);
+                r1 = (aligned.LastTick - offset);
+            }
+            else // ~ ~ = + flip to aligned
+            {
+                polarity = Polarity.Aligned;
+                l0 = -(left.LastTick - offset);
+                l1 = -(left.FirstTick - offset);
+                r0 = -(aligned.LastTick - offset);
+                r1 = -(aligned.FirstTick - offset);
+            }
+        }
+        //var l0 = (left._iTick - offset) * leftDir;
+        //var l1 = (left._rTick - offset) * leftDir;
+        //var r0 = (aligned._iTick - offset) * rightDir;
+        //var r1 = (aligned._rTick - offset) * rightDir;
 
         var start = (long)((l0 * r1 + l1 * r0) / len);
         var end = (long)((l1 * r1 - l0 * r0) / len);
@@ -179,19 +223,6 @@ public PRange Value => GetRange();
 	public Number MultiplicativeIdentity => Domain.MultiplicativeIdentity;
 
     #endregion
-    private static Number SolveScaledPolarity(Domain domain, long startTick, long endTick, Polarity pLeft, Polarity pRight, long offset)
-    {
-        Number result;
-        if (pLeft == pRight)
-        {
-            result = new Number(domain, new Focal(startTick + offset, endTick + offset), Polarity.Aligned);
-        }
-        else
-        {
-            result = new Number(domain, new Focal(-endTick + offset, -startTick + offset), Polarity.Inverted);
-        }
-        return result;
-    }
     #region Divide
     public static Number Divide(Number left, Number right)
 	{
@@ -200,79 +231,106 @@ public PRange Value => GetRange();
 	public static Number operator /(Number left, Number right)
     {
         var aligned = left.Domain.ConvertNumber(right);
-        var len = (double)left.Domain.BasisFocal.TickLength;
+        var dir = left.Domain.BasisFocal.NonZeroDirection;
+        var len = left.Domain.BasisFocal.TickLength;
         var offset = left.Domain.BasisFocal.FirstTick;
         var leftDir = left.PolarityDirection;
         var rightDir = right.PolarityDirection;
-        var l0 = (left._iTick - offset) * leftDir;
-        var l1 = (left._rTick - offset) * leftDir;
-        var r0 = (aligned._iTick - offset) * rightDir;
-        var r1 = (aligned._rTick - offset) * rightDir;
+        //var l0 = (left._iTick - offset) * leftDir; 
+        //var l1 = (left._rTick - offset) * leftDir;
+        //var r0 = (aligned._iTick - offset) * rightDir;
+        //var r1 = (aligned._rTick - offset) * rightDir;
 
-        long start;
-        long end;
-        double ratio;
-        if (Math.Abs(r0) < Math.Abs(r1))
+        long l0, l1, r0, r1;
+        Polarity polarity;
+        if (leftDir == 1)
         {
-            ratio = r0 / r1;
-            start = (long)((l0 - l1 * ratio) / (r1 + r0 * ratio) * len);
-            end   = (long)((l1 + l0 * ratio) / (r1 + r0 * ratio) * len);
+            if (rightDir == 1) // + + = + remains aligned
+            {
+                polarity = Polarity.Aligned;
+                l0 = (left.FirstTick - offset);
+                l1 = (left.LastTick - offset);
+                r0 = (aligned.FirstTick - offset);
+                r1 = (aligned.LastTick - offset);
+            }
+            else // + ~ = ~ make inverted result
+            {
+                polarity = Polarity.Inverted;
+                l0 = (left.LastTick - offset);
+                l1 = (left.FirstTick - offset);
+                r0 = -(aligned.LastTick - offset);
+                r1 = -(aligned.FirstTick - offset);
+            }
         }
         else
         {
-            ratio = r1 / r0;
-            start = (long)((-l1 + l0 * ratio) / (r0 + r1 * ratio) * len);
-            end =   (long)(( l0 + l1 * ratio) / (r0 + r1 * ratio) * len);
-
+            if (rightDir == 1) // ~ + = + make inverted result
+            {
+                polarity = Polarity.Inverted;
+                l0 = -(left.LastTick - offset);
+                l1 = -(left.FirstTick - offset);
+                r0 = (aligned.FirstTick - offset);
+                r1 = (aligned.LastTick - offset);
+            }
+            else // ~ ~ = + flip to aligned
+            {
+                polarity = Polarity.Aligned;
+                l0 = -(left.LastTick - offset);
+                l1 = -(left.FirstTick - offset);
+                r0 = -(aligned.LastTick - offset);
+                r1 = -(aligned.FirstTick - offset);
+            }
         }
+
+        var denom = (double)(r0 * r0 + r1 * r1);
+        long start = (long)((l1 * r0 - l0 * r1) / denom * len);// when inverted this needs to be (l0 * r1 - l1 * r0) etc
+        long end = (long)((l0 * r0 + l1 * r1) / denom * len);
         Number result;
-        if(left.Polarity == Polarity.Inverted && right.Polarity == Polarity.Inverted) // ~ ~
-        {
-            result = new(left.Domain, new(start + offset, -end + offset), Polarity.Aligned);
-        }
-        else if(left.Polarity == Polarity.Inverted && right.Polarity == Polarity.Aligned) // ~ +
-        {
-            result = new(left.Domain, new(-end + offset, -start + offset), Polarity.Inverted);
-        }
-        else if(left.Polarity == Polarity.Aligned && right.Polarity == Polarity.Inverted) // + ~
-        {
-            result = new(left.Domain, new(-end + offset, start + offset), Polarity.Inverted);
-        }
-        else // if(left.Polarity == Polarity.Aligned && right.Polarity == Polarity.Aligned) // + +
-        {
-            result = new(left.Domain, new(start + offset, end + offset), Polarity.Aligned);
-        }
 
+        if (leftDir == 1)
+        {
+            if (rightDir == 1) // + + 
+            {
+                result = new(left.Domain, new(-start + offset, end + offset), Polarity.Aligned);
+            }
+            else // + ~ 
+            {
+                result = new(left.Domain, new(-start + offset, -end + offset), Polarity.Inverted);
+            }
+        }
+        else
+        {
+            if (rightDir == 1) // ~ + 
+            {
+                result = new(left.Domain, new(-end + offset, start + offset), Polarity.Inverted);
+            }
+            else // ~ ~
+            {
+                result = new(left.Domain, new(-start + offset, -end + offset), Polarity.Aligned);
+            }
+        }
+        //Number result = (left.Polarity == right.Polarity) ?
+        //    new(left.Domain, new(start + offset, end + offset), Polarity.Aligned) :
+        //    new(left.Domain, new(-end + offset, -start + offset), Polarity.Inverted);
         return result;
 
-        //var aligned = left.Domain.ConvertNumber(right);
-
-        //Focal focalResult;
-        //var offset = left.Domain.BasisFocal.FirstTick;
-        //var len = left.Domain.BasisFocal.TickLength;
-        //var polarity = left.Polarity.SolvePolarity(right.Polarity);
-        //double leftEnd = left.LastTick - offset;
-        //double leftStart = left.FirstTick - offset;
-        //double rightEnd = aligned.LastTick - offset;
-        //double rightStart = aligned.FirstTick - offset;
-        //if (Math.Abs(rightStart) < Math.Abs(rightEnd))
+        //Number result;
+        //if(left.Polarity == Polarity.Inverted && right.Polarity == Polarity.Inverted) // ~ ~
         //{
-        //    double num = rightStart / rightEnd;
-        //    focalResult = new Focal(
-        //        (long)(((leftStart - leftEnd * num) / (rightEnd + rightStart * num)) * len),
-        //        (long)(((leftEnd + leftStart * num) / (rightEnd + rightStart * num)) * len));
+        //    result = new(left.Domain, new(start + offset, -end + offset), Polarity.Aligned);
         //}
-        //else
+        //else if(left.Polarity == Polarity.Inverted && right.Polarity == Polarity.Aligned) // ~ +
         //{
-        //    double num1 = rightEnd / rightStart;
-        //    focalResult = new Focal(
-        //        (long)(((-leftEnd + leftStart * num1) / (rightStart + rightEnd * num1)) * len),
-        //        (long)(((leftStart + leftEnd * num1) / (rightStart + rightEnd * num1)) * len));
+        //    result = new(left.Domain, new(-end + offset, -start + offset), Polarity.Inverted);
         //}
-        //var raw =  new Number(left.Domain, focalResult, left.Polarity);
-        ////return result.SolvePolarityWith(right);
-        //Number? result = raw.SolvePolarityWith(right);
-        //return new Number(result.Domain, result.Focal.GetOffset(offset), result.Polarity);
+        //else if(left.Polarity == Polarity.Aligned && right.Polarity == Polarity.Inverted) // + ~
+        //{
+        //    result = new(left.Domain, new(-end + offset, start + offset), Polarity.Inverted);
+        //}
+        //else // if(left.Polarity == Polarity.Aligned && right.Polarity == Polarity.Aligned) // + +
+        //{
+        //    result = new(left.Domain, new(start + offset, end + offset), Polarity.Aligned);
+        //}
     }
     #endregion
     #region Polarity
@@ -365,7 +423,9 @@ public PRange Value => GetRange();
         {
             var midSign = val.End > 0 ? " + " : " ";
             var pol = Polarity == Polarity.Inverted ? "~" : "";
-            result = $"{pol}({val.Start:0.##}s{midSign}{val.End:0.##}e)";
+            var start = Value.Start == 0 ? "0" : $"{val.Start:0.##}";
+            var end = val.End == 0 ? "0" : $"{val.End:0.##}";
+            result = $"{pol}({start}s{midSign}{end}e)";
         }
         return result;
     }

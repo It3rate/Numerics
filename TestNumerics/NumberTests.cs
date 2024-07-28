@@ -159,7 +159,7 @@ public class NumberTests
         var focal2 = new Focal(0, 400);
         var number1 = new Number(_domain, focal1);
         var number2 = new Number(_domain, focal2);
-        var result = number1 / number2;
+        var result = number1 / number2; // 4 / 0.4 = 10
         Assert.AreEqual(0.00, result.StartValue, _delta);
         Assert.AreEqual(10.00, result.EndValue, _delta);
 
@@ -167,7 +167,7 @@ public class NumberTests
         focal2 = new Focal(0, 400);
         number1 = new Number(_domain, focal1);
         number2 = new Number(_domain, focal2);
-        result = number1 / number2;
+        result = number1 / number2; // (-2i + 4) / (0.4) = (-5i + 10)
         Assert.AreEqual(-5.00, result.StartValue, _delta);
         Assert.AreEqual(10.00, result.EndValue, _delta);
 
@@ -188,11 +188,11 @@ public class NumberTests
         focal2 = new Focal(300, 700);
         number1 = new Number(_domain, focal1);
         number2 = new Number(_domain, focal2);
-        result = number1 / number2;
+        result = number1 / number2; // (-0.67i + 6.67) / (-0.17i + 0.83) = (0.8050i + 7.8713) // [-283, 4923] 
 
         var pr1 = PRange.FromNumber(number1);
         var pr2 = PRange.FromNumber(number2);
-        var prResult = pr1 / pr2; // {0.46, 1.71}
+        var prResult = pr1 / pr2; 
 
         Assert.AreEqual(0.7683, result.StartValue, _delta);
         Assert.AreEqual(7.845, result.EndValue, _delta);
@@ -210,15 +210,16 @@ public class NumberTests
     [TestMethod]
     public void Divide_OffsetBasis_CalculatesCorrectly()
     {
-        _basisFocal = new Focal(1000, 600);
+        _delta = 0.01;
+        _basisFocal = new Focal(10000, 6000);
         _limits = new Focal(-100000, 100000);
         _domain = new Domain(_trait, _basisFocal, _limits);
 
-        var focal1 = new Focal(600, 4200);
-        var focal2 = new Focal(300, 700);
+        var focal1 = new Focal(6000, 42000);
+        var focal2 = new Focal(3000, 7000);
         var number1 = new Number(_domain, focal1);
         var number2 = new Number(_domain, focal2);
-        var result = number1 / number2;
+        var result = number1 / number2; // (-1i - 8) / (-1.75i + 0.75) = (-4.0690i - 1.1724)
 
         var pr1 = PRange.FromNumber(number1);
         var pr2 = PRange.FromNumber(number2);
