@@ -53,12 +53,12 @@ public class Number :
         get => Focal.LastTick;
         set => Focal.LastTick = value;
     }
-    private long _iTick //=> IsAligned ? FirstTick : LastTick;
+    private long _iTick
     {
         get => IsAligned? FirstTick : LastTick;
         set { if (IsAligned) { FirstTick = value; } else { LastTick = value; } }
     }
-    private long _rTick //=> IsAligned ? LastTick : FirstTick;
+    private long _rTick 
     {
         get => IsAligned ? LastTick : FirstTick;
         set { if (IsAligned) { LastTick = value; } else { FirstTick = value; } }
@@ -86,12 +86,10 @@ public PRange Value => GetRange();
 	public static Number Add(Number left, Number right) => left + right;
 	public static Number operator +(Number left, Number right)
 	{
-		var convertedRight = left.Domain.AlignedDomain(right);
+		var aligned = left.Domain.AlignedDomain(right);
         var offset = left.Domain.BasisFocal.FirstTick;
-        var dir = left.Domain.BasisFocal.NonZeroDirection;
-        var result = left.Clone();
-        result._iTick += convertedRight._iTick * dir - offset;
-        result._rTick += convertedRight._rTick * dir - offset;
+        var (l0, l1, r0, r1) = GetAdditiveFocals(left, aligned, offset);
+        Number result = new(left.Domain, new((l0 + r0) + offset, (l1 + r1) + offset), left.Polarity);
         return result;
     }
 	static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => left + right;
@@ -105,19 +103,11 @@ public PRange Value => GetRange();
 	public static Number Subtract(Number left, Number right) => left - right;
 	public static Number operator -(Number left, Number right)
     {
-        var convertedRight = left.Domain.AlignedDomain(right);
+        var aligned = left.Domain.AlignedDomain(right);
         var offset = left.Domain.BasisFocal.FirstTick;
-        var dir = left.Domain.BasisFocal.NonZeroDirection;
-        var result = left.Clone();
-        result._iTick = (left._iTick - convertedRight._iTick * dir) + offset;
-        result._rTick = (left._rTick - convertedRight._rTick * dir) + offset;
+        var (l0, l1, r0, r1) = GetAdditiveFocals(left, aligned, offset);
+        Number result = new (left.Domain, new((l0 - r0) + offset, (l1 - r1) + offset), left.Polarity);
         return result;
-
-        //var offset = left.Domain.BasisFocal.StartTick;
-        //return new(left.Domain, new Focal(
-        //    (left.Focal.StartTick - num.Focal.StartTick) + offset,
-        //    (left.Focal.EndTick - num.Focal.EndTick) + offset
-        //    ));
     }
     static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => left - right;
 
@@ -134,7 +124,7 @@ public PRange Value => GetRange();
         var aligned = left.Domain.AlignedDomain(right);
         var len = (double)left.Domain.BasisFocal.TickLength;
         var offset = left.Domain.BasisFocal.FirstTick;
-        var (l0, l1, r0, r1) = GetScalarFocals(left, aligned, offset, false);
+        var (l0, l1, r0, r1) = GetStretchFocals(left, aligned, offset, false);
 
         var start = (long)((l0 * r1 + l1 * r0) / len);
         var end = (long)((l1 * r1 - l0 * r0) / len);
@@ -204,7 +194,7 @@ public PRange Value => GetRange();
         var leftDir = left.PolarityDirection;
         var rightDir = right.PolarityDirection;
 
-        var (l0, l1, r0, r1) = GetScalarFocals(left, aligned, offset, true);
+        var (l0, l1, r0, r1) = GetStretchFocals(left, aligned, offset, true);
         var denom = (double)(r0 * r0 + r1 * r1);
         long start = (long)((l1 * r0 - l0 * r1) / denom * len);
         long end = (long)((l0 * r0 + l1 * r1) / denom * len);
@@ -240,7 +230,7 @@ public PRange Value => GetRange();
     public Number InvertDirection() => new(Domain, Focal.FlipAroundFirst(), Polarity);
     public Number InvertPolarityAndDirection() => new(Domain, Focal.FlipAroundFirst(), Polarity.Invert());
 
-    private static (long, long, long, long) GetScalarFocals(Number left, Number right, long offset, bool reciprocal)
+    private static (long, long, long, long) GetStretchFocals(Number left, Number right, long offset, bool reciprocal)
     {
         // This gets the focal positions to multiply or divide.
         // The reason they are different for * and \ is division has an extra reciprocal when dividing by an inverted number.
@@ -280,6 +270,31 @@ public PRange Value => GetRange();
         {
             r0 = -(right.FirstTick - offset);
             r1 = (right.LastTick - offset);
+        }
+
+        return (l0, l1, r0, r1);
+    }
+    private static (long, long, long, long) GetAdditiveFocals(Number left, Number right, long offset)
+    {
+        // This gets the focal positions to add or subtract, returns in the left context.
+        // Add (First Last)
+        // ++ FL FL
+        // +~ FL LF
+        // ~+ FL LF
+        // ~~ FL FL
+
+        var l0 = (left.FirstTick - offset);
+        var l1 = (left.LastTick - offset);
+        long r0, r1;
+        if (left.Polarity == right.Polarity)
+        {
+            r0 = (right.FirstTick - offset);
+            r1 = (right.LastTick - offset);
+        }
+        else
+        {
+            r0 = (right.LastTick - offset);
+            r1 = (right.FirstTick - offset);
         }
 
         return (l0, l1, r0, r1);
