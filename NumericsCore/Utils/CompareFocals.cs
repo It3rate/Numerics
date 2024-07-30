@@ -10,7 +10,7 @@ namespace NumericsCore.Utils;
 
 public static class CompareFocals
 {
-    public static Focal? Matches(Focal a, Focal b) // B matches A by segment comparison (ignore direction)
+    public static Focal? Matching(Focal a, Focal b) // B matches A by segment comparison (ignore direction)
     {
         Focal? result = null;
         if (a.Min == b.Min && a.Max == b.Max)
@@ -19,7 +19,7 @@ public static class CompareFocals
         }
         return result;
     }
-    public static Focal? Contains(Focal a, Focal b)  // B fits inside A
+    public static Focal? Containing(Focal a, Focal b)  // B fits inside A
     {
         Focal? result = null;
         if (b.Min >= a.Min && b.Max <= a.Max)
