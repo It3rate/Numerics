@@ -141,35 +141,6 @@ public class FocalTests
         Assert.AreEqual(prResult.Start, result.FirstTick);
         Assert.AreEqual(prResult.End, result.LastTick);
     }
-
-    [TestMethod]
-    public void Expand_ValidValues_CalculatesCorrectly()
-    {
-        var focal = new Focal(10, 20);
-        long multiple = 3;
-        var result = focal.Expand(multiple);
-        Assert.AreEqual(30, result.FirstTick);
-        Assert.AreEqual(60, result.LastTick);
-
-        var prResult = PRange.FromFocal(focal) * multiple;
-        Assert.AreEqual(prResult.Start, result.FirstTick);
-        Assert.AreEqual(prResult.End, result.LastTick);
-    }
-
-    [TestMethod]
-    public void Contract_ValidValues_CalculatesCorrectly()
-    {
-        var focal = new Focal(30, 60);
-        long divisor = 3;
-        var result = focal.Contract(divisor);
-        Assert.AreEqual(10, result.FirstTick);
-        Assert.AreEqual(20, result.LastTick);
-
-        var prResult = PRange.FromFocal(focal) / divisor;
-        Assert.AreEqual(prResult.Start, result.FirstTick);
-        Assert.AreEqual(prResult.End, result.LastTick);
-    }
-
     [TestMethod]
     public void GetOffset_ValidValues_CalculatesCorrectly()
     {

@@ -240,7 +240,7 @@ public struct PRange
         double num2 = Math.Atan2(imaginary1, real1);
         double num3 = real2 * num2 + imaginary2 * Math.Log(num1);
         double num4 = Math.Pow(num1, real2) * Math.Pow(Math.E, -imaginary2 * num2);
-        return new PRange(num4 * Math.Sin(num3), num4 * Math.Cos(num3));
+        return new PRange(num4 * Math.Sin(num3), num4 * Math.Cos(num3)); // todo: need to handle polarity
     }
     public static PRange Pow(PRange value, double power) => PRange.Pow(value, new PRange(0.0, power));
     private static PRange Scale(PRange value, double factor) => new PRange(factor * value.Start, factor * value.End);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Numerics.Primitives;
@@ -102,6 +103,13 @@ public class NumbersTestsV1
         Assert.AreEqual(-1, n2.EndValue);
         Assert.AreEqual(1, n3.StartValue);
         Assert.AreEqual(4, n3.EndValue);
+    }
+    [TestMethod]
+    public void PowerTests()
+    {
+        var a = new System.Numerics.Complex(0, 1);
+        var b = Complex.Pow(a, a);
+        Console.WriteLine( b);
     }
     [TestMethod]
     public void CoreNumberTests()

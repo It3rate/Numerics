@@ -244,7 +244,7 @@ public class Number :
     public Number InvertPolarity() => new(Domain, Focal, Polarity.Invert());
     public Number InvertDirection() => new(Domain, Focal.FlipAroundFirst(), Polarity);
     public Number InvertPolarityAndDirection() => new(Domain, Focal.FlipAroundFirst(), Polarity.Invert());
-    public Number Reverse() => new(Domain, Focal.Reverse(), Polarity);
+    public Number Reverse() => new(Domain, Focal.Invert(), Polarity);
     public Number Negate()
     {
         var offset = Domain.BasisFocal.FirstTick;
