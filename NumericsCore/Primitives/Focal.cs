@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using NumericsCore.Utils;
 
 namespace Numerics.Primitives;
 
@@ -156,27 +157,6 @@ public class Focal :
     public long Max => FirstTick >= LastTick ? FirstTick : LastTick;
 
     #endregion
-
-    public Focal GetOffset(long offset) => new(FirstTick + offset, LastTick + offset);
-    public Focal FocalFromTs(double startT, double endT, bool invertEnds = false)
-    {
-        Focal result;
-        if(invertEnds)
-        {
-            result = new((long)(FirstTick + TickLength * startT), (long)(FirstTick + TickLength * endT));
-        }
-        else
-        {
-            result = new((long)(LastTick + TickLength * -startT), (long)(LastTick + TickLength * -endT));
-        }
-        return result;
-    }
-
-    public static Focal Zero => new Focal(0, 0);
-    public static Focal One => new Focal(0, 1);
-    public static Focal ZeroAnchoredFocal(long ticks) { return new Focal(0, ticks); }
-
-
     #region Bool Ops
     public static long MinPosition(Focal p, Focal q) => Math.Min(p.Min, q.Min);
     public static long MaxPosition(Focal p, Focal q) => Math.Max(p.Max, q.Max);
@@ -430,7 +410,38 @@ public class Focal :
     }
 
     #endregion
+    #region Comparisons
+    public static Focal? Matches(Focal left, Focal right) => CompareFocals.Matches(left, right);
+    public static Focal? Contains(Focal left, Focal right) => CompareFocals.Contains(left, right);
+    public static Focal? ContainedBy(Focal left, Focal right) => CompareFocals.ContainedBy(left, right);
+    public static Focal? operator >(Focal left, Focal right) => CompareFocals.GreaterThan(left, right);
+    public static Focal? operator >=(Focal left, Focal right) => CompareFocals.GreaterThanOrEqual(left, right);
+    public static Focal? GreaterThanAndEqual(Focal left, Focal right) => CompareFocals.GreaterThanAndEqual(left, right);
+    public static Focal? operator <(Focal left, Focal right) => CompareFocals.LessThan(left, right);
+    public static Focal? operator <=(Focal left, Focal right) => CompareFocals.LessThanOrEqual(left, right);
+    public static Focal? LessThanAndEqual(Focal left, Focal right) => CompareFocals.LessThanAndEqual(left, right);
+    #endregion
+    #region Utils
+    public Focal GetOffset(long offset) => new(FirstTick + offset, LastTick + offset);
+    public Focal FocalFromTs(double startT, double endT, bool invertEnds = false)
+    {
+        Focal result;
+        if(invertEnds)
+        {
+            result = new((long)(FirstTick + TickLength * startT), (long)(FirstTick + TickLength * endT));
+        }
+        else
+        {
+            result = new((long)(LastTick + TickLength * -startT), (long)(LastTick + TickLength * -endT));
+        }
+        return result;
+    }
 
+    public static Focal Zero => new Focal(0, 0);
+    public static Focal One => new Focal(0, 1);
+    public static Focal ZeroAnchoredFocal(long ticks) { return new Focal(0, ticks); }
+    #endregion
+    
     #region Equality
     public Focal Clone() => new(FirstTick, LastTick);
     public override bool Equals(object? obj)
