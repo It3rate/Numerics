@@ -1,4 +1,5 @@
 ﻿
+using NumericsCore.Primitives;
 using NumericsCore.Utils;
 
 namespace Numerics.Primitives;
@@ -25,7 +26,6 @@ public class Domain
     public long AbsLimitsSize => LimitsFocal.AbsTickLength;
     public bool BasisIsReciprocal => Math.Abs(TickSize) > BasisFocal.AbsTickLength;
     public double TickToBasisRatio => TickSize / BasisFocal.NonZeroTickLength;
-
     public Domain(Trait trait, Focal basisFocal, Focal limitsFocal)
     {
         Trait = trait;
@@ -97,4 +97,11 @@ public class Domain
 	}
 	public Number AdditiveIdentity => new Number(this, new Focal(BasisFocal.FirstTick, BasisFocal.FirstTick));
 	public Number MultiplicativeIdentity => new Number(this, BasisFocal);
+
+
+    public Number Zero => new(this, new Focal(BasisFocal.FirstTick, BasisFocal.FirstTick), Polarity.Aligned);
+    public Number One => new(this, BasisFocal.Clone(), Polarity.Aligned);
+    public Number MinusOne => new(this, BasisFocal.FlipAroundFirst(), Polarity.Aligned);
+    public Number One_i => new(this, BasisFocal.FlipAroundFirst(), Polarity.Inverted);
+    public Number MinusOne_i => new(this, BasisFocal.Clone(), Polarity.Inverted);
 }

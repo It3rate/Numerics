@@ -78,8 +78,6 @@ public class Focal :
         LastTick = end;
     }
 
-
-
     #region Add
     public static Focal Add(Focal left, Focal right) => left + right;
     public static Focal operator +(Focal left, Focal right) => new(left.FirstTick + right.FirstTick, left.LastTick + right.LastTick);
@@ -149,15 +147,26 @@ public class Focal :
 
     #endregion
 
-
     public Focal Reverse() => new Focal(LastTick, FirstTick);
     public Focal Forward() => Direction >= 0 ? Clone() : Reverse();
     public Focal FlipAroundFirst() => new Focal(FirstTick, InvertedLastPosition);
-    public Focal FlipAroundLast() => new Focal(FirstTick, InvertedFirstPosition);
     public Focal Negate() => new Focal(-FirstTick, -LastTick);
     public Focal Expand(long multiple) => new(FirstTick * multiple, LastTick * multiple);
 	public Focal Contract(long divisor) => new(FirstTick / divisor, LastTick / divisor);
     public Focal GetOffset(long offset) => new(FirstTick + offset, LastTick + offset);
+    public Focal FocalFromTs(double startT, double endT, bool invertEnds = false)
+    {
+        Focal result;
+        if(invertEnds)
+        {
+            result = new((long)(FirstTick + TickLength * startT), (long)(FirstTick + TickLength * endT));
+        }
+        else
+        {
+            result = new((long)(LastTick + TickLength * -startT), (long)(LastTick + TickLength * -endT));
+        }
+        return result;
+    }
 
     public static Focal Zero => new Focal(0, 0);
     public static Focal One => new Focal(0, 1);

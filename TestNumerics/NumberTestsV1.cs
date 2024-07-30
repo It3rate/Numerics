@@ -125,8 +125,8 @@ public class NumbersTestsV1
         Assert.AreNotEqual(n0, n0b);
 
         Assert.AreEqual(_unitFocal.AbsTickLength, n0.Domain.BasisFocal.AbsTickLength);
-        Assert.AreEqual(1, n0.Direction);
-        Assert.AreEqual(1, n4.Direction);
+        Assert.AreEqual(1, n0.PositiveTickDirection);
+        Assert.AreEqual(1, n4.PositiveTickDirection);
         Assert.AreEqual(n1.Domain, n0.Domain);
         Assert.AreEqual(n0.StartValue, n1.StartValue, _delta);
         Assert.AreEqual(n1.EndValue, n1.Focal.TickLength / (double)n1.Domain.BasisFocal.TickLength);
