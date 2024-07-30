@@ -414,12 +414,16 @@ public class Focal :
     public static Focal? Matches(Focal left, Focal right) => CompareFocals.Matches(left, right);
     public static Focal? Contains(Focal left, Focal right) => CompareFocals.Contains(left, right);
     public static Focal? ContainedBy(Focal left, Focal right) => CompareFocals.ContainedBy(left, right);
-    public static Focal? operator >(Focal left, Focal right) => CompareFocals.GreaterThan(left, right);
-    public static Focal? operator >=(Focal left, Focal right) => CompareFocals.GreaterThanOrEqual(left, right);
+    public static Focal? GreaterThan(Focal left, Focal right) => CompareFocals.GreaterThan(left, right);
+    public static Focal? GreaterThanOrEqual(Focal left, Focal right) => CompareFocals.GreaterThanOrEqual(left, right);
     public static Focal? GreaterThanAndEqual(Focal left, Focal right) => CompareFocals.GreaterThanAndEqual(left, right);
-    public static Focal? operator <(Focal left, Focal right) => CompareFocals.LessThan(left, right);
-    public static Focal? operator <=(Focal left, Focal right) => CompareFocals.LessThanOrEqual(left, right);
+    public static Focal? LessThan(Focal left, Focal right) => CompareFocals.LessThan(left, right);
+    public static Focal? LessThanOrEqual(Focal left, Focal right) => CompareFocals.LessThanOrEqual(left, right);
     public static Focal? LessThanAndEqual(Focal left, Focal right) => CompareFocals.LessThanAndEqual(left, right);
+    public static bool operator >(Focal left, Focal right) => CompareFocals.GreaterThan(left, right) != null;
+    public static bool operator >=(Focal left, Focal right) => CompareFocals.GreaterThanOrEqual(left, right) != null;
+    public static bool operator <(Focal left, Focal right) => CompareFocals.LessThan(left, right) != null;
+    public static bool operator <=(Focal left, Focal right) => CompareFocals.LessThanOrEqual(left, right) != null;
     #endregion
     #region Utils
     public Focal GetOffset(long offset) => new(FirstTick + offset, LastTick + offset);
