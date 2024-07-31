@@ -12,29 +12,29 @@ namespace Numerics.Primitives;
 
 
 public interface Numeric<T> where T :
-	Numeric<T>,
-	IAdditionOperators<T, T, T>,
-	ISubtractionOperators<T, T, T>,
-	IMultiplyOperators<T, T, T>,
-	IDivisionOperators<T, T, T>,
-	IIncrementOperators<T>,
-	IDecrementOperators<T>,
-	IUnaryNegationOperators<T, T>,
-	IUnaryPlusOperators<T, T>
-	//IMinMaxValue<T>
+    Numeric<T>,
+    IAdditionOperators<T, T, T>,
+    ISubtractionOperators<T, T, T>,
+    IMultiplyOperators<T, T, T>,
+    IDivisionOperators<T, T, T>,
+    IIncrementOperators<T>,
+    IDecrementOperators<T>,
+    IUnaryNegationOperators<T, T>,
+    IUnaryPlusOperators<T, T>
+    //IMinMaxValue<T>
 {
-	Number AdditiveIdentity { get; }
-	Number MultiplicativeIdentity { get; }
+    Number AdditiveIdentity { get; }
+    Number MultiplicativeIdentity { get; }
 }
 public class Number :
-	Numeric<Number>,
+    Numeric<Number>,
     IAdditionOperators<Number, Number, Number>,
     ISubtractionOperators<Number, Number, Number>,
     IMultiplyOperators<Number, Number, Number>,
-	IDivisionOperators<Number, Number, Number>,
-	IIncrementOperators<Number>,
-	IDecrementOperators<Number>,
-	IUnaryNegationOperators<Number, Number>,
+    IDivisionOperators<Number, Number, Number>,
+    IIncrementOperators<Number>,
+    IDecrementOperators<Number>,
+    IUnaryNegationOperators<Number, Number>,
     IUnaryPlusOperators<Number, Number>,
     IPolarityOperators<Number, Number, Number>
 //IMinMaxValue<Number>
@@ -42,23 +42,23 @@ public class Number :
 {
     public Focal Focal { get; private set; }
     public Domain Domain { get; private set; }
-	public Polarity Polarity { get; set; }
+    public Polarity Polarity { get; set; }
     public long FirstTick
     {
         get => Focal.FirstTick;
-        set => Focal.FirstTick = value; 
+        set => Focal.FirstTick = value;
     }
-    public long LastTick 
+    public long LastTick
     {
         get => Focal.LastTick;
         set => Focal.LastTick = value;
     }
     private long _iTick
     {
-        get => IsAligned? FirstTick : LastTick;
+        get => IsAligned ? FirstTick : LastTick;
         set { if (IsAligned) { FirstTick = value; } else { LastTick = value; } }
     }
-    private long _rTick 
+    private long _rTick
     {
         get => IsAligned ? LastTick : FirstTick;
         set { if (IsAligned) { LastTick = value; } else { FirstTick = value; } }
@@ -70,6 +70,7 @@ public class Number :
     public long TickLength => Focal.TickLength;
 
     public long AbsTickLength => Focal.AbsTickLength;
+    public Focal AlignedFocal => IsAligned ? Focal : ~Focal;
 
     // IsFractional, IsInverted, IsNegative, IsNormalized, IsZero, IsOne, IsZeroStart, IsPoint, IsOverflow, IsUnderflow
     // IsLessThanBasis, IsGrowable, IsBasisLength, IsMin, HasMask, IsArray, IsMultiDim, IsCalculated, IsRandom
@@ -80,46 +81,46 @@ public class Number :
     {
         Domain = domain;
         Focal = focal;
-		Polarity = polarity;
-	}
-	#region Add
-	public static Number operator +(Number left, Number right)
-	{
-		var aligned = left.Domain.AlignedDomain(right);
+        Polarity = polarity;
+    }
+    #region Add
+    public static Number operator +(Number left, Number right)
+    {
+        var aligned = left.Domain.AlignedDomain(right);
         var offset = left.Domain.BasisFocal.FirstTick;
         var (l0, l1, r0, r1) = GetAdditiveFocals(left, aligned, offset);
         Number result = new(left.Domain, new((l0 + r0) + offset, (l1 + r1) + offset), left.Polarity);
         return result;
     }
-	public static Number Add(Number left, Number right) => left + right;
-	static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => left + right;
+    public static Number Add(Number left, Number right) => left + right;
+    static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => left + right;
 
-	public static Number operator +(Number value) => new(value.Domain, value.Focal);
-	public static Number operator ++(Number value) => new(value.Domain, value.Focal++);
-	public Number AdditiveIdentity => Domain.AdditiveIdentity;
+    public static Number operator +(Number value) => new(value.Domain, value.Focal);
+    public static Number operator ++(Number value) => new(value.Domain, value.Focal++);
+    public Number AdditiveIdentity => Domain.AdditiveIdentity;
 
-	#endregion
-	#region Subtract
-	public static Number Subtract(Number left, Number right) => left - right;
-	public static Number operator -(Number left, Number right)
+    #endregion
+    #region Subtract
+    public static Number Subtract(Number left, Number right) => left - right;
+    public static Number operator -(Number left, Number right)
     {
         var aligned = left.Domain.AlignedDomain(right);
         var offset = left.Domain.BasisFocal.FirstTick;
         var (l0, l1, r0, r1) = GetAdditiveFocals(left, aligned, offset);
-        Number result = new (left.Domain, new((l0 - r0) + offset, (l1 - r1) + offset), left.Polarity);
+        Number result = new(left.Domain, new((l0 - r0) + offset, (l1 - r1) + offset), left.Polarity);
         return result;
     }
     static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => left - right;
 
-	public static Number operator --(Number value) => new(value.Domain, value.Focal--);
-	public static Number operator -(Number value) => new(value.Domain, -value.Focal);
-	#endregion
-	#region Multiply
-	public static Number Multiply(Number left, Number right)
-	{
-		return left * right;
-	}
-	public static Number operator *(Number left, Number right)
+    public static Number operator --(Number value) => new(value.Domain, value.Focal--);
+    public static Number operator -(Number value) => new(value.Domain, -value.Focal);
+    #endregion
+    #region Multiply
+    public static Number Multiply(Number left, Number right)
+    {
+        return left * right;
+    }
+    public static Number operator *(Number left, Number right)
     {
         var aligned = left.Domain.AlignedDomain(right);
         var len = (double)left.Domain.BasisFocal.TickLength;
@@ -151,15 +152,15 @@ public class Number :
 
 
     static Number IMultiplyOperators<Number, Number, Number>.operator *(Number left, Number right) => left * right;
-	public Number MultiplicativeIdentity => Domain.MultiplicativeIdentity;
+    public Number MultiplicativeIdentity => Domain.MultiplicativeIdentity;
 
     #endregion
     #region Divide
     public static Number Divide(Number left, Number right)
-	{
-		return left / right;
-	}
-	public static Number operator /(Number left, Number right)
+    {
+        return left / right;
+    }
+    public static Number operator /(Number left, Number right)
     {
         var aligned = left.Domain.AlignedDomain(right);
         var dir = left.Domain.BasisFocal.NonZeroDirection;
@@ -249,7 +250,7 @@ public class Number :
     {
         var offset = Domain.BasisFocal.FirstTick;
         return new(Domain, new Focal(
-            offset - (FirstTick - offset), 
+            offset - (FirstTick - offset),
             offset - (LastTick - offset)), Polarity);
     }
 
@@ -347,6 +348,126 @@ public class Number :
         return new(Domain, Focal.FocalFromTs(startT, endT, IsInverted), Polarity);
     }
 
+    #endregion
+
+    #region Comparisons
+    public static bool operator >(Number left, Number right) =>
+        CompareFocals.GreaterThan(left.AlignedFocal, right.AlignedFocal) != null;
+    public static bool operator >=(Number left, Number right) =>
+        CompareFocals.GreaterThanOrEqual(left.AlignedFocal, right.AlignedFocal) != null;
+    public static bool operator <(Number left, Number right) =>
+        CompareFocals.LessThan(left.AlignedFocal, right.AlignedFocal) != null;
+    public static bool operator <=(Number left, Number right) =>
+        CompareFocals.LessThanOrEqual(left.AlignedFocal, right.AlignedFocal) != null;
+    public bool IsMatching(Number right) =>
+        CompareFocals.Matching(AlignedFocal, right.AlignedFocal) != null;
+    public bool IsContaining(Number right) =>
+        CompareFocals.Containing(AlignedFocal, right.AlignedFocal) != null;
+    public bool IsContainedBy(Number right) =>
+        CompareFocals.ContainedBy(AlignedFocal, right.AlignedFocal) != null;
+    public bool IsGreaterThan(Number right) =>
+        CompareFocals.GreaterThan(AlignedFocal, right.AlignedFocal) != null;
+    public bool IsGreaterThanOrEqual(Number right) =>
+        CompareFocals.GreaterThanOrEqual(AlignedFocal, right.AlignedFocal) != null;
+    public bool IsGreaterThanAndEqual(Number right) =>
+        CompareFocals.GreaterThanAndEqual(AlignedFocal, right.AlignedFocal) != null;
+    public bool IsLessThan(Number right) =>
+        CompareFocals.LessThan(AlignedFocal, right.AlignedFocal) != null;
+    public bool IsLessThanOrEqual(Number right) =>
+        CompareFocals.LessThanOrEqual(AlignedFocal, right.AlignedFocal) != null;
+    public bool IsLessThanAndEqual(Number right) =>
+        CompareFocals.LessThanAndEqual(AlignedFocal, right.AlignedFocal) != null;
+
+    public static Number? Matching(Number left, Number right)
+    {
+        Number? result = null;
+        var focal = CompareFocals.Matching(left.AlignedFocal, right.AlignedFocal);
+        if (focal != null)
+        {
+            result = new Number(left.Domain, focal, left.Polarity);
+        }
+        return result;
+    }
+    public static Number? Containing(Number left, Number right)
+    {
+        Number? result = null;
+        var focal = CompareFocals.Containing(left.AlignedFocal, right.AlignedFocal);
+        if (focal != null)
+        {
+            result = new Number(left.Domain, focal, left.Polarity);
+        }
+        return result;
+    }
+    public static Number? ContainedBy(Number left, Number right)
+    {
+        Number? result = null;
+        var focal = CompareFocals.ContainedBy(left.AlignedFocal, right.AlignedFocal);
+        if (focal != null)
+        {
+            result = new Number(left.Domain, focal, left.Polarity);
+        }
+        return result;
+    }
+    public static Number? GreaterThan(Number left, Number right)
+    {
+        Number? result = null;
+        var focal = CompareFocals.GreaterThan(left.AlignedFocal, right.AlignedFocal);
+        if (focal != null)
+        {
+            result = new Number(left.Domain, focal, left.Polarity);
+        }
+        return result;
+    }
+    public static Number? GreaterThanOrEqual(Number left, Number right)
+    {
+        Number? result = null;
+        var focal = CompareFocals.GreaterThanOrEqual(left.AlignedFocal, right.AlignedFocal);
+        if (focal != null)
+        {
+            result = new Number(left.Domain, focal, left.Polarity);
+        }
+        return result;
+    }
+    public static Number? GreaterThanAndEqual(Number left, Number right)
+    {
+        Number? result = null;
+        var focal = CompareFocals.GreaterThanAndEqual(left.AlignedFocal, right.AlignedFocal);
+        if (focal != null)
+        {
+            result = new Number(left.Domain, focal, left.Polarity);
+        }
+        return result;
+    }
+    public static Number? LessThan(Number left, Number right)
+    {
+        Number? result = null;
+        var focal = CompareFocals.LessThan(left.AlignedFocal, right.AlignedFocal);
+        if (focal != null)
+        {
+            result = new Number(left.Domain, focal, left.Polarity);
+        }
+        return result;
+    }
+    public static Number? LessThanOrEqual(Number left, Number right)
+    {
+        Number? result = null;
+        var focal = CompareFocals.LessThanOrEqual(left.AlignedFocal, right.AlignedFocal);
+        if (focal != null)
+        {
+            result = new Number(left.Domain, focal, left.Polarity);
+        }
+        return result;
+    }
+    public static Number? LessThanAndEqual(Number left, Number right)
+    {
+        Number? result = null;
+        var focal = CompareFocals.LessThanAndEqual(left.AlignedFocal, right.AlignedFocal);
+        if(focal != null)
+        {
+            result = new Number(left.Domain, focal, left.Polarity);
+        }
+        return result;
+    }
     #endregion
     #region Equality
     public bool IsZero => FirstTick == Domain.BasisFocal.FirstTick && LastTick == Domain.BasisFocal.FirstTick;

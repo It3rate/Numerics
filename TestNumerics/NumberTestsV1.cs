@@ -105,13 +105,6 @@ public class NumbersTestsV1
         Assert.AreEqual(4, n3.EndValue);
     }
     [TestMethod]
-    public void PowerTests()
-    {
-        var a = new System.Numerics.Complex(0, 1);
-        var b = Complex.Pow(a, a);
-        Console.WriteLine( b);
-    }
-    [TestMethod]
     public void CoreNumberTests()
     {
         var f0 = new Focal(0, 20);

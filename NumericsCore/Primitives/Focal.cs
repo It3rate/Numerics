@@ -411,6 +411,11 @@ public class Focal :
 
     #endregion
     #region Comparisons
+    public bool IsSameDirection(Focal right) => Direction == right.Direction;
+    public bool IsSameLength(Focal right) => TickLength == right.TickLength;
+    public bool IsSameAbsLength(Focal right) => AbsTickLength == right.AbsTickLength;
+    public bool IsSameFirstTick(Focal right) => FirstTick == right.FirstTick;
+    public bool IsSameLastTick(Focal right) => LastTick == right.LastTick;
     public static bool operator >(Focal left, Focal right) => CompareFocals.GreaterThan(left, right) != null;
     public static bool operator >=(Focal left, Focal right) => CompareFocals.GreaterThanOrEqual(left, right) != null;
     public static bool operator <(Focal left, Focal right) => CompareFocals.LessThan(left, right) != null;
@@ -435,6 +440,7 @@ public class Focal :
     public static Focal? LessThanOrEqual(Focal left, Focal right) => CompareFocals.LessThanOrEqual(left, right);
     public static Focal? LessThanAndEqual(Focal left, Focal right) => CompareFocals.LessThanAndEqual(left, right);
     #endregion
+
     #region Utils
     public Focal GetOffset(long offset) => new(FirstTick + offset, LastTick + offset);
     public Focal FocalFromTs(double startT, double endT, bool invertEnds = false)
