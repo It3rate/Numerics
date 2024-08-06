@@ -67,7 +67,7 @@ public struct PRange
     //        _rValue = num.EndValue;
     //    }
     //}
-    public static PRange FromNumber(Number value) => new(value);
+    public static PRange FromNumber(Number num) => new(num);
 
     private PRange(bool isEmpty) // empty ctor
     {
@@ -159,34 +159,30 @@ public struct PRange
         var result = polarity ?
             new PRange(iVal, rVal, polarity) : new PRange(rVal, iVal, polarity);
         return result;
-        //var result = new PRange(left.Start * right.End + left.End * right.Start, left.End * right.End - left.Start * right.Start);
-        //result.Polarity = left.Polarity;
-        //result = result.SolvePolarityWith(right.Polarity); // probably can compute this properly with unit/unot values.
-        //return result;
     }
     public static PRange operator /(PRange left, PRange right)
     {
-        PRange result;
         double real1 = left.End;
         double imaginary1 = left.Start;
         double real2 = right.End;
         double imaginary2 = right.Start;
+        double iVal;
+        double rVal;
+        var polarity = (right.Polarity == Polarity.Inverted) ? left.Polarity.Invert().IsTrue() : left.Polarity.IsTrue();
         if (Math.Abs(imaginary2) < Math.Abs(real2))
         {
             double num = imaginary2 / real2;
-            result = new PRange(
-                (imaginary1 - real1 * num) / (real2 + imaginary2 * num), 
-                (real1 + imaginary1 * num) / (real2 + imaginary2 * num));
+            iVal = (imaginary1 - real1 * num) / (real2 + imaginary2 * num);
+            rVal = (real1 + imaginary1 * num) / (real2 + imaginary2 * num);
         }
         else
         {
             double num1 = real2 / imaginary2;
-            result = new PRange(
-                (-real1 + imaginary1 * num1) / (imaginary2 + real2 * num1), 
-                (imaginary1 + real1 * num1) / (imaginary2 + real2 * num1));
+            iVal = (-real1 + imaginary1 * num1) / (imaginary2 + real2 * num1);
+            rVal = (imaginary1 + real1 * num1) / (imaginary2 + real2 * num1);
         }
-        result.Polarity = left.Polarity;
-        result = result.SolvePolarityWith(right.Polarity);
+        var result = polarity ?
+            new PRange(iVal, rVal, polarity) : new PRange(rVal, iVal, polarity);
         return result;
     }
     public PRange SolvePolarityWith(Polarity right)

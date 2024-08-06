@@ -182,4 +182,20 @@ public class PRangeTests
         Assert.AreEqual(pResult.Start, r3.StartValue); // i
         Assert.AreEqual(pResult.End, r3.EndValue);
     }
+    [TestMethod]
+    public void DivisionTests()
+    {
+        _basisFocal = new Focal(0, 1000);
+        _limits = new Focal(-10000, 10000);
+        _domain = new Domain(_trait, _basisFocal, _limits);
+        var n = new Number(_domain, new(4000, 5000), Polarity.Aligned); // (-4i+5)
+        var prn = PRange.FromNumber(n);
+
+        var denom = new Number(_domain, new(-2000, 3000), Polarity.Inverted); // ~(-2-3i)
+        var r4 = n / denom;
+        var pResult = prn / PRange.FromNumber(denom);
+        Assert.IsTrue(pResult.Polarity == r4.Polarity);
+        Assert.AreEqual(pResult.Start, r4.StartValue); // i
+        Assert.AreEqual(pResult.End, r4.EndValue);
+    }
 }
