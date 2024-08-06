@@ -25,23 +25,23 @@ public struct PRange
     public bool IsInverted => Polarity == Polarity.Inverted;
 
     private readonly bool _hasValue;
-    private double _start;
-    private double _end;
+    private double _iValue;
+    private double _rValue;
     public double Start
     {
-        get => IsAligned ? _start : _end;
-        set { if (IsAligned) { _start = value; } else { _end = value; } }
+        get => IsAligned ? _iValue : _rValue;
+        set { if (IsAligned) { _iValue = value; } else { _rValue = value; } }
     }
     public double End
     {
-        get => IsAligned ? _end : _start;
-        private set { if (IsAligned) { _end = value; } else { _start = value; } }
+        get => IsAligned ? _rValue : _iValue;
+        private set { if (IsAligned) { _rValue = value; } else { _iValue = value; } }
     }
 
     public float StartF => (float)Start;
     public float EndF => (float)End;
-    public float RenderStart => (float)(IsAligned ? _start : -_start);
-    public float RenderEnd => (float)(IsAligned ? _end : -_end);
+    public float RenderStart => (float)(IsAligned ? _iValue : -_iValue);
+    public float RenderEnd => (float)(IsAligned ? _rValue : -_rValue);
 
     public PRange(PRange value, bool isAligned = true) : this(value.Start, value.End, isAligned) { }
 
@@ -49,24 +49,24 @@ public struct PRange
     {
         _hasValue = true;
         Polarity = isAligned ? Polarity.Aligned : Polarity.Inverted;
-        _start = start;
-        _end = end;
+        Start = start;
+        End = end;
     }
-    public PRange(Number num)
-    {
-        _hasValue = true;
-        Polarity = num.Polarity;
-        if(IsInverted)
-        {
-            _start = num.EndValue;
-            _end = num.StartValue;
-        }
-        else
-        {
-            _start = num.StartValue;
-            _end = num.EndValue;
-        }
-    }
+    public PRange(Number num) : this(num.StartValue, num.EndValue, num.Polarity.IsTrue()) { }
+    //{
+    //    _hasValue = true;
+    //    Polarity = num.Polarity;
+    //    if(IsInverted)
+    //    {
+    //        _iValue = num.EndValue;
+    //        _rValue = num.StartValue;
+    //    }
+    //    else
+    //    {
+    //        _iValue = num.StartValue;
+    //        _rValue = num.EndValue;
+    //    }
+    //}
     public static PRange FromNumber(Number value) => new(value);
 
     private PRange(bool isEmpty) // empty ctor
@@ -153,10 +153,16 @@ public struct PRange
     }
     public static PRange operator *(PRange left, PRange right)
     {
-        var result = new PRange(left.Start * right.End + left.End * right.Start, left.End * right.End - left.Start * right.Start);
-        result.Polarity = left.Polarity;
-        result = result.SolvePolarityWith(right.Polarity); // probably can compute this properly with unit/unot values.
+        var iVal = left._iValue * right._rValue + left._rValue * right._iValue;
+        var rVal = left._rValue * right._rValue - left._iValue * right._iValue;
+        var polarity = (right.Polarity == Polarity.Inverted) ? left.Polarity.Invert().IsTrue() : left.Polarity.IsTrue();
+        var result = polarity ?
+            new PRange(iVal, rVal, polarity) : new PRange(rVal, iVal, polarity);
         return result;
+        //var result = new PRange(left.Start * right.End + left.End * right.Start, left.End * right.End - left.Start * right.Start);
+        //result.Polarity = left.Polarity;
+        //result = result.SolvePolarityWith(right.Polarity); // probably can compute this properly with unit/unot values.
+        //return result;
     }
     public static PRange operator /(PRange left, PRange right)
     {
@@ -314,10 +320,15 @@ public struct PRange
         }
         else
         {
+            //var midSign = End > 0 ? " + " : " ";
+            //var invert = IsAligned ? "+" : "~";
+            //result = $"{invert}({Start:0.##}s{midSign}{End:0.##}e)";
+
             var midSign = End > 0 ? " + " : " ";
-            result = IsAligned ?
-                $"({Start:0.##}s{midSign}{End:0.##}e)" :
-                $"~({End:0.##}s{midSign}{Start:0.##}e)";
+            var pol = Polarity == Polarity.Inverted ? "~" : "";
+            var start = Start == 0 ? "0" : $"{Start:0.##}";
+            var end = End == 0 ? "0" : $"{End:0.##}";
+            result = $"{pol}({start}s{midSign}{end}e)";
         }
         return result;
     }
