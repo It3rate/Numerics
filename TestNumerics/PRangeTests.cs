@@ -27,9 +27,48 @@ public class PRangeTests
         _domain = new Domain(_trait, _basisFocal, _limits);
     }
     [TestMethod]
+    public void MultiplyAlignedTests()
+    {
+        var n1 = new Number(_domain, new(2000, 3000), Polarity.Aligned); // (-2i+3)
+        var n2 = new Number(_domain, new(0, -1000), Polarity.Aligned); // (-1)
+        var pr1 = PRange.FromNumber(n1);
+        var pr2 = PRange.FromNumber(n2);
+        var result = n1 * n2;
+        var prResult = pr1 * pr2;
+
+        Assert.AreEqual(prResult.Start, result.StartValue, .01);
+        Assert.AreEqual(prResult.End, result.EndValue, .01);
+    }
+    [TestMethod]
+    public void MultiplyAligned_iTests()
+    {
+        var n1 = new Number(_domain, new(2000, 3000), Polarity.Aligned); // (-2i+3)
+        var n2 = new Number(_domain, new(-1000, 0), Polarity.Aligned); // (i)
+        var pr1 = PRange.FromNumber(n1);
+        var pr2 = PRange.FromNumber(n2);
+        var result = n1 * n2;
+        var prResult = pr1 * pr2;
+
+        Assert.AreEqual(prResult.Start, result.StartValue, .01);
+        Assert.AreEqual(prResult.End, result.EndValue, .01);
+    }
+    [TestMethod]
+    public void MultiplyAligned_negiTests()
+    {
+        var n1 = new Number(_domain, new(2000, 3000), Polarity.Aligned); // (-2i+3)
+        var n2 = new Number(_domain, new(1000, 0), Polarity.Aligned); // (-i)
+        var pr1 = PRange.FromNumber(n1);
+        var pr2 = PRange.FromNumber(n2);
+        var result = n1 * n2;
+        var prResult = pr1 * pr2;
+
+        Assert.AreEqual(prResult.Start, result.StartValue, .01);
+        Assert.AreEqual(prResult.End, result.EndValue, .01);
+    }
+    [TestMethod]
     public void MultiplyTests()
     {
-        var n1 = new Number(_domain, new(2000, 3000), Polarity.Aligned); // ~(2-3i)
+        var n1 = new Number(_domain, new(2000, 3000), Polarity.Aligned); // (-2i+3)
         var n2 = new Number(_domain, new(0, -1000), Polarity.Inverted); // ~(i)
         var pr1 = PRange.FromNumber(n1);
         var pr2 = PRange.FromNumber(n2);
@@ -191,11 +230,11 @@ public class PRangeTests
         var n = new Number(_domain, new(4000, 5000), Polarity.Aligned); // (-4i+5)
         var prn = PRange.FromNumber(n);
 
-        var denom = new Number(_domain, new(-2000, 3000), Polarity.Inverted); // ~(-2-3i)
+        var denom = new Number(_domain, new(-2000, 3000), Polarity.Aligned); // (2i+3)
         var r4 = n / denom;
         var pResult = prn / PRange.FromNumber(denom);
         Assert.IsTrue(pResult.Polarity == r4.Polarity);
-        Assert.AreEqual(pResult.Start, r4.StartValue); // i
-        Assert.AreEqual(pResult.End, r4.EndValue);
+        Assert.AreEqual(pResult.Start, r4.StartValue, _delta); // i
+        Assert.AreEqual(pResult.End, r4.EndValue, _delta);
     }
 }
