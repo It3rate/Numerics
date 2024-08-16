@@ -326,9 +326,6 @@ public class Number :
     #endregion
 
     #region Ranges
-    //public double DecimalValue(long tick) => Domain.DecimalValue(tick);
-    public long TickValue(double value) => Domain.TickValue(value);
-
     public PRange GetRange()
     {
         var basis = Domain.BasisFocal;
@@ -340,7 +337,7 @@ public class Number :
             start = Math.Round(start) * Math.Abs(len);
             end = Math.Round(end) * Math.Abs(len);
         }
-        var result = IsAligned ? new PRange(-start, end, IsAligned) : new PRange(start, -end, !IsAligned);
+        var result = IsAligned ? new PRange(-start, end, Polarity) : new PRange(start, -end, Polarity.Invert());
         return result;
     }
     public Number ValueAtT(double startT, double endT)

@@ -10,7 +10,7 @@ namespace NumericsCore.Utils;
 /// </summary>
 public struct PRange
 {
-    public static readonly PRange Empty = new PRange(0.0, 1.0, true);
+    public static readonly PRange Empty = new PRange(0.0, 1.0);
     public static readonly PRange Zero = new PRange(0.0, 0.0);
     public static readonly PRange Unit = new PRange(0.0, 1.0);
     public static readonly PRange Unot = new PRange(1.0, 0.0);
@@ -25,48 +25,38 @@ public struct PRange
     public bool IsInverted => Polarity == Polarity.Inverted;
 
     private readonly bool _hasValue;
-    private double _iValue;
-    private double _rValue;
+    private double _startValue;
+    private double _endValue;
     public double Start
     {
-        get => IsAligned ? _iValue : _rValue;
-        set { if (IsAligned) { _iValue = value; } else { _rValue = value; } }
+        get => _startValue;
+        set => _startValue = value;
+        //get => IsAligned ? _startValue : _endValue;
+        //set { if (IsAligned) { _startValue = value; } else { _endValue = value; } }
     }
     public double End
     {
-        get => IsAligned ? _rValue : _iValue;
-        private set { if (IsAligned) { _rValue = value; } else { _iValue = value; } }
+        get => _endValue;
+        set => _endValue = value;
+        //get => IsAligned ? _endValue : _startValue;
+        //private set { if (IsAligned) { _endValue = value; } else { _startValue = value; } }
     }
 
     public float StartF => (float)Start;
     public float EndF => (float)End;
-    public float RenderStart => (float)(IsAligned ? _iValue : -_iValue);
-    public float RenderEnd => (float)(IsAligned ? _rValue : -_rValue);
+    public float RenderStart => (float)(IsAligned ? _startValue : -_startValue);
+    public float RenderEnd => (float)(IsAligned ? _endValue : -_endValue);
 
-    public PRange(PRange value, bool isAligned = true) : this(value.Start, value.End, isAligned) { }
+    public PRange(PRange value, Polarity polarity = Polarity.Aligned) : this(value.Start, value.End, polarity) { }
 
-    public PRange(double start, double end, bool isAligned = true)
+    public PRange(double start, double end, Polarity polarity = Polarity.Aligned)
     {
         _hasValue = true;
-        Polarity = isAligned ? Polarity.Aligned : Polarity.Inverted;
+        Polarity = polarity;
         Start = start;
         End = end;
     }
-    public PRange(Number num) : this(num.StartValue, num.EndValue, num.Polarity.IsTrue()) { }
-    //{
-    //    _hasValue = true;
-    //    Polarity = num.Polarity;
-    //    if(IsInverted)
-    //    {
-    //        _iValue = num.EndValue;
-    //        _rValue = num.StartValue;
-    //    }
-    //    else
-    //    {
-    //        _iValue = num.StartValue;
-    //        _rValue = num.EndValue;
-    //    }
-    //}
+    public PRange(Number num) : this(num.StartValue, num.EndValue, num.Polarity) { }
     public static PRange FromNumber(Number num) => new(num);
 
     private PRange(bool isEmpty) // empty ctor
@@ -74,6 +64,7 @@ public struct PRange
         _hasValue = false;
         Polarity = Polarity.None;
     }
+
 
     public bool IsEmpty => _hasValue;
     public double Min => Start >= End ? End : Start;
@@ -88,11 +79,11 @@ public struct PRange
         var dist = value - (-Start);
         return dist / DirectedLength();
     }
-    public PRange InvertStart() => new(-Start, End, IsAligned);
-    public PRange InvertEnd() => new(Start, -End, IsAligned);
-    public PRange InvertPolarity() => new(Start, End, !IsAligned);
-    public PRange InvertRange() => new(-Start, -End, IsAligned);
-    public PRange InvertPolarityAndRange() => new(-Start, -End, !IsAligned);
+    public PRange InvertStart() => new(-Start, End, Polarity);
+    public PRange InvertEnd() => new(Start, -End, Polarity);
+    public PRange InvertPolarity() => new(Start, End, Polarity.Invert());
+    public PRange InvertRange() => new(-Start, -End, Polarity);
+    public PRange InvertPolarityAndRange() => new(-Start, -End, Polarity.Invert());
 
     public PRange Negation() => PRange.Negation(this);
     public PRange Conjugate() => PRange.Conjugate(this);
@@ -122,6 +113,14 @@ public struct PRange
     public bool IsTouching(PRange value) => (Start >= value.Start && Start <= value.End) || (End >= value.Start && End <= value.End);
     public bool IsNotTouching(PRange value) => !IsTouching(value);
 
+    public PRange Invert() => new PRange(-_startValue, -_endValue, Polarity.Invert());
+    public PRange Aligned => IsAligned ? this : Invert();
+    public PRange Inverted => IsInverted ? this : Invert();
+    public PRange ConvertToPolarity(Polarity target) => target == Polarity ? this : Invert();
+    public PRange Reverse() => new PRange(_endValue, _startValue, Polarity);
+    public PRange InvertReverse() => new PRange(-_endValue, -_startValue, Polarity.Invert());
+    public PRange AlignedConjugate() => new PRange(_startValue, -_endValue, Polarity);
+    public PRange InvertedConjugate() => new PRange(-_startValue, _endValue, Polarity);
 
     public static PRange operator +(PRange a, double value) => a + new PRange(0, value);
     public static PRange operator -(PRange a, double value) => a - new PRange(0, value);
@@ -151,24 +150,30 @@ public struct PRange
         result.End -= right.End;
         return result;
     }
-    public static PRange operator *(PRange left, PRange right)
+    public static PRange operator *(PRange leftIn, PRange rightIn)
     {
-        var iVal = left._iValue * right._rValue + left._rValue * right._iValue;
-        var rVal = left._rValue * right._rValue - left._iValue * right._iValue;
-        var polarity = (right.Polarity == Polarity.Inverted) ? left.Polarity.Invert().IsTrue() : left.Polarity.IsTrue();
-        var result = polarity ?
-            new PRange(iVal, rVal, polarity) : new PRange(rVal, iVal, polarity);
-        return result;
+        var polarity = (rightIn.Polarity == Polarity.Inverted) ? leftIn.Polarity.Invert() : leftIn.Polarity;
+        var left = leftIn.ConvertToPolarity(polarity);
+        var right = rightIn.ConvertToPolarity(polarity);
+        var iVal = left._startValue * right._endValue + left._endValue * right._startValue;
+        var rVal = left._endValue * right._endValue - left._startValue * right._startValue;
+        //var result = polarity.IsTrue() ?
+        //    new PRange(iVal, rVal, polarity) : new PRange(rVal, iVal, polarity);
+        return new PRange(iVal, rVal, polarity);
     }
-    public static PRange operator /(PRange left, PRange right)
+    public static PRange operator /(PRange leftIn, PRange rightIn)
     {
+        var polarity = (rightIn.Polarity == Polarity.Inverted) ? leftIn.Polarity.Invert() : leftIn.Polarity;
+        var left = leftIn.ConvertToPolarity(polarity);
+        var right = rightIn.ConvertToPolarity(polarity);
+
         double real1 = left.End;
         double imaginary1 = left.Start;
         double real2 = right.End;
         double imaginary2 = right.Start;
         double iVal;
         double rVal;
-        var polarity = (right.Polarity == Polarity.Inverted) ? left.Polarity.Invert().IsTrue() : left.Polarity.IsTrue();
+        //var polarity = (right.Polarity == Polarity.Inverted) ? left.Polarity.Invert() : left.Polarity;
         if (Math.Abs(imaginary2) < Math.Abs(real2))
         {
             double num = imaginary2 / real2;
@@ -181,9 +186,9 @@ public struct PRange
             iVal = (-real1 + imaginary1 * num1) / (imaginary2 + real2 * num1);
             rVal = (imaginary1 + real1 * num1) / (imaginary2 + real2 * num1);
         }
-        var result = polarity ?
-            new PRange(iVal, rVal, polarity) : new PRange(rVal, iVal, polarity);
-        return result;
+        //var result = polarity.IsTrue() ?
+        //    new PRange(iVal, rVal, polarity) : new PRange(rVal, iVal, polarity);
+        return new PRange(iVal, rVal, polarity);
     }
     public PRange SolvePolarityWith(Polarity right)
     {
@@ -270,12 +275,12 @@ public struct PRange
     public static PRange FromFocal(Focal value) => new(value.FirstTick, value.LastTick);
     public Number ToNumber(Domain domain) => new(
         domain, 
-        new(domain.TickValue(Start), domain.TickValue(End)),
+        domain.FocalFromValues(Start, End), 
         Polarity);
     #endregion
 
     #region Equality
-    public PRange Clone() => new PRange(Start, End, IsAligned);
+    public PRange Clone() => new PRange(Start, End, Polarity);
 
     public static bool operator ==(PRange a, PRange b) // value type, so no nulls
     {

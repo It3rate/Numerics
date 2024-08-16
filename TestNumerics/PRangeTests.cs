@@ -12,229 +12,121 @@ namespace TestNumerics;
 [TestClass]
 public class PRangeTests
 {
-    private Trait _trait = null!;
-    private Focal _basisFocal = null!;
-    private Focal _limits = null!;
-    private Domain _domain = null!;
-    private static double _delta = 0.001;
+    private static double _delta = 0.0001;
 
     [TestInitialize]
     public void Init()
     {
-        _trait = new Trait("numberTests");
-        _basisFocal = new Focal(0, 1000);
-        _limits = new Focal(-10000, 10000);
-        _domain = new Domain(_trait, _basisFocal, _limits);
     }
     [TestMethod]
-    public void MultiplyAlignedTests()
+    public void MultiplyFromZeroTests()
     {
-        var n1 = new Number(_domain, new(2000, 3000), Polarity.Aligned); // (-2i+3)
-        var n2 = new Number(_domain, new(0, -1000), Polarity.Aligned); // (-1)
-        var pr1 = PRange.FromNumber(n1);
-        var pr2 = PRange.FromNumber(n2);
-        var result = n1 * n2;
-        var prResult = pr1 * pr2;
+        var left = new PRange(0, 5, Polarity.Aligned);
+        var right = new PRange(0, 6, Polarity.Aligned);
+        var result = left * right;
+        Assert.AreEqual(0, result.Start, _delta);
+        Assert.AreEqual(30, result.End, _delta);
 
-        Assert.AreEqual(prResult.Start, result.StartValue, .01);
-        Assert.AreEqual(prResult.End, result.EndValue, .01);
-    }
-    [TestMethod]
-    public void MultiplyAligned_iTests()
-    {
-        var n1 = new Number(_domain, new(2000, 3000), Polarity.Aligned); // (-2i+3)
-        var n2 = new Number(_domain, new(-1000, 0), Polarity.Aligned); // (i)
-        var pr1 = PRange.FromNumber(n1);
-        var pr2 = PRange.FromNumber(n2);
-        var result = n1 * n2;
-        var prResult = pr1 * pr2;
+        left = new PRange(0, -5, Polarity.Aligned);
+        right = new PRange(0, 6, Polarity.Aligned);
+        result = left * right;
+        Assert.AreEqual(0, result.Start, _delta);
+        Assert.AreEqual(-30, result.End, _delta);
 
-        Assert.AreEqual(prResult.Start, result.StartValue, .01);
-        Assert.AreEqual(prResult.End, result.EndValue, .01);
-    }
-    [TestMethod]
-    public void MultiplyAligned_negiTests()
-    {
-        var n1 = new Number(_domain, new(2000, 3000), Polarity.Aligned); // (-2i+3)
-        var n2 = new Number(_domain, new(1000, 0), Polarity.Aligned); // (-i)
-        var pr1 = PRange.FromNumber(n1);
-        var pr2 = PRange.FromNumber(n2);
-        var result = n1 * n2;
-        var prResult = pr1 * pr2;
+        left = new PRange(0, -5, Polarity.Aligned); // (0i - 5) => ~(-0i + 5) 
+        right = new PRange(0, 6, Polarity.Inverted); // ~(0i + 6)
+        result = left * right;
+        Assert.AreEqual(Polarity.Inverted, result.Polarity);
+        Assert.AreEqual(0, result.Start, _delta);
+        Assert.AreEqual(30, result.End, _delta);
 
-        Assert.AreEqual(prResult.Start, result.StartValue, .01);
-        Assert.AreEqual(prResult.End, result.EndValue, .01);
+        left = new PRange(0, -5, Polarity.Inverted);// ~(0i - 5)
+        right = new PRange(0, 6, Polarity.Inverted); // ~(0i + 6)
+        result = left * right;
+        Assert.AreEqual(Polarity.Aligned, result.Polarity);
+        Assert.AreEqual(0, result.Start, _delta);
+        Assert.AreEqual(-30, result.End, _delta);
+
+        left = new PRange(0, -5, Polarity.Inverted); // ~(0i - 5)
+        right = new PRange(0, 6, Polarity.Aligned); // (0i + 6) => ~(-0i - 6) 
+        result = left * right; // = ~(0i - 6)
+        Assert.AreEqual(Polarity.Inverted, result.Polarity);
+        Assert.AreEqual(0, result.Start, _delta);
+        Assert.AreEqual(30, result.End, _delta);
     }
     [TestMethod]
     public void MultiplyTests()
     {
-        var n1 = new Number(_domain, new(2000, 3000), Polarity.Aligned); // (-2i+3)
-        var n2 = new Number(_domain, new(0, -1000), Polarity.Inverted); // ~(i)
-        var pr1 = PRange.FromNumber(n1);
-        var pr2 = PRange.FromNumber(n2);
-        var result = n1 * n2;
-        var prResult = pr1 * pr2;
+        var left = new PRange(2, 5, Polarity.Aligned);
+        var right = new PRange(3, 6, Polarity.Aligned);
+        var result = left * right; // (2i + 5) * (3i + 6) => (-3i - 36)
+        Assert.AreEqual(27, result.Start, _delta);
+        Assert.AreEqual(24, result.End, _delta);
 
-        Assert.AreEqual(prResult.Start, result.StartValue, .01);
-        Assert.AreEqual(prResult.End, result.EndValue, .01);
+        left = new PRange(2, -5, Polarity.Aligned);
+        right = new PRange(3, 6, Polarity.Aligned);
+        result = left * right; // (2i - 5) * (3i + 6) => (-3i - 36)
+        Assert.AreEqual(-3, result.Start, _delta);
+        Assert.AreEqual(-36, result.End, _delta);
+
+
+        left = new PRange(2, -5, Polarity.Aligned); // (2i - 5) => ~(-2i + 5) // inverted
+        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6)
+        result = left * right; // (-2i + 5) * (3i + 6) => ~(3i + 36)
+        Assert.AreEqual(Polarity.Inverted, result.Polarity);
+        Assert.AreEqual(3, result.Start, _delta);
+        Assert.AreEqual(36, result.End, _delta);
+
+        left = new PRange(2, -5, Polarity.Inverted);// ~(2i - 5) => (-2i + 5)
+        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6) => (-3i - 6)
+        result = left * right; // (-2i + 5) * (-3i - 6) = ()
+        Assert.AreEqual(Polarity.Aligned, result.Polarity);
+        Assert.AreEqual(-3, result.Start, _delta);
+        Assert.AreEqual(-36, result.End, _delta);
+
+        left = new PRange(2, -5, Polarity.Inverted); // ~(2i - 5)
+        right = new PRange(3, 6, Polarity.Aligned); // (3i + 6) => ~(-3i - 6) 
+        result = left * right; // (2i - 5) * (-3i - 6) = ~(3i + 36)
+        Assert.AreEqual(Polarity.Inverted, result.Polarity);
+        Assert.AreEqual(3, result.Start, _delta);
+        Assert.AreEqual(36, result.End, _delta);
     }
     [TestMethod]
-    public void UnitByAlignedTests()
+    public void DivideTests()
     {
-        _basisFocal = new Focal(0, 100);
-        _limits = new Focal(-10000, 10000);
-        _domain = new Domain(_trait, _basisFocal, _limits);
-        var n = new Number(_domain, new(200, 300), Polarity.Aligned); // (-2i+3)
-        var prn = PRange.FromNumber(n);
-        // preserve length: * 1, * -1, * ~(1), * ~(-1), 
-        // anything where the 'real' part is one and imaginary part is zero preserves length, independent of polarity.
-        var a_pos1 = new Number(_domain, new(0, 100), Polarity.Aligned); // ~seg from 0i->1
-        var rap1 = n * a_pos1; // (1)
-        var pResult = prn * PRange.FromNumber(a_pos1);
-        Assert.IsTrue(pResult.Polarity == rap1.Polarity);
-        Assert.AreEqual(pResult.Start, rap1.StartValue); // i
-        Assert.AreEqual(pResult.End, rap1.EndValue);
+        var left = new PRange(60, 180, Polarity.Aligned);
+        var right = new PRange(3, 6, Polarity.Aligned);
+        var result = left / right; // (60i + 180) / (3i + 6) => (-4i + 28)
+        Assert.AreEqual(-4, result.Start, _delta);
+        Assert.AreEqual(28, result.End, _delta);
 
-        var a_neg1 = new Number(_domain, new(0, -100), Polarity.Aligned); // ~seg from 0i->-1
-        var ran1 = n * a_neg1; // (-1)
-        pResult = prn * PRange.FromNumber(a_neg1);
-        Assert.IsTrue(pResult.Polarity == ran1.Polarity);
-        Assert.AreEqual(pResult.Start, ran1.StartValue); // i
-        Assert.AreEqual(pResult.End, ran1.EndValue);
-
-        var i_neg1 = new Number(_domain, new(-100, 0), Polarity.Inverted); // ~seg from 1->0i inverts segments in place
-        var r0 = n * i_neg1; // ~(-1)
-        pResult = prn * PRange.FromNumber(i_neg1);
-        Assert.IsTrue(pResult.Polarity == r0.Polarity);
-        Assert.AreEqual(pResult.Start, r0.StartValue);
-        Assert.AreEqual(pResult.End, r0.EndValue); // i
-
-        var i_pos1 = new Number(_domain, new(100, 0), Polarity.Inverted); // ~seg from 1->0i inverts segments in place
-        var r1 = n * i_pos1; // ~(1)
-        pResult = prn * PRange.FromNumber(i_pos1);
-        Assert.IsTrue(pResult.Polarity == r1.Polarity);
-        Assert.AreEqual(pResult.Start, r1.StartValue);
-        Assert.AreEqual(pResult.End, r1.EndValue); // i
+        left = new PRange(60, -180, Polarity.Aligned);
+        right = new PRange(3, 6, Polarity.Aligned);
+        result = left / right; // (60i - 180) / (3i + 6) => (20i - 20)
+        Assert.AreEqual(20, result.Start, _delta);
+        Assert.AreEqual(-20, result.End, _delta);
 
 
+        left = new PRange(60, -180, Polarity.Aligned); // (60i - 180) => ~(-60i + 180) // inverted
+        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6)
+        result = left / right; // (-60i + 180) / (3i + 6) => ~(-20i + 20)
+        Assert.AreEqual(Polarity.Inverted, result.Polarity);
+        Assert.AreEqual(-20, result.Start, _delta);
+        Assert.AreEqual(20, result.End, _delta);
 
-        // change length: * (i), * ~(-i), * ~(i), * (-i)
-        var a_posi = new Number(_domain, new(-100, 0), Polarity.Aligned);// seg from i to 0
-        var r5 = n * a_posi; // +(i)
-        pResult = prn * PRange.FromNumber(a_posi);
-        Assert.IsTrue(pResult.Polarity == r5.Polarity);
-        Assert.AreEqual(pResult.Start, r5.StartValue); // i
-        Assert.AreEqual(pResult.End, r5.EndValue);
+        left = new PRange(60, -180, Polarity.Inverted);// ~(60i - 180) => (-60i + 180)
+        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6) => (-3i - 6)
+        result = left / right; // (-60i + 180) / (-3i - 6) = (20i - 20)
+        Assert.AreEqual(Polarity.Aligned, result.Polarity);
+        Assert.AreEqual(20, result.Start, _delta);
+        Assert.AreEqual(-20, result.End, _delta);
 
-        var a_negi = new Number(_domain, new(100, 0), Polarity.Aligned);// seg from -i to 0
-        var r2 = n * a_negi; // +(-i)
-        pResult = prn * PRange.FromNumber(a_negi);
-        Assert.IsTrue(pResult.Polarity == r2.Polarity);
-        Assert.AreEqual(pResult.Start, r2.StartValue); // i
-        Assert.AreEqual(pResult.End, r2.EndValue);
-
-        var i_posi = new Number(_domain, new(0, -100), Polarity.Inverted); // seg i
-        var r4 = n * i_posi; // ~(i)
-        pResult = prn * PRange.FromNumber(i_posi);
-        Assert.IsTrue(pResult.Polarity == r4.Polarity);
-        Assert.AreEqual(pResult.Start, r4.StartValue);
-        Assert.AreEqual(pResult.End, r4.EndValue); // i
-
-        var i_negi = new Number(_domain, new(0, 100), Polarity.Inverted); // seg -i
-        var r3 = n * i_negi; // ~(-i)
-        pResult = prn * PRange.FromNumber(i_negi);
-        Assert.IsTrue(pResult.Polarity == r3.Polarity);
-        Assert.AreEqual(pResult.Start, r3.StartValue);
-        Assert.AreEqual(pResult.End, r3.EndValue); // i
+        left = new PRange(60, -180, Polarity.Inverted); // ~(60i - 180)
+        right = new PRange(3, 6, Polarity.Aligned); // (3i + 6) => ~(-3i - 6) 
+        result = left / right; // (60i - 180) / (-3i - 6) = ~(3i + 36)
+        Assert.AreEqual(Polarity.Inverted, result.Polarity);
+        Assert.AreEqual(-20, result.Start, _delta);
+        Assert.AreEqual(20, result.End, _delta);
     }
-    [TestMethod]
-    public void UnitByInvertedTests()
-    {
-        _basisFocal = new Focal(0, 100);
-        _limits = new Focal(-10000, 10000);
-        _domain = new Domain(_trait, _basisFocal, _limits);
-        var n = new Number(_domain, new(200, 300), Polarity.Inverted); // ~(2-3i)
-        var prn = PRange.FromNumber(n);
 
-        Assert.IsTrue(prn.IsInverted);
-        Assert.AreEqual(2, prn.Start);
-        Assert.AreEqual(-3, prn.End); // i
-
-        // preserve length: * 1, * -1, * ~(1), * ~(-1), 
-        // anything where the 'real' part is one and imaginary part is zero preserves length, independent of polarity.
-        var a_pos1 = new Number(_domain, new(0, 100), Polarity.Aligned); // ~seg from 0i->1
-        var rap1 = n * a_pos1; // (1)
-        var pResult = prn * PRange.FromNumber(a_pos1);
-        Assert.IsTrue(pResult.Polarity == rap1.Polarity);
-        Assert.AreEqual(pResult.Start, rap1.StartValue); // i
-        Assert.AreEqual(pResult.End, rap1.EndValue);
-
-        var a_neg1 = new Number(_domain, new(0, -100), Polarity.Aligned); // ~seg from 0i->-1
-        var ran1 = n * a_neg1; // (-1)
-        pResult = prn * PRange.FromNumber(a_neg1);
-        Assert.IsTrue(pResult.Polarity == rap1.Polarity);
-        Assert.AreEqual(pResult.Start, ran1.StartValue); // i
-        Assert.AreEqual(pResult.End, ran1.EndValue);
-
-        var i_neg1 = new Number(_domain, new(-100, 0), Polarity.Inverted); // ~seg from 1->0i inverts segments in place
-        var r0 = n * i_neg1; // ~(-1)
-        pResult = prn * PRange.FromNumber(i_neg1);
-        Assert.IsTrue(pResult.Polarity == r0.Polarity);
-        Assert.AreEqual(pResult.Start, r0.StartValue);
-        Assert.AreEqual(pResult.End, r0.EndValue); // i
-
-        var i_pos1 = new Number(_domain, new(100, 0), Polarity.Inverted); // ~seg from 1->0i inverts segments in place
-        var r1 = n * i_pos1; // ~(1)
-        pResult = prn * PRange.FromNumber(i_pos1);
-        Assert.IsTrue(pResult.Polarity == r1.Polarity);
-        Assert.AreEqual(pResult.Start, r1.StartValue);
-        Assert.AreEqual(pResult.End, r1.EndValue); // i
-
-
-
-        // change length: * (i), * ~(-i), * ~(i), * (-i)
-        var a_posi = new Number(_domain, new(-100, 0), Polarity.Aligned);// seg from i to 0
-        var r5 = n * a_posi; // +(i)
-        pResult = prn * PRange.FromNumber(a_posi);
-        Assert.IsTrue(pResult.Polarity == r5.Polarity);
-        Assert.AreEqual(pResult.Start, r5.StartValue);
-        Assert.AreEqual(pResult.End, r5.EndValue); // i
-
-        var a_negi = new Number(_domain, new(100, 0), Polarity.Aligned);// seg from -i to 0
-        var r2 = n * a_negi; // +(-i)
-        pResult = prn * PRange.FromNumber(a_negi);
-        Assert.IsTrue(pResult.Polarity == r2.Polarity);
-        Assert.AreEqual(pResult.Start, r2.StartValue);
-        Assert.AreEqual(pResult.End, r2.EndValue); // i
-
-        var i_posi = new Number(_domain, new(0, -100), Polarity.Inverted); // seg i
-        var r4 = n * i_posi; // ~(i)
-        pResult = prn * PRange.FromNumber(i_posi);
-        Assert.IsTrue(pResult.Polarity == r4.Polarity);
-        Assert.AreEqual(pResult.Start, r4.StartValue); // i
-        Assert.AreEqual(pResult.End, r4.EndValue);
-
-        var i_negi = new Number(_domain, new(0, 100), Polarity.Inverted); // seg -i
-        var r3 = n * i_negi; // ~(-i)
-        pResult = prn * PRange.FromNumber(i_negi);
-        Assert.IsTrue(pResult.Polarity == r3.Polarity);
-        Assert.AreEqual(pResult.Start, r3.StartValue); // i
-        Assert.AreEqual(pResult.End, r3.EndValue);
-    }
-    [TestMethod]
-    public void DivisionTests()
-    {
-        _basisFocal = new Focal(0, 1000);
-        _limits = new Focal(-10000, 10000);
-        _domain = new Domain(_trait, _basisFocal, _limits);
-        var n = new Number(_domain, new(4000, 5000), Polarity.Aligned); // (-4i+5)
-        var prn = PRange.FromNumber(n);
-
-        var denom = new Number(_domain, new(-2000, 3000), Polarity.Aligned); // (2i+3)
-        var r4 = n / denom;
-        var pResult = prn / PRange.FromNumber(denom);
-        Assert.IsTrue(pResult.Polarity == r4.Polarity);
-        Assert.AreEqual(pResult.Start, r4.StartValue, _delta); // i
-        Assert.AreEqual(pResult.End, r4.EndValue, _delta);
-    }
 }

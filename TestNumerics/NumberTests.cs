@@ -241,9 +241,14 @@ public class NumberTests
     [TestMethod]
     public void TickValue_ValidDecimalValue_CalculatesCorrectly()
     {
-        double decimalValue = 0.5;
-        var tick = _domain.BasisNumber.TickValue(decimalValue);
-        Assert.AreEqual(5, tick);
+        _basisFocal = new Focal(10000, 20000);
+        _limits = new Focal(-100000, 100000);
+        _domain = new Domain(_trait, _basisFocal, _limits);
+        double decimalValueStart = 0.5;
+        double decimalValueEnd = 0.8;
+        var tick = _domain.FocalFromValues(decimalValueStart, decimalValueEnd);
+        Assert.AreEqual(5000, tick.FirstTick);
+        Assert.AreEqual(18000, tick.LastTick);
     }
     [TestMethod]
     public void Clone_ValidNumber_CreatesNewInstance()

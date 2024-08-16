@@ -46,7 +46,7 @@ public class Domain
         {
             var start = value.StartValue;
             var end = value.EndValue;
-            var focal = new Focal(TickValue(start), TickValue(end));
+            var focal = FocalFromValues(start, end);
             result = new(this, focal, value.Polarity);
         }
         return result;
@@ -79,7 +79,12 @@ public class Domain
             (long)(-start * BasisFocal.TickLength),
             (long)(end * BasisFocal.TickLength));
     }
-    public long TickValue(double value)
+    public Focal FocalFromValues(double startValue, double endValue)
+    {
+        var result = new Focal(TickValue(-startValue), TickValue(endValue));
+        return result;
+    }
+    private long TickValue(double value)
     {
         var result = (long)(value * BasisFocal.NonZeroTickLength);
         result += BasisFocal.FirstTick;
