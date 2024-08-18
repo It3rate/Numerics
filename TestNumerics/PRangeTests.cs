@@ -129,4 +129,77 @@ public class PRangeTests
         Assert.AreEqual(20, result.End, _delta);
     }
 
+    [TestMethod]
+    public void AddTests()
+    {
+        var left = new PRange(60, 180, Polarity.Aligned);
+        var right = new PRange(3, 6, Polarity.Aligned);
+        var result = left + right; // (60i + 180) + (3i + 6) => (63i + 186)
+        Assert.AreEqual(63, result.Start, _delta);
+        Assert.AreEqual(186, result.End, _delta);
+
+        left = new PRange(60, -180, Polarity.Aligned);
+        right = new PRange(3, 6, Polarity.Aligned);
+        result = left + right; // (60i - 180) + (3i + 6) => (63i - 174)
+        Assert.AreEqual(63, result.Start, _delta);
+        Assert.AreEqual(-174, result.End, _delta);
+
+        left = new PRange(60, -180, Polarity.Aligned); // (60i - 180) => ~(-60i + 180) // inverted
+        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6) => (-3i - 6)
+        result = left + right; // (60i - 180) + (-3i - 6) => ~(57i - 186)
+        Assert.AreEqual(Polarity.Aligned, result.Polarity);
+        Assert.AreEqual(57, result.Start, _delta);
+        Assert.AreEqual(-186, result.End, _delta);
+
+        left = new PRange(60, -180, Polarity.Inverted);// ~(60i - 180)
+        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6)
+        result = left + right; // (60i - 180) + (3i + 6) = (63i - 174)
+        Assert.AreEqual(Polarity.Inverted, result.Polarity);
+        Assert.AreEqual(63, result.Start, _delta);
+        Assert.AreEqual(-174, result.End, _delta);
+
+        left = new PRange(60, -180, Polarity.Inverted); // ~(60i - 180)
+        right = new PRange(3, 6, Polarity.Aligned); // (3i + 6) => ~(-3i - 6) 
+        result = left + right; // (60i - 180) + (-3i - 6) = ~(57i - 186)
+        Assert.AreEqual(Polarity.Inverted, result.Polarity);
+        Assert.AreEqual(57, result.Start, _delta);
+        Assert.AreEqual(-186, result.End, _delta);
+    }
+    [TestMethod]
+    public void SubtractTests()
+    {
+        var left = new PRange(60, 180, Polarity.Aligned);
+        var right = new PRange(3, 6, Polarity.Aligned);
+        var result = left - right; // (60i + 180) - (3i + 6) => (63i + 174)
+        Assert.AreEqual(57, result.Start, _delta);
+        Assert.AreEqual(174, result.End, _delta);
+
+        left = new PRange(60, -180, Polarity.Aligned);
+        right = new PRange(3, 6, Polarity.Aligned);
+        result = left - right; // (60i - 180) - (3i + 6) => (57i - 186)
+        Assert.AreEqual(57, result.Start, _delta);
+        Assert.AreEqual(-186, result.End, _delta);
+
+        left = new PRange(60, -180, Polarity.Aligned); // (60i - 180) => ~(-60i + 180) // inverted
+        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6) => (-3i - 6)
+        result = left - right; // (60i - 180) - (-3i - 6) => ~(63i - 174)
+        Assert.AreEqual(Polarity.Aligned, result.Polarity);
+        Assert.AreEqual(63, result.Start, _delta);
+        Assert.AreEqual(-174, result.End, _delta);
+
+        left = new PRange(60, -180, Polarity.Inverted);// ~(60i - 180)
+        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6)
+        result = left - right; // (60i - 180) - (3i + 6) = (57i - 186)
+        Assert.AreEqual(Polarity.Inverted, result.Polarity);
+        Assert.AreEqual(57, result.Start, _delta);
+        Assert.AreEqual(-186, result.End, _delta);
+
+        left = new PRange(60, -180, Polarity.Inverted); // ~(60i - 180)
+        right = new PRange(3, 6, Polarity.Aligned); // (3i + 6) => ~(-3i - 6) 
+        result = left - right; // (60i - 180) - (-3i - 6) = ~(63i - 174)
+        Assert.AreEqual(Polarity.Inverted, result.Polarity);
+        Assert.AreEqual(63, result.Start, _delta);
+        Assert.AreEqual(-174, result.End, _delta);
+    }
+
 }

@@ -136,19 +136,15 @@ public struct PRange
     public static PRange Divide(PRange dividend, PRange divisor) => dividend / divisor;
 
     public static PRange operator -(PRange value) => new PRange(-value.Start, -value.End);
-    public static PRange operator +(PRange left, PRange right)
+    public static PRange operator +(PRange left, PRange rightIn)
     {
-        var result = left.Clone();
-        result.Start += right.Start;
-        result.End += right.End;
-        return result;
+        var right = rightIn.ConvertToPolarity(left.Polarity);
+        return new PRange(left.Start + right.Start, left.End + right.End, left.Polarity);
     }
-    public static PRange operator -(PRange left, PRange right)
+    public static PRange operator -(PRange left, PRange rightIn)
     {
-        var result = left.Clone();
-        result.Start -= right.Start;
-        result.End -= right.End;
-        return result;
+        var right = rightIn.ConvertToPolarity(left.Polarity);
+        return new PRange(left.Start - right.Start, left.End - right.End, left.Polarity);
     }
     public static PRange operator *(PRange leftIn, PRange rightIn)
     {
