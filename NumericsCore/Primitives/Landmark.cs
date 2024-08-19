@@ -13,7 +13,7 @@ namespace Numerics.Primitives
     {
         public IMeasurable Reference { get; }
         public long Position { get; }
-        public double T => (Position - Reference.FirstTick) / (double)Reference.TickLength;
+        public double T => (Position - Reference.StartTick) / (double)Reference.TickLength;
         public Landmark(IMeasurable reference, long position)
         {
             Reference = reference;
@@ -24,6 +24,6 @@ namespace Numerics.Primitives
             Reference = reference;
             Position = PostionFromT(t);
         }
-        private long PostionFromT(double t) => (long)(Reference.TickLength * t) + Reference.FirstTick;
+        private long PostionFromT(double t) => (long)(Reference.TickLength * t) + Reference.StartTick;
     }
 }

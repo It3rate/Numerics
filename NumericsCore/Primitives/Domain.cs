@@ -73,6 +73,20 @@ public class Domain
     //    return result;
     //}
 
+    public long TicksFromZero(long tick) => tick - BasisFocal.StartTick;
+    public long NegateTick(long tick) => BasisFocal.StartTick - (tick - BasisFocal.StartTick);
+    public (long, long) BothTicksFromZero(Number num, Polarity asPolarity)
+    {
+        var inversion = (asPolarity == num.Polarity) ? 1 : -1;
+        return (TicksFromZero(num.StartTick) * inversion, TicksFromZero(num.EndTick) * inversion);
+
+    }
+    public Number CreateNumber(long startTick, bool invertStart, long endTick, bool invertEnd, Polarity polarity)
+    {
+        var start = invertStart ? NegateTick(startTick) : startTick;
+        var end = invertEnd ? NegateTick(endTick) : endTick;
+        return new Number(this, new Focal(start, end), polarity);
+    }
     public Focal FocalFromDecimal(double start, double end)
     {
         return new Focal(
@@ -87,10 +101,10 @@ public class Domain
     private long TickValue(double value)
     {
         var result = (long)(value * BasisFocal.NonZeroTickLength);
-        result += BasisFocal.FirstTick;
+        result += BasisFocal.StartTick;
         result =
-            (result < LimitsFocal.FirstTick) ? LimitsFocal.FirstTick :
-            (result > LimitsFocal.LastTick) ? LimitsFocal.LastTick : result;
+            (result < LimitsFocal.StartTick) ? LimitsFocal.StartTick :
+            (result > LimitsFocal.EndTick) ? LimitsFocal.EndTick : result;
         return result;
     }
     #endregion
@@ -100,11 +114,11 @@ public class Domain
         var result = new Domain(Trait, BasisFocal, LimitsFocal);
         return result;
 	}
-	public Number AdditiveIdentity => new Number(this, new Focal(BasisFocal.FirstTick, BasisFocal.FirstTick));
+	public Number AdditiveIdentity => new Number(this, new Focal(BasisFocal.StartTick, BasisFocal.StartTick));
 	public Number MultiplicativeIdentity => new Number(this, BasisFocal);
 
 
-    public Number Zero => new(this, new Focal(BasisFocal.FirstTick, BasisFocal.FirstTick), Polarity.Aligned);
+    public Number Zero => new(this, new Focal(BasisFocal.StartTick, BasisFocal.StartTick), Polarity.Aligned);
     public Number One => new(this, BasisFocal.Clone(), Polarity.Aligned);
     public Number MinusOne => new(this, BasisFocal.FlipAroundFirst(), Polarity.Aligned);
     public Number One_i => new(this, BasisFocal.FlipAroundFirst(), Polarity.Inverted);

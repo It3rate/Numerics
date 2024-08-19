@@ -41,7 +41,7 @@ public class NumbersTestsV1
         Assert.AreEqual(2, n2.EndValue);
         Assert.AreEqual(2, n3.StartValue);
         Assert.AreEqual(-3, n3.EndValue);
-        _unitFocal.LastTick = 20;
+        _unitFocal.EndTick = 20;
         Assert.AreEqual(0, n0.StartValue);
         Assert.AreEqual(1, n0.EndValue);
         Assert.AreEqual(-1, n1.StartValue);
@@ -50,7 +50,7 @@ public class NumbersTestsV1
         Assert.AreEqual(1, n2.EndValue);
         Assert.AreEqual(1, n3.StartValue);
         Assert.AreEqual(-1.5, n3.EndValue);
-        _unitFocal.LastTick = -20;
+        _unitFocal.EndTick = -20;
         Assert.AreEqual(0, n0.StartValue);
         Assert.AreEqual(-1, n0.EndValue);
         Assert.AreEqual(1, n1.StartValue);
@@ -59,7 +59,7 @@ public class NumbersTestsV1
         Assert.AreEqual(-1, n2.EndValue);
         Assert.AreEqual(-1, n3.StartValue);
         Assert.AreEqual(1.5, n3.EndValue);
-        _unitFocal.FirstTick = -10; // unot perspective
+        _unitFocal.StartTick = -10; // unot perspective
         Assert.AreEqual(1, n0.StartValue);
         Assert.AreEqual(-3, n0.EndValue);
         Assert.AreEqual(3, n1.StartValue);
@@ -68,8 +68,8 @@ public class NumbersTestsV1
         Assert.AreEqual(-3, n2.EndValue);
         Assert.AreEqual(-1, n3.StartValue);
         Assert.AreEqual(2, n3.EndValue);
-        _unitFocal.FirstTick = 2000; // unot perspective
-        _unitFocal.LastTick = -2000; // forces things to about the middle
+        _unitFocal.StartTick = 2000; // unot perspective
+        _unitFocal.EndTick = -2000; // forces things to about the middle
         Assert.AreEqual(-0.5, n0.StartValue);
         Assert.AreEqual(0.495, n0.EndValue);
         Assert.AreEqual(-0.495, n1.StartValue);
@@ -94,8 +94,8 @@ public class NumbersTestsV1
         Assert.AreEqual(20, n2.EndValue);
         Assert.AreEqual(-20, n3.StartValue);
         Assert.AreEqual(-30, n3.EndValue);
-        _unitFocal.FirstTick = 100; // unot perspective
-        _unitFocal.LastTick = 0;
+        _unitFocal.StartTick = 100; // unot perspective
+        _unitFocal.EndTick = 0;
         Assert.AreEqual(-1, n0.StartValue);
         Assert.AreEqual(-1, n0.EndValue);
         Assert.AreEqual(-3, n1.StartValue);

@@ -25,27 +25,13 @@ public struct PRange
     public bool IsInverted => Polarity == Polarity.Inverted;
 
     private readonly bool _hasValue;
-    private double _startValue;
-    private double _endValue;
-    public double Start
-    {
-        get => _startValue;
-        set => _startValue = value;
-        //get => IsAligned ? _startValue : _endValue;
-        //set { if (IsAligned) { _startValue = value; } else { _endValue = value; } }
-    }
-    public double End
-    {
-        get => _endValue;
-        set => _endValue = value;
-        //get => IsAligned ? _endValue : _startValue;
-        //private set { if (IsAligned) { _endValue = value; } else { _startValue = value; } }
-    }
+    public double Start { get; }
+    public double End { get; }
 
     public float StartF => (float)Start;
     public float EndF => (float)End;
-    public float RenderStart => (float)(IsAligned ? _startValue : -_startValue);
-    public float RenderEnd => (float)(IsAligned ? _endValue : -_endValue);
+    public float RenderStart => (float)(IsAligned ? Start : -Start);
+    public float RenderEnd => (float)(IsAligned ? End : -End);
 
     public PRange(PRange value, Polarity polarity = Polarity.Aligned) : this(value.Start, value.End, polarity) { }
 
@@ -58,13 +44,74 @@ public struct PRange
     }
     public PRange(Number num) : this(num.StartValue, num.EndValue, num.Polarity) { }
     public static PRange FromNumber(Number num) => new(num);
-
     private PRange(bool isEmpty) // empty ctor
     {
         _hasValue = false;
         Polarity = Polarity.None;
     }
 
+
+    #region Add Subtract Multiply Divide
+    public static PRange operator -(PRange value) => new PRange(-value.Start, -value.End);
+    public static PRange operator +(PRange left, PRange rightIn)
+    {
+        var right = rightIn.ConvertToPolarity(left.Polarity);
+        return new PRange(left.Start + right.Start, left.End + right.End, left.Polarity);
+    }
+    public static PRange operator -(PRange left, PRange rightIn)
+    {
+        var right = rightIn.ConvertToPolarity(left.Polarity);
+        return new PRange(left.Start - right.Start, left.End - right.End, left.Polarity);
+    }
+    public static PRange operator *(PRange leftIn, PRange rightIn)
+    {
+        var polarity = (rightIn.Polarity == Polarity.Inverted) ? leftIn.Polarity.Invert() : leftIn.Polarity;
+        var left = leftIn.ConvertToPolarity(polarity);
+        var right = rightIn.ConvertToPolarity(polarity);
+        var iVal = left.Start * right.End + left.End * right.Start;
+        var rVal = left.End * right.End - left.Start * right.Start;
+        return new PRange(iVal, rVal, polarity);
+    }
+    public static PRange operator /(PRange leftIn, PRange rightIn)
+    {
+        var polarity = (rightIn.Polarity == Polarity.Inverted) ? leftIn.Polarity.Invert() : leftIn.Polarity;
+        var left = leftIn.ConvertToPolarity(polarity);
+        var right = rightIn.ConvertToPolarity(polarity);
+
+        double real1 = left.End;
+        double imaginary1 = left.Start;
+        double real2 = right.End;
+        double imaginary2 = right.Start;
+        double iVal;
+        double rVal;
+        if (Math.Abs(imaginary2) < Math.Abs(real2))
+        {
+            double num = imaginary2 / real2;
+            iVal = (imaginary1 - real1 * num) / (real2 + imaginary2 * num);
+            rVal = (real1 + imaginary1 * num) / (real2 + imaginary2 * num);
+        }
+        else
+        {
+            double num1 = real2 / imaginary2;
+            iVal = (-real1 + imaginary1 * num1) / (imaginary2 + real2 * num1);
+            rVal = (imaginary1 + real1 * num1) / (imaginary2 + real2 * num1);
+        }
+        return new PRange(iVal, rVal, polarity);
+    }
+
+    public static PRange Negate(PRange value) => -value;
+    public static PRange Add(PRange left, PRange right) => left + right;
+    public static PRange Subtract(PRange left, PRange right) => left - right;
+    public static PRange Multiply(PRange left, PRange right) => left * right;
+    public static PRange Divide(PRange dividend, PRange divisor) => dividend / divisor;
+
+    public static PRange operator +(PRange a, double value) => a + new PRange(0, value);
+    public static PRange operator -(PRange a, double value) => a - new PRange(0, value);
+    public static PRange operator *(PRange a, double value) => a * new PRange(0, value);
+    public static PRange operator /(PRange a, double value) => a / new PRange(0, value);
+
+
+    #endregion
 
     public bool IsEmpty => _hasValue;
     public double Min => Start >= End ? End : Start;
@@ -74,6 +121,8 @@ public struct PRange
     public double Length => PRange.AbsLength(this);
     public double DirectedLength() => PRange.DirectedLength(this);
     public double AbsLength() => PRange.AbsLength(this);
+    public static PRange PositiveDirection(PRange value) => new PRange(value.Min, value.Max);
+    public static PRange NegativeDirection(PRange value) => new PRange(value.Max, value.Min);
     public double TAtValue(double value)
     {
         var dist = value - (-Start);
@@ -113,92 +162,15 @@ public struct PRange
     public bool IsTouching(PRange value) => (Start >= value.Start && Start <= value.End) || (End >= value.Start && End <= value.End);
     public bool IsNotTouching(PRange value) => !IsTouching(value);
 
-    public PRange Invert() => new PRange(-_startValue, -_endValue, Polarity.Invert());
+    public PRange Invert() => new PRange(-Start, -End, Polarity.Invert());
     public PRange Aligned => IsAligned ? this : Invert();
     public PRange Inverted => IsInverted ? this : Invert();
     public PRange ConvertToPolarity(Polarity target) => target == Polarity ? this : Invert();
-    public PRange Reverse() => new PRange(_endValue, _startValue, Polarity);
-    public PRange InvertReverse() => new PRange(-_endValue, -_startValue, Polarity.Invert());
-    public PRange AlignedConjugate() => new PRange(_startValue, -_endValue, Polarity);
-    public PRange InvertedConjugate() => new PRange(-_startValue, _endValue, Polarity);
+    public PRange Reverse() => new PRange(End, Start, Polarity);
+    public PRange InvertReverse() => new PRange(-End, -Start, Polarity.Invert());
+    public PRange AlignedConjugate() => new PRange(Start, -End, Polarity);
+    public PRange InvertedConjugate() => new PRange(-Start, End, Polarity);
 
-    public static PRange operator +(PRange a, double value) => a + new PRange(0, value);
-    public static PRange operator -(PRange a, double value) => a - new PRange(0, value);
-    public static PRange operator *(PRange a, double value) => a * new PRange(0, value);
-    public static PRange operator /(PRange a, double value) => a / new PRange(0, value);
-
-    public static PRange PositiveDirection(PRange value) => new PRange(value.Min, value.Max);
-    public static PRange NegativeDirection(PRange value) => new PRange(value.Max, value.Min);
-    public static PRange Negate(PRange value) => -value;
-    public static PRange Add(PRange left, PRange right) => left + right;
-    public static PRange Subtract(PRange left, PRange right) => left - right;
-    public static PRange Multiply(PRange left, PRange right) => left * right;
-    public static PRange Divide(PRange dividend, PRange divisor) => dividend / divisor;
-
-    public static PRange operator -(PRange value) => new PRange(-value.Start, -value.End);
-    public static PRange operator +(PRange left, PRange rightIn)
-    {
-        var right = rightIn.ConvertToPolarity(left.Polarity);
-        return new PRange(left.Start + right.Start, left.End + right.End, left.Polarity);
-    }
-    public static PRange operator -(PRange left, PRange rightIn)
-    {
-        var right = rightIn.ConvertToPolarity(left.Polarity);
-        return new PRange(left.Start - right.Start, left.End - right.End, left.Polarity);
-    }
-    public static PRange operator *(PRange leftIn, PRange rightIn)
-    {
-        var polarity = (rightIn.Polarity == Polarity.Inverted) ? leftIn.Polarity.Invert() : leftIn.Polarity;
-        var left = leftIn.ConvertToPolarity(polarity);
-        var right = rightIn.ConvertToPolarity(polarity);
-        var iVal = left._startValue * right._endValue + left._endValue * right._startValue;
-        var rVal = left._endValue * right._endValue - left._startValue * right._startValue;
-        //var result = polarity.IsTrue() ?
-        //    new PRange(iVal, rVal, polarity) : new PRange(rVal, iVal, polarity);
-        return new PRange(iVal, rVal, polarity);
-    }
-    public static PRange operator /(PRange leftIn, PRange rightIn)
-    {
-        var polarity = (rightIn.Polarity == Polarity.Inverted) ? leftIn.Polarity.Invert() : leftIn.Polarity;
-        var left = leftIn.ConvertToPolarity(polarity);
-        var right = rightIn.ConvertToPolarity(polarity);
-
-        double real1 = left.End;
-        double imaginary1 = left.Start;
-        double real2 = right.End;
-        double imaginary2 = right.Start;
-        double iVal;
-        double rVal;
-        //var polarity = (right.Polarity == Polarity.Inverted) ? left.Polarity.Invert() : left.Polarity;
-        if (Math.Abs(imaginary2) < Math.Abs(real2))
-        {
-            double num = imaginary2 / real2;
-            iVal = (imaginary1 - real1 * num) / (real2 + imaginary2 * num);
-            rVal = (real1 + imaginary1 * num) / (real2 + imaginary2 * num);
-        }
-        else
-        {
-            double num1 = real2 / imaginary2;
-            iVal = (-real1 + imaginary1 * num1) / (imaginary2 + real2 * num1);
-            rVal = (imaginary1 + real1 * num1) / (imaginary2 + real2 * num1);
-        }
-        //var result = polarity.IsTrue() ?
-        //    new PRange(iVal, rVal, polarity) : new PRange(rVal, iVal, polarity);
-        return new PRange(iVal, rVal, polarity);
-    }
-    public PRange SolvePolarityWith(Polarity right)
-    {
-        var result = this;
-        if (Polarity == Polarity.Inverted && right == Polarity.Inverted)
-        {
-            result = InvertPolarityAndRange();
-        }
-        else if (Polarity == Polarity.Aligned && right == Polarity.Inverted)
-        {
-            result = InvertPolarity();
-        }
-        return result;
-    }
     public static double DirectedLength(PRange a) => a.End + a.Start;
     public static double AbsLength(PRange a) => Math.Abs(a.End + a.Start);
 
@@ -268,7 +240,7 @@ public struct PRange
 
     #region Conversions
     public Focal ToFocal() => new((long)Start, (long)End);
-    public static PRange FromFocal(Focal value) => new(value.FirstTick, value.LastTick);
+    public static PRange FromFocal(Focal value) => new(value.StartTick, value.EndTick);
     public Number ToNumber(Domain domain) => new(
         domain, 
         domain.FocalFromValues(Start, End), 

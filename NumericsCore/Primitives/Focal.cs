@@ -41,7 +41,7 @@ public class Focal :
 {
     protected long[] _positions;
 
-    public long FirstTick
+    public long StartTick
     {
         get => _positions[0];
         set
@@ -49,7 +49,7 @@ public class Focal :
             _positions[0] = value;
         }
     }
-    public long LastTick
+    public long EndTick
     {
         get => _positions[_positions.Length - 1];
         set
@@ -60,28 +60,28 @@ public class Focal :
 
     public long NonZeroTickLength => TickLength == 0 ? 1 : TickLength;
     public long TickLength => AbsTickLength * NonZeroDirection;
-    public long AbsTickLength => Math.Abs(LastTick - FirstTick); // can't have zero length (that would be null/no focus, and this is a focal)
-    public int Direction => FirstTick < LastTick ? 1 : FirstTick > LastTick ? -1 : 0; // zero is unknown
-    public int NonZeroDirection => LastTick >= FirstTick ? 1 : -1; // default to positive direction when unknown
-    public long InvertedFirstPosition => LastTick + TickLength;
-    public long InvertedLastPosition => FirstTick - TickLength;
+    public long AbsTickLength => Math.Abs(EndTick - StartTick); // can't have zero length (that would be null/no focus, and this is a focal)
+    public int Direction => StartTick < EndTick ? 1 : StartTick > EndTick ? -1 : 0; // zero is unknown
+    public int NonZeroDirection => EndTick >= StartTick ? 1 : -1; // default to positive direction when unknown
+    public long InvertedFirstPosition => EndTick + TickLength;
+    public long InvertedLastPosition => StartTick - TickLength;
 
-    public bool IsZeroAnchored => FirstTick == 0;
-    public bool IsZero => FirstTick == 0 && LastTick == 0;
+    public bool IsZeroAnchored => StartTick == 0;
+    public bool IsZero => StartTick == 0 && EndTick == 0;
     public bool IsPositiveDirection => Direction > 0;
     public bool IsNegativeDirection => Direction < 0;
-    public bool IsPoint => FirstTick == LastTick;
+    public bool IsPoint => StartTick == EndTick;
 
     public Focal(long start, long end)
     {
         _positions = new long[2];
-        FirstTick = start;
-        LastTick = end;
+        StartTick = start;
+        EndTick = end;
     }
 
     #region Add
     public static Focal Add(Focal left, Focal right) => left + right;
-    public static Focal operator +(Focal left, Focal right) => new(left.FirstTick + right.FirstTick, left.LastTick + right.LastTick);
+    public static Focal operator +(Focal left, Focal right) => new(left.StartTick + right.StartTick, left.EndTick + right.EndTick);
     static Focal IAdditionOperators<Focal, Focal, Focal>.operator +(Focal left, Focal right) => left + right;
 
     public static Focal AdditiveIdentity => new(0, 0);
@@ -89,7 +89,7 @@ public class Focal :
     #endregion
     #region Subtract
     public static Focal Subtract(Focal left, Focal right) => left - right;
-    public static Focal operator -(Focal left, Focal right) => new(left.FirstTick - right.FirstTick, left.LastTick - right.LastTick);
+    public static Focal operator -(Focal left, Focal right) => new(left.StartTick - right.StartTick, left.EndTick - right.EndTick);
     static Focal ISubtractionOperators<Focal, Focal, Focal>.operator -(Focal left, Focal right) => left - right;
     #endregion
     #region Multiply
@@ -98,8 +98,8 @@ public class Focal :
         return left * right;
     }
     public static Focal operator *(Focal left, Focal right) => new(
-        left.FirstTick * right.LastTick + left.LastTick * right.FirstTick,
-        left.LastTick * right.LastTick - left.FirstTick * right.FirstTick);
+        left.StartTick * right.EndTick + left.EndTick * right.StartTick,
+        left.EndTick * right.EndTick - left.StartTick * right.StartTick);
 
     static Focal IMultiplyOperators<Focal, Focal, Focal>.operator *(Focal left, Focal right) => left * right;
     public static Focal MultiplicativeIdentity => new(0, 1);
@@ -114,10 +114,10 @@ public class Focal :
     public static Focal operator /(Focal left, Focal right)
     {
         Focal result;
-        double leftEnd = left.LastTick;
-        double leftStart = left.FirstTick;
-        double rightEnd = right.LastTick;
-        double rightStart = right.FirstTick;
+        double leftEnd = left.EndTick;
+        double leftStart = left.StartTick;
+        double rightEnd = right.EndTick;
+        double rightStart = right.StartTick;
         if (Math.Abs(rightStart) < Math.Abs(rightEnd))
         {
             double num = rightStart / rightEnd;
@@ -138,37 +138,37 @@ public class Focal :
 
     #endregion
     #region Unary Ops
-    public static Focal operator ++(Focal value) => new(value.FirstTick + 1, value.LastTick + 1);
-    public static Focal operator +(Focal value) => new(value.FirstTick, value.LastTick);
-    public static Focal operator --(Focal value) => new(value.FirstTick - 1, value.LastTick - 1);
-    public static Focal operator -(Focal value) => new(-value.FirstTick, -value.LastTick);
-    public static Focal operator ~(Focal value) => new(value.LastTick, value.FirstTick);
+    public static Focal operator ++(Focal value) => new(value.StartTick + 1, value.EndTick + 1);
+    public static Focal operator +(Focal value) => new(value.StartTick, value.EndTick);
+    public static Focal operator --(Focal value) => new(value.StartTick - 1, value.EndTick - 1);
+    public static Focal operator -(Focal value) => new(-value.StartTick, -value.EndTick);
+    public static Focal operator ~(Focal value) => new(value.EndTick, value.StartTick);
     public Focal Negate() => -this;// new Focal(-FirstTick, -LastTick);
     public Focal Invert() => ~this;// new Focal(LastTick, FirstTick);
     public Focal PositiveDirection() => Direction >= 0 ? Clone() : Invert();
     public Focal NegativeDirection() => Direction < 0 ? Clone() : Invert();
-    public Focal FlipAroundFirst() => new Focal(FirstTick, InvertedLastPosition);
+    public Focal FlipAroundFirst() => new Focal(StartTick, InvertedLastPosition);
     #endregion
     #region Limits
     public static Focal FocalAtLimits => new Focal(long.MinValue, long.MaxValue);
     public static Focal MaxValue => new(long.MaxValue, long.MaxValue);
     public static Focal MinValue => new(long.MinValue, long.MinValue);
-    public long Min => FirstTick <= LastTick ? FirstTick : LastTick;
-    public long Max => FirstTick >= LastTick ? FirstTick : LastTick;
+    public long Min => StartTick <= EndTick ? StartTick : EndTick;
+    public long Max => StartTick >= EndTick ? StartTick : EndTick;
 
     #endregion
     #region Bool Ops
     public static long MinPosition(Focal p, Focal q) => Math.Min(p.Min, q.Min);
     public static long MaxPosition(Focal p, Focal q) => Math.Max(p.Max, q.Max);
-    public static long MinStart(Focal p, Focal q) => Math.Min(p.FirstTick, q.FirstTick);
-    public static long MaxStart(Focal p, Focal q) => Math.Max(p.FirstTick, q.FirstTick);
-    public static long MinEnd(Focal p, Focal q) => Math.Min(p.LastTick, q.LastTick);
-    public static long MaxEnd(Focal p, Focal q) => Math.Max(p.LastTick, q.LastTick);
+    public static long MinStart(Focal p, Focal q) => Math.Min(p.StartTick, q.StartTick);
+    public static long MaxStart(Focal p, Focal q) => Math.Max(p.StartTick, q.StartTick);
+    public static long MinEnd(Focal p, Focal q) => Math.Min(p.EndTick, q.EndTick);
+    public static long MaxEnd(Focal p, Focal q) => Math.Max(p.EndTick, q.EndTick);
 
     /// <summary>
     /// Shares an endpoint, but no overlap (meaning can only share one endpoint).
     /// </summary>
-    public static bool Touches(Focal p, Focal q) => p.LastTick == q.FirstTick || p.FirstTick == q.LastTick;
+    public static bool Touches(Focal p, Focal q) => p.EndTick == q.StartTick || p.StartTick == q.EndTick;
     public static Focal? Intersection(Focal p, Focal q)
     {
         Focal result = null;
@@ -201,24 +201,24 @@ public class Focal :
     public static Focal[] UnaryNot(Focal p)
     {
         // If p starts at the beginning of the time frame and ends at the end, A is always true and the "not A" relationship is empty
-        if (p.FirstTick == 0 && p.LastTick == long.MaxValue)
+        if (p.StartTick == 0 && p.EndTick == long.MaxValue)
         {
             return new Focal[] { };
         }
         // If p starts at the beginning of the time frame and ends before the end, the "not A" relationship consists of a single interval from p.EndTickPosition + 1 to the end of the time frame
-        else if (p.FirstTick == 0)
+        else if (p.StartTick == 0)
         {
-            return new Focal[] { new Focal(p.LastTick + 1, long.MaxValue) };
+            return new Focal[] { new Focal(p.EndTick + 1, long.MaxValue) };
         }
         // If p starts after the beginning of the time frame and ends at the end, the "not A" relationship consists of a single interval from the beginning of the time frame to p.StartTickPosition - 1
-        else if (p.LastTick == long.MaxValue)
+        else if (p.EndTick == long.MaxValue)
         {
-            return new Focal[] { new Focal(0, p.FirstTick - 1) };
+            return new Focal[] { new Focal(0, p.StartTick - 1) };
         }
         // If p starts and ends within the time frame, the "not A" relationship consists of two intervals: from the beginning of the time frame to p.StartTickPosition - 1, and from p.EndTickPosition + 1 to the end of the time frame
         else
         {
-            return new Focal[] { new Focal(0, p.FirstTick - 1), new Focal(p.LastTick + 1, long.MaxValue) };
+            return new Focal[] { new Focal(0, p.StartTick - 1), new Focal(p.EndTick + 1, long.MaxValue) };
         }
     }
     public static Focal[] Transfer(Focal p)
@@ -241,13 +241,13 @@ public class Focal :
     }
     public static Focal[] B_Inhibits_A(Focal p, Focal q)
     {
-        if (p.LastTick < q.FirstTick - 1 || q.LastTick < p.FirstTick - 1)
+        if (p.EndTick < q.StartTick - 1 || q.EndTick < p.StartTick - 1)
         {
             return new Focal[] { p };
         }
         else
         {
-            return new Focal[] { new Focal(p.FirstTick, q.FirstTick - 1) };
+            return new Focal[] { new Focal(p.StartTick, q.StartTick - 1) };
         }
     }
     public static Focal[] Transfer_A(Focal p, Focal q)
@@ -256,13 +256,13 @@ public class Focal :
     }
     public static Focal[] A_Inhibits_B(Focal p, Focal q)
     {
-        if (p.LastTick < q.FirstTick - 1 || q.LastTick < p.FirstTick - 1)
+        if (p.EndTick < q.StartTick - 1 || q.EndTick < p.StartTick - 1)
         {
             return new Focal[] { q };
         }
         else
         {
-            return new Focal[] { new Focal(q.FirstTick, p.FirstTick - 1) };
+            return new Focal[] { new Focal(q.StartTick, p.StartTick - 1) };
         }
     }
     public static Focal[] Transfer_B(Focal p, Focal q)
@@ -342,7 +342,7 @@ public class Focal :
     }
     public static Focal[] B_Implies_A(Focal p, Focal q)
     {
-        if (p.LastTick < q.FirstTick - 1 || q.LastTick < p.FirstTick - 1)
+        if (p.EndTick < q.StartTick - 1 || q.EndTick < p.StartTick - 1)
         {
             return new Focal[] { };
         }
@@ -357,7 +357,7 @@ public class Focal :
     }
     public static Focal[] A_Implies_B(Focal p, Focal q)
     {
-        if (p.LastTick < q.FirstTick - 1 || q.LastTick < p.FirstTick - 1)
+        if (p.EndTick < q.StartTick - 1 || q.EndTick < p.StartTick - 1)
         {
             return new Focal[] { };
         }
@@ -398,8 +398,8 @@ public class Focal :
         {
             result = new Focal[]
             {
-                new Focal(long.MinValue, overlap.FirstTick),
-                new Focal(overlap.LastTick, long.MaxValue)
+                new Focal(long.MinValue, overlap.StartTick),
+                new Focal(overlap.EndTick, long.MaxValue)
             };
         }
         return result;
@@ -414,8 +414,8 @@ public class Focal :
     public bool IsSameDirection(Focal right) => Direction == right.Direction;
     public bool IsSameLength(Focal right) => TickLength == right.TickLength;
     public bool IsSameAbsLength(Focal right) => AbsTickLength == right.AbsTickLength;
-    public bool IsSameFirstTick(Focal right) => FirstTick == right.FirstTick;
-    public bool IsSameLastTick(Focal right) => LastTick == right.LastTick;
+    public bool IsSameFirstTick(Focal right) => StartTick == right.StartTick;
+    public bool IsSameLastTick(Focal right) => EndTick == right.EndTick;
     public static bool operator >(Focal left, Focal right) => CompareFocals.GreaterThan(left, right) != null;
     public static bool operator >=(Focal left, Focal right) => CompareFocals.GreaterThanOrEqual(left, right) != null;
     public static bool operator <(Focal left, Focal right) => CompareFocals.LessThan(left, right) != null;
@@ -442,17 +442,17 @@ public class Focal :
     #endregion
 
     #region Utils
-    public Focal GetOffset(long offset) => new(FirstTick + offset, LastTick + offset);
+    public Focal GetOffset(long offset) => new(StartTick + offset, EndTick + offset);
     public Focal FocalFromTs(double startT, double endT, bool invertEnds = false)
     {
         Focal result;
         if(invertEnds)
         {
-            result = new((long)(FirstTick + TickLength * startT), (long)(FirstTick + TickLength * endT));
+            result = new((long)(StartTick + TickLength * startT), (long)(StartTick + TickLength * endT));
         }
         else
         {
-            result = new((long)(LastTick + TickLength * -startT), (long)(LastTick + TickLength * -endT));
+            result = new((long)(EndTick + TickLength * -startT), (long)(EndTick + TickLength * -endT));
         }
         return result;
     }
@@ -463,14 +463,14 @@ public class Focal :
     #endregion
     
     #region Equality
-    public Focal Clone() => new(FirstTick, LastTick);
+    public Focal Clone() => new(StartTick, EndTick);
     public override bool Equals(object? obj)
     {
         return obj is Focal other && Equals(other);
     }
     public bool Equals(Focal? value)
     {
-        return ReferenceEquals(this, value) || FirstTick.Equals(value.FirstTick) && LastTick.Equals(value.LastTick);
+        return ReferenceEquals(this, value) || StartTick.Equals(value.StartTick) && EndTick.Equals(value.EndTick);
     }
 
     public static bool operator ==(Focal? a, Focal? b)
@@ -494,11 +494,11 @@ public class Focal :
     {
         unchecked
         {
-            var hashCode = FirstTick.GetHashCode();
-            hashCode = (hashCode * 397) ^ LastTick.GetHashCode();
+            var hashCode = StartTick.GetHashCode();
+            hashCode = (hashCode * 397) ^ EndTick.GetHashCode();
             return hashCode;
         }
     }
     #endregion
-    public override string ToString() => $"[{FirstTick} : {LastTick}]";
+    public override string ToString() => $"[{StartTick} : {EndTick}]";
 }

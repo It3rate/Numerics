@@ -14,8 +14,8 @@ namespace Numerics.Primitives
     // Join as parallel domains, vs perpendicular (contour vs grid).
     public interface IMeasurable
     {
-        long FirstTick { get; set; }
-        long LastTick { get; set; }
+        long StartTick { get; set; }
+        long EndTick { get; set; }
         long TickLength { get; }
         long AbsTickLength { get; }
     }

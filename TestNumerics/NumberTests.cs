@@ -73,8 +73,8 @@ public class NumberTests
         var number2 = new Number(_domain, focal2);
         var result = number1 + number2;
 
-        Assert.AreEqual(3, result.FirstTick);
-        Assert.AreEqual(11, result.LastTick);
+        Assert.AreEqual(3, result.StartTick);
+        Assert.AreEqual(11, result.EndTick);
         Assert.AreEqual(-0.1666, result.StartValue, _delta);
         Assert.AreEqual(1.5000, result.EndValue, _delta);
 
@@ -93,8 +93,8 @@ public class NumberTests
         var number1 = new Number(_domain, focal1);
         var number2 = new Number(_domain, focal2);
         var result = number1 - number2;
-        Assert.AreEqual(100, result.FirstTick);
-        Assert.AreEqual(100, result.LastTick);
+        Assert.AreEqual(100, result.StartTick);
+        Assert.AreEqual(100, result.EndTick);
         Assert.AreEqual(0.1666, result.StartValue, _delta);
         Assert.AreEqual(-0.1666, result.EndValue, _delta);
 
@@ -139,8 +139,8 @@ public class NumberTests
         number1 = new Number(_domain, focal1);
         number2 = new Number(_domain, focal2);
         result = number1 * number2;
-        Assert.AreEqual(266, result.FirstTick);
-        Assert.AreEqual(533, result.LastTick);
+        Assert.AreEqual(266, result.StartTick);
+        Assert.AreEqual(533, result.EndTick);
         Assert.AreEqual(-0.11, result.StartValue, _delta);
         Assert.AreEqual(0.555, result.EndValue, _delta);
 
@@ -247,8 +247,8 @@ public class NumberTests
         double decimalValueStart = 0.5;
         double decimalValueEnd = 0.8;
         var tick = _domain.FocalFromValues(decimalValueStart, decimalValueEnd);
-        Assert.AreEqual(5000, tick.FirstTick);
-        Assert.AreEqual(18000, tick.LastTick);
+        Assert.AreEqual(5000, tick.StartTick);
+        Assert.AreEqual(18000, tick.EndTick);
     }
     [TestMethod]
     public void Clone_ValidNumber_CreatesNewInstance()
