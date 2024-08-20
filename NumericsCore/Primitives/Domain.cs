@@ -74,17 +74,24 @@ public class Domain
     //}
 
     public long TicksFromZero(long tick) => tick - BasisFocal.StartTick;
-    public long NegateTick(long tick) => BasisFocal.StartTick - (tick - BasisFocal.StartTick);
-    public (long, long) BothTicksFromZero(Number num, Polarity asPolarity)
+    public long PositiveOffsetTick(long tick) => BasisFocal.StartTick + tick;
+    public long NegativeOffsetTick(long tick) => BasisFocal.StartTick - (tick - BasisFocal.StartTick);
+    public (long, long) RawTicksFromZero(Number num)
     {
-        var inversion = (asPolarity == num.Polarity) ? 1 : -1;
-        return (TicksFromZero(num.StartTick) * inversion, TicksFromZero(num.EndTick) * inversion);
+        return (TicksFromZero(num.StartTick), TicksFromZero(num.EndTick));
+
+    }
+    public (long, long) TickValuesFromZero(Number num, Polarity asPolarity)
+    {
+        var inversion = num.Polarity == asPolarity ? 1 : asPolarity.Direction();
+        inversion *= num.Polarity.Direction();
+        return (-TicksFromZero(num.StartTick) * inversion, TicksFromZero(num.EndTick) * inversion);
 
     }
     public Number CreateNumber(long startTick, bool invertStart, long endTick, bool invertEnd, Polarity polarity)
     {
-        var start = invertStart ? NegateTick(startTick) : startTick;
-        var end = invertEnd ? NegateTick(endTick) : endTick;
+        var start = invertStart ? NegativeOffsetTick(startTick) : PositiveOffsetTick(startTick);
+        var end = invertEnd ? NegativeOffsetTick(endTick) : PositiveOffsetTick(endTick);
         return new Number(this, new Focal(start, end), polarity);
     }
     public Focal FocalFromDecimal(double start, double end)

@@ -184,16 +184,16 @@ public class NumbersTestsV1
         Assert.AreEqual(2, ran1.StartValue); // i
         Assert.AreEqual(-3, ran1.EndValue);
 
-        var i_neg1 = new Number(_domain, new(-100, 0), Polarity.Inverted); // ~seg from 1->0i inverts segments in place
-        var r0 = n * i_neg1; // ~(-1)
+        var i_neg1 = new Number(_domain, new(-100, 0), Polarity.Inverted); // ~(-i)
+        var r0 = n * i_neg1; // ~(1)
         Assert.IsTrue(r0.IsInverted);
-        Assert.AreEqual(-3, r0.StartValue);
+        Assert.AreEqual(3, r0.StartValue);
         Assert.AreEqual(2, r0.EndValue); // i
 
-        var i_pos1 = new Number(_domain, new(100, 0), Polarity.Inverted); // ~seg from 1->0i inverts segments in place
-        var r1 = n * i_pos1; // ~(1)
+        var i_pos1 = new Number(_domain, new(100, 0), Polarity.Inverted); 
+        var r1 = n * i_pos1; // converts to => ~(2i-3)* ~(i+0) = ~(-2i-3)
         Assert.IsTrue(r1.IsInverted);
-        Assert.AreEqual(3, r1.StartValue);
+        Assert.AreEqual(-3, r1.StartValue);
         Assert.AreEqual(-2, r1.EndValue); // i
 
 
@@ -215,13 +215,13 @@ public class NumbersTestsV1
         var r4 = n * i_posi; // ~(i)
         Assert.IsTrue(r4.IsInverted);
         Assert.AreEqual(2, r4.StartValue);
-        Assert.AreEqual(3, r4.EndValue); // i
+        Assert.AreEqual(-3, r4.EndValue); // i
 
         var i_negi = new Number(_domain, new(0, 100), Polarity.Inverted); // seg -i
         var r3 = n * i_negi; // ~(-i)
         Assert.IsTrue(r3.IsInverted);
         Assert.AreEqual(-2, r3.StartValue);
-        Assert.AreEqual(-3, r3.EndValue); // i
+        Assert.AreEqual(3, r3.EndValue); // i
     }
     [TestMethod]
     public void UnitByInvertedTests()

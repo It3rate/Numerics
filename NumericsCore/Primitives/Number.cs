@@ -79,9 +79,11 @@ public class Number :
     public static Number operator +(Number left, Number rightIn)
     {
         var right = rightIn.ConvertToPolarity(left.Polarity);
+        var (leftStart, leftEnd) = left.Domain.RawTicksFromZero(left);
+        var (rightStart, rightEnd) = left.Domain.RawTicksFromZero(right);
         return left.Domain.CreateNumber(
-            left.StartTick + right.StartTick, false,
-            left.EndTick + right.EndTick, false,
+            left.Domain.BasisFocal.StartTick + leftStart + rightStart, false,
+            left.Domain.BasisFocal.StartTick + leftEnd + rightEnd, false,
             left.Polarity);
 
         //return new PRange(left.Start + right.Start, left.End + right.End, left.Polarity);
@@ -126,12 +128,12 @@ public class Number :
     {
         var polarity = (right.Polarity == Polarity.Inverted) ? left.Polarity.Invert() : left.Polarity;
         // todo: align domains
-        var (leftStart, leftEnd) = left.Domain.BothTicksFromZero(left, polarity);
-        var (rightStart, rightEnd) = left.Domain.BothTicksFromZero(right, polarity);
+        var (leftStart, leftEnd) = left.Domain.TickValuesFromZero(left, polarity);
+        var (rightStart, rightEnd) = left.Domain.TickValuesFromZero(right, polarity); // use left domain
         var iVal = leftStart * rightEnd + leftEnd * rightStart;
         var rVal = leftEnd * rightEnd - leftStart * rightStart;
-        var absLen = left.Domain.BasisFocal.AbsTickLength;
-        return left.Domain.CreateNumber(iVal / absLen, false, rVal / absLen, false, polarity);
+        var absLen = left.Domain.BasisFocal.AbsTickLength * right.Polarity.Direction();
+        return left.Domain.CreateNumber(iVal / absLen, true, rVal / absLen, false, polarity);
     }
 
 
@@ -144,8 +146,8 @@ public class Number :
     public static Number operator /(Number left, Number right)
     {
         var polarity = (right.Polarity == Polarity.Inverted) ? left.Polarity.Invert() : left.Polarity;
-        var (leftStart, leftEnd) = left.Domain.BothTicksFromZero(left, polarity);
-        var (rightStart, rightEnd) = left.Domain.BothTicksFromZero(right, polarity);
+        var (leftStart, leftEnd) = left.Domain.TickValuesFromZero(left, polarity);
+        var (rightStart, rightEnd) = left.Domain.TickValuesFromZero(right, polarity);
 
         long iVal;
         long rVal;
@@ -495,7 +497,7 @@ public class Number :
             var pol = Polarity == Polarity.Inverted ? "~" : "";
             var start = Value.Start == 0 ? "0" : $"{val.Start:0.##}";
             var end = val.End == 0 ? "0" : $"{val.End:0.##}";
-            result = $"{pol}({start}s{midSign}{end}e)";
+            result = $"{pol}({start}i{midSign}{end})";
         }
         return result;
     }

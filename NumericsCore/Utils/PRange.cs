@@ -297,7 +297,7 @@ public struct PRange
             var pol = Polarity == Polarity.Inverted ? "~" : "";
             var start = Start == 0 ? "0" : $"{Start:0.##}";
             var end = End == 0 ? "0" : $"{End:0.##}";
-            result = $"{pol}({start}s{midSign}{end}e)";
+            result = $"{pol}({start}i{midSign}{end})";
         }
         return result;
     }
