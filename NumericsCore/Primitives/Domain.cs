@@ -16,13 +16,15 @@ namespace Numerics.Primitives;
 public class Domain
 {
     public Trait? Trait { get; protected set; }
-    public Focal BasisFocal { get; protected set; }
-    public Focal LimitsFocal { get; set; }
+    private Focal BasisFocal { get; set; }
+    private Focal LimitsFocal { get; set; }
 
     public Number BasisNumber => new(this, BasisFocal);
     public Number LimitsNumber => new(this, LimitsFocal);
     public long TickSize { get; protected set; } = 1;
-    public long AbsBasisSize => BasisFocal.AbsTickLength;
+    public long BasisLength => BasisFocal.TickLength;
+    public long AbsBasisLength => BasisFocal.AbsTickLength;
+    public int Direction => BasisFocal.Direction;
     public long AbsLimitsSize => LimitsFocal.AbsTickLength;
     public bool BasisIsReciprocal => Math.Abs(TickSize) > BasisFocal.AbsTickLength;
     public double TickToBasisRatio => TickSize / BasisFocal.NonZeroTickLength;
@@ -57,7 +59,7 @@ public class Domain
         var result = left;
         if (left != right)
         {
-            var maxBasis = left.AbsBasisSize >= right.AbsBasisSize ? left.BasisFocal : right.BasisFocal;
+            var maxBasis = left.AbsBasisLength >= right.AbsBasisLength ? left.BasisFocal : right.BasisFocal;
             var maxLimits = left.AbsLimitsSize >= right.AbsLimitsSize ? left.LimitsFocal : right.LimitsFocal;
             result = new Domain(maxBasis, maxLimits);
         }
@@ -73,9 +75,11 @@ public class Domain
     //    return result;
     //}
 
-    public long TicksFromZero(long tick) => tick - BasisFocal.StartTick;
-    public long PositiveOffsetTick(long tick) => BasisFocal.StartTick + tick;
-    public long NegativeOffsetTick(long tick) => BasisFocal.StartTick - (tick - BasisFocal.StartTick);
+    public bool IsZero(Number num) => num.StartTick == BasisFocal.StartTick && num.EndTick == BasisFocal.StartTick;
+    public bool IsOne(Number num) => num.StartTick == BasisFocal.StartTick && num.EndTick == BasisFocal.EndTick;
+    public long TicksFromZero(long tick) => (tick - BasisFocal.StartTick) * BasisFocal.Direction;
+    public long PositiveOffsetTick(long tick) => (BasisFocal.StartTick + tick) * BasisFocal.Direction;
+    public long NegativeOffsetTick(long tick) => (BasisFocal.StartTick - tick) * BasisFocal.Direction;
     public (long, long) RawTicksFromZero(Number num)
     {
         return (TicksFromZero(num.StartTick), TicksFromZero(num.EndTick));
@@ -83,10 +87,13 @@ public class Domain
     }
     public (long, long) TickValuesFromZero(Number num, Polarity asPolarity)
     {
-        var inversion = num.Polarity == asPolarity ? 1 : asPolarity.Direction();
+        var inversion = num.Polarity == asPolarity ? 1 : num.Polarity.Direction();
         inversion *= num.Polarity.Direction();
         return (-TicksFromZero(num.StartTick) * inversion, TicksFromZero(num.EndTick) * inversion);
-
+    }
+    public (long, long) TickValuesFromZero(Number num)
+    {
+        return (-TicksFromZero(num.StartTick), TicksFromZero(num.EndTick));
     }
     public Number CreateNumber(long startTick, bool invertStart, long endTick, bool invertEnd, Polarity polarity)
     {
@@ -112,6 +119,20 @@ public class Domain
         result =
             (result < LimitsFocal.StartTick) ? LimitsFocal.StartTick :
             (result > LimitsFocal.EndTick) ? LimitsFocal.EndTick : result;
+        return result;
+    }
+
+    public PRange GetRange(Number num)
+    {
+        var len = (double)BasisFocal.NonZeroTickLength;// * Polarity.ForceValue(); //AlignedNonZeroLength(isAligned);// 
+        var start = (num.StartTick - BasisFocal.StartTick) / len;
+        var end = (num.EndTick - BasisFocal.StartTick) / len;
+        if (BasisIsReciprocal)
+        {
+            start = Math.Round(start) * Math.Abs(len);
+            end = Math.Round(end) * Math.Abs(len);
+        }
+        var result = num.IsAligned ? new PRange(-start, end, num.Polarity) : new PRange(start, -end, num.Polarity.Invert());
         return result;
     }
     #endregion

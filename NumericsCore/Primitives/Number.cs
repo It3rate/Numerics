@@ -78,12 +78,12 @@ public class Number :
     #region Add
     public static Number operator +(Number left, Number rightIn)
     {
-        var right = rightIn.ConvertToPolarity(left.Polarity);
+        //var right = rightIn.ConvertToPolarity(left.Polarity);
         var (leftStart, leftEnd) = left.Domain.RawTicksFromZero(left);
-        var (rightStart, rightEnd) = left.Domain.RawTicksFromZero(right);
+        var (rightStart, rightEnd) = left.Domain.RawTicksFromZero(rightIn);
         return left.Domain.CreateNumber(
-            left.Domain.BasisFocal.StartTick + leftStart + rightStart, false,
-            left.Domain.BasisFocal.StartTick + leftEnd + rightEnd, false,
+            leftStart + rightStart, false,
+            leftEnd + rightEnd, false,
             left.Polarity);
 
         //return new PRange(left.Start + right.Start, left.End + right.End, left.Polarity);
@@ -98,7 +98,11 @@ public class Number :
     static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => left + right;
 
     public static Number operator +(Number value) => new(value.Domain, value.Focal);
-    public static Number operator ++(Number value) => new(value.Domain, value.Focal + value.Domain.BasisFocal);
+    public static Number operator ++(Number value) =>
+        value.Domain.CreateNumber(
+            value.Focal.StartTick, false, 
+            value.Focal.EndTick + value.Domain.TickSize * value.BasisDirection, false,
+            value.Polarity);
     public Number AdditiveIdentity => Domain.AdditiveIdentity;
 
     #endregion
@@ -111,11 +115,6 @@ public class Number :
             left.StartTick - right.StartTick, false,
             left.EndTick - right.EndTick, false,
             left.Polarity);
-        //var aligned = left.Domain.AlignedDomain(right);
-        //var offset = left.Domain.BasisFocal.StartTick;
-        //var (l0, l1, r0, r1) = GetAdditiveFocals(left, aligned, offset);
-        //Number result = new(left.Domain, new((l0 - r0) + offset, (l1 - r1) + offset), left.Polarity);
-        //return result;
     }
     static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => left - right;
 
@@ -126,14 +125,13 @@ public class Number :
     public static Number Multiply(Number left, Number right) =>  left * right;
     public static Number operator *(Number left, Number right)
     {
-        var polarity = (right.Polarity == Polarity.Inverted) ? left.Polarity.Invert() : left.Polarity;
         // todo: align domains
-        var (leftStart, leftEnd) = left.Domain.TickValuesFromZero(left, polarity);
-        var (rightStart, rightEnd) = left.Domain.TickValuesFromZero(right, polarity); // use left domain
+        var (leftStart, leftEnd) = left.Domain.TickValuesFromZero(left, left.Polarity);
+        var (rightStart, rightEnd) = left.Domain.TickValuesFromZero(right, left.Polarity); // use left domain
         var iVal = leftStart * rightEnd + leftEnd * rightStart;
         var rVal = leftEnd * rightEnd - leftStart * rightStart;
-        var absLen = left.Domain.BasisFocal.AbsTickLength * right.Polarity.Direction();
-        return left.Domain.CreateNumber(iVal / absLen, true, rVal / absLen, false, polarity);
+        var len = left.Domain.AbsBasisLength;
+        return left.Domain.CreateNumber(iVal / len, true, rVal / len, false, left.Polarity);
     }
 
 
@@ -145,13 +143,12 @@ public class Number :
     public static Number Divide(Number left, Number right) => left / right;
     public static Number operator /(Number left, Number right)
     {
-        var polarity = (right.Polarity == Polarity.Inverted) ? left.Polarity.Invert() : left.Polarity;
-        var (leftStart, leftEnd) = left.Domain.TickValuesFromZero(left, polarity);
-        var (rightStart, rightEnd) = left.Domain.TickValuesFromZero(right, polarity);
+        var (leftStart, leftEnd) = left.Domain.TickValuesFromZero(left, left.Polarity);
+        var (rightStart, rightEnd) = left.Domain.TickValuesFromZero(right, left.Polarity);
 
         long iVal;
         long rVal;
-        var absLen = left.Domain.BasisFocal.AbsTickLength;
+        var absLen = left.Domain.AbsBasisLength;
         if (Math.Abs(rightStart) < Math.Abs(rightEnd))
         {
             double num = rightStart / (double)rightEnd;
@@ -164,7 +161,7 @@ public class Number :
             iVal = (long)((-leftEnd + leftStart * num1) / (rightStart + rightEnd * num1) * absLen);
             rVal = (long)((leftStart + leftEnd * num1) / (rightStart + rightEnd * num1) * absLen);
         }
-        return left.Domain.CreateNumber(iVal, false, rVal, false, polarity);
+        return left.Domain.CreateNumber(iVal, true, rVal, false, left.Polarity);
     }
     #endregion
     #region Pow
@@ -205,9 +202,9 @@ public class Number :
     #endregion
     #region Polarity
     public int PolarityDirection => Polarity.Direction();
-    public int BasisDirection => Domain.BasisFocal.Direction;
+    public int BasisDirection => Domain.Direction;
     public bool IsBasisPositive => BasisDirection == 1;
-    public int PositiveTickDirection => Domain.BasisFocal.Direction * PolarityDirection;
+    public int PositiveTickDirection => Domain.Direction * PolarityDirection;
     public bool HasPolairty => Polarity.HasPolarity();
     public bool IsAligned => Polarity == Polarity.Aligned;
     public bool IsInverted => !IsAligned;
@@ -218,13 +215,8 @@ public class Number :
     public Number InvertPolarity() => new(Domain, Focal, Polarity.Invert());
     public Number InvertDirection() => new(Domain, Focal.FlipAroundFirst(), Polarity);
     public Number InvertPolarityAndDirection() => new(Domain, Focal.FlipAroundFirst(), Polarity.Invert());
-    public Number Negate()
-    {
-        var offset = Domain.BasisFocal.StartTick;
-        return new(Domain, new Focal(
-            offset - (StartTick - offset),
-            offset - (EndTick - offset)), Polarity);
-    }
+    public Number Negate() =>
+        Domain.CreateNumber(StartTick, true, EndTick, true, Polarity);
 
     private static (long, long, long, long) GetStretchFocals(Number left, Number right, long offset, bool reciprocal)
     {
@@ -298,20 +290,7 @@ public class Number :
     #endregion
 
     #region Ranges
-    public PRange GetRange()
-    {
-        var basis = Domain.BasisFocal;
-        var len = (double)basis.NonZeroTickLength;// * Polarity.ForceValue(); //AlignedNonZeroLength(isAligned);// 
-        var start = (StartTick - basis.StartTick) / len;
-        var end = (EndTick - basis.StartTick) / len;
-        if (Domain.BasisIsReciprocal)
-        {
-            start = Math.Round(start) * Math.Abs(len);
-            end = Math.Round(end) * Math.Abs(len);
-        }
-        var result = IsAligned ? new PRange(-start, end, Polarity) : new PRange(start, -end, Polarity.Invert());
-        return result;
-    }
+    public PRange GetRange() => Domain.GetRange(this);
     public Number ValueAtT(double startT, double endT)
     {
         return new(Domain, Focal.FocalFromTs(startT, endT, IsInverted), Polarity);
@@ -439,8 +418,8 @@ public class Number :
     }
     #endregion
     #region Equality
-    public bool IsZero => StartTick == Domain.BasisFocal.StartTick && EndTick == Domain.BasisFocal.StartTick;
-    public bool IsOne => StartTick == Domain.BasisFocal.StartTick && EndTick == Domain.BasisFocal.EndTick;
+    public bool IsZero => Domain.IsZero(this);
+    public bool IsOne => Domain.IsOne(this);
     public Number Clone() => new Number(Domain, Focal.Clone(), Polarity);
     public static bool operator ==(Number? a, Number? b)
     {

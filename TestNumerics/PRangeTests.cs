@@ -33,23 +33,23 @@ public class PRangeTests
         Assert.AreEqual(0, result.Start, _delta);
         Assert.AreEqual(-30, result.End, _delta);
 
-        left = new PRange(0, -5, Polarity.Aligned); // (0i - 5) => ~(-0i + 5) 
-        right = new PRange(0, 6, Polarity.Inverted); // ~(0i + 6)
-        result = left * right;
-        Assert.AreEqual(Polarity.Inverted, result.Polarity);
+        left = new PRange(0, -5, Polarity.Aligned); // (0i - 5)
+        right = new PRange(0, 6, Polarity.Inverted); // ~(0i + 6) => (-0i - 6) 
+        result = left * right; // (0i - 5) * (-0i - 6) = (0i + 30)
+        Assert.AreEqual(Polarity.Aligned, result.Polarity);
         Assert.AreEqual(0, result.Start, _delta);
         Assert.AreEqual(30, result.End, _delta);
 
         left = new PRange(0, -5, Polarity.Inverted);// ~(0i - 5)
         right = new PRange(0, 6, Polarity.Inverted); // ~(0i + 6)
-        result = left * right;
-        Assert.AreEqual(Polarity.Aligned, result.Polarity);
+        result = left * right; // (0i - 5) * (0i + 6) = (0i - 30)
+        Assert.AreEqual(Polarity.Inverted, result.Polarity);
         Assert.AreEqual(0, result.Start, _delta);
         Assert.AreEqual(-30, result.End, _delta);
 
         left = new PRange(0, -5, Polarity.Inverted); // ~(0i - 5)
         right = new PRange(0, 6, Polarity.Aligned); // (0i + 6) => ~(-0i - 6) 
-        result = left * right; // = ~(0i - 6)
+        result = left * right; // = ~(0i + 6)
         Assert.AreEqual(Polarity.Inverted, result.Polarity);
         Assert.AreEqual(0, result.Start, _delta);
         Assert.AreEqual(30, result.End, _delta);
@@ -70,17 +70,17 @@ public class PRangeTests
         Assert.AreEqual(-36, result.End, _delta);
 
 
-        left = new PRange(2, -5, Polarity.Aligned); // (2i - 5) => ~(-2i + 5) // inverted
-        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6)
-        result = left * right; // (-2i + 5) * (3i + 6) => ~(3i + 36)
-        Assert.AreEqual(Polarity.Inverted, result.Polarity);
+        left = new PRange(2, -5, Polarity.Aligned); // (2i - 5)
+        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6) => (-3i - 6) // inverted
+        result = left * right; // (2i - 5) * (-3i - 6) => ~(3i + 36)
+        Assert.AreEqual(Polarity.Aligned, result.Polarity);
         Assert.AreEqual(3, result.Start, _delta);
         Assert.AreEqual(36, result.End, _delta);
 
-        left = new PRange(2, -5, Polarity.Inverted);// ~(2i - 5) => (-2i + 5)
-        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6) => (-3i - 6)
-        result = left * right; // (-2i + 5) * (-3i - 6) = ()
-        Assert.AreEqual(Polarity.Aligned, result.Polarity);
+        left = new PRange(2, -5, Polarity.Inverted);// ~(2i - 5)
+        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6)
+        result = left * right; // (2i - 5) * (3i + 6) = (-3i - 36)
+        Assert.AreEqual(Polarity.Inverted, result.Polarity);
         Assert.AreEqual(-3, result.Start, _delta);
         Assert.AreEqual(-36, result.End, _delta);
 
@@ -107,17 +107,17 @@ public class PRangeTests
         Assert.AreEqual(-20, result.End, _delta);
 
 
-        left = new PRange(60, -180, Polarity.Aligned); // (60i - 180) => ~(-60i + 180) // inverted
-        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6)
-        result = left / right; // (-60i + 180) / (3i + 6) => ~(-20i + 20)
-        Assert.AreEqual(Polarity.Inverted, result.Polarity);
+        left = new PRange(60, -180, Polarity.Aligned); // (60i - 180)
+        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6) => (-3i - 6) // inverted
+        result = left / right; // (60i - 180) / (-3i - 6) => (-20i + 20)
+        Assert.AreEqual(Polarity.Aligned, result.Polarity);
         Assert.AreEqual(-20, result.Start, _delta);
         Assert.AreEqual(20, result.End, _delta);
 
-        left = new PRange(60, -180, Polarity.Inverted);// ~(60i - 180) => (-60i + 180)
-        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6) => (-3i - 6)
-        result = left / right; // (-60i + 180) / (-3i - 6) = (20i - 20)
-        Assert.AreEqual(Polarity.Aligned, result.Polarity);
+        left = new PRange(60, -180, Polarity.Inverted);// ~(60i - 180)
+        right = new PRange(3, 6, Polarity.Inverted); // ~(3i + 6)
+        result = left / right; // (60i - 180) / (3i + 6) = (20i - 20)
+        Assert.AreEqual(Polarity.Inverted, result.Polarity);
         Assert.AreEqual(20, result.Start, _delta);
         Assert.AreEqual(-20, result.End, _delta);
 

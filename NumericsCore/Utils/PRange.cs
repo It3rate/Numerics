@@ -63,20 +63,16 @@ public struct PRange
         var right = rightIn.ConvertToPolarity(left.Polarity);
         return new PRange(left.Start - right.Start, left.End - right.End, left.Polarity);
     }
-    public static PRange operator *(PRange leftIn, PRange rightIn)
+    public static PRange operator *(PRange left, PRange rightIn)
     {
-        var polarity = (rightIn.Polarity == Polarity.Inverted) ? leftIn.Polarity.Invert() : leftIn.Polarity;
-        var left = leftIn.ConvertToPolarity(polarity);
-        var right = rightIn.ConvertToPolarity(polarity);
+        var right = rightIn.ConvertToPolarity(left.Polarity);
         var iVal = left.Start * right.End + left.End * right.Start;
         var rVal = left.End * right.End - left.Start * right.Start;
-        return new PRange(iVal, rVal, polarity);
+        return new PRange(iVal, rVal, left.Polarity);
     }
-    public static PRange operator /(PRange leftIn, PRange rightIn)
+    public static PRange operator /(PRange left, PRange rightIn)
     {
-        var polarity = (rightIn.Polarity == Polarity.Inverted) ? leftIn.Polarity.Invert() : leftIn.Polarity;
-        var left = leftIn.ConvertToPolarity(polarity);
-        var right = rightIn.ConvertToPolarity(polarity);
+        var right = rightIn.ConvertToPolarity(left.Polarity);
 
         double real1 = left.End;
         double imaginary1 = left.Start;
@@ -96,7 +92,7 @@ public struct PRange
             iVal = (-real1 + imaginary1 * num1) / (imaginary2 + real2 * num1);
             rVal = (imaginary1 + real1 * num1) / (imaginary2 + real2 * num1);
         }
-        return new PRange(iVal, rVal, polarity);
+        return new PRange(iVal, rVal, left.Polarity);
     }
 
     public static PRange Negate(PRange value) => -value;
