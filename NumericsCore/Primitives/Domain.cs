@@ -14,11 +14,34 @@ namespace Numerics.Primitives;
 // E.g. changing the domain 'tolerance' could change neat writing into messy.
 
 // Min size is tick size. BasisFocal is start/end point (only one focal allowed for a unit). MinMaxFocal is bounds in ticks. todo: add conversion methods etc.
-public class Domain
+public class Domain : IEquatable<Domain>
 {
     public Trait? Trait { get; }
     private Focal BasisFocal { get; }
     private Focal LimitsFocal { get; }
+    private Domain(Focal basisFocal, Focal limitsFocal) : this(Trait.WorkingTrait, basisFocal, limitsFocal) { }
+    public Domain(Trait? trait, Focal basisFocal, Focal limitsFocal)
+    {
+        Trait = trait;
+        BasisFocal = basisFocal;
+        LimitsFocal = limitsFocal;
+    }
+
+    private Domain? _inverse;
+    public Domain Inverse
+    {
+        get
+        {
+            if ((_inverse == null))
+            {
+                _inverse = new Domain(Trait, BasisFocal.FlipAroundFirst(), LimitsFocal.Invert());
+                _inverse._inverse = this;
+            }
+            return _inverse;        
+        }
+    }
+
+    #region Properties
     public Polarity Polarity => 
         BasisFocal.Direction > 0 ? Polarity.Aligned :
         BasisFocal.Direction < 0 ? Polarity.Inverted : Polarity.None;
@@ -29,19 +52,12 @@ public class Domain
     public long BasisLength => BasisFocal.TickLength;
     public long AbsBasisLength => BasisFocal.AbsTickLength;
     public int Direction => BasisFocal.Direction;
+    public bool IsInverted => BasisFocal.Direction == -1;
     public long AbsLimitsSize => LimitsFocal.AbsTickLength;
     public bool BasisIsReciprocal => Math.Abs(TickSize) > BasisFocal.AbsTickLength;
     public double TickToBasisRatio => TickSize / BasisFocal.NonZeroTickLength;
-    public Domain(Trait? trait, Focal basisFocal, Focal limitsFocal)
-    {
-        Trait = trait;
-        BasisFocal = basisFocal;
-        LimitsFocal = limitsFocal;
-    }
-    private Domain(Focal basisFocal, Focal limitsFocal) : this(Trait.WorkingTrait, basisFocal, limitsFocal) { }
-
-    public Domain InvertedDomain() => new Domain(Trait, BasisFocal.FlipAroundFirst(), LimitsFocal.Invert());
-
+    // IsTickLessThanBasis, IsBasisInMinmax, IsTiling, IsClamping, IsInvertable, IsNegateable, IsPoly, HasTrait
+    #endregion
     #region Conversions
     public Number MapToDomain(Number value)
     {
@@ -163,11 +179,6 @@ public class Domain
     }
     #endregion
 
-    public Domain Duplicate()
-    {
-        var result = new Domain(Trait, BasisFocal, LimitsFocal);
-        return result;
-	}
 	public Number AdditiveIdentity => new Number(this, new Focal(BasisFocal.StartTick, BasisFocal.StartTick));
 	public Number MultiplicativeIdentity => new Number(this, BasisFocal);
 
@@ -177,4 +188,41 @@ public class Domain
     public Number MinusOne => new(this, BasisFocal.FlipAroundFirst());
     public Number One_i => new(this, BasisFocal.FlipAroundFirst().Invert());
     public Number MinusOne_i => new(this, BasisFocal.Invert());
+
+    #region Equality
+    public Domain Clone() => new Domain(Trait, BasisFocal.Clone(), LimitsFocal.Clone());
+    public override bool Equals(object? obj)
+    {
+        return Equals(obj as Domain);
+    }
+
+    public bool Equals(Domain? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+        return Trait == other.Trait &&
+               EqualityComparer<Focal>.Default.Equals(BasisFocal, other.BasisFocal) &&
+               EqualityComparer<Focal>.Default.Equals(LimitsFocal, other.LimitsFocal);
+    }
+    public static bool operator ==(Domain? left, Domain? right)
+    {
+        return EqualityComparer<Domain>.Default.Equals(left, right);
+    }
+    public static bool operator !=(Domain? left, Domain? right)
+    {
+        return !(left == right);
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            int hash = 17;
+            hash = hash * 23 + (Trait?.GetHashCode() ?? 0);
+            hash = hash * 23 + BasisFocal.GetHashCode();
+            hash = hash * 23 + LimitsFocal.GetHashCode();
+            return hash;
+        }
+    }
+    #endregion
 }

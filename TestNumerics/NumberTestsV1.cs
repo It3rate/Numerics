@@ -26,7 +26,7 @@ public class NumbersTestsV1
         _unitFocal = new Focal(0, 10);
         _maxMin = new Focal(-1000, 1010);
         _domain = new Domain(_trait, _unitFocal, _maxMin);
-        _invDomain = _domain.InvertedDomain();
+        _invDomain = _domain.Inverse;
     }
     [TestMethod]
     public void UnitChangePositionTests()
@@ -170,7 +170,7 @@ public class NumbersTestsV1
         _unitFocal = new Focal(0, 100);
         _maxMin = new Focal(-10000, 10000);
         _domain = new Domain(_trait, _unitFocal, _maxMin);
-        _invDomain = _domain.InvertedDomain();
+        _invDomain = _domain.Inverse;
         var n = new Number(_domain, new(200, 300)); // (-2i+3)
 
         // preserve length: * 1, * -1, * ~(1), * ~(-1), 
@@ -232,7 +232,7 @@ public class NumbersTestsV1
         _unitFocal = new Focal(0, 100);
         _maxMin = new Focal(-10000, 10000);
         _domain = new Domain(_trait, _unitFocal, _maxMin);
-        _invDomain = _domain.InvertedDomain();
+        _invDomain = _domain.Inverse;
         var n = new Number(_invDomain, new(200, 300)); // ~(2-3i)
         Assert.IsTrue(n.IsInverted);
         Assert.AreEqual(2, n.StartValue);

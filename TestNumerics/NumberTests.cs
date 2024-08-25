@@ -31,7 +31,7 @@ public class NumberTests
     {
         var focal = new Focal(2, 8);
         var number = new Number(_domain, focal);
-        var invDomain = _domain.InvertedDomain();
+        var invDomain = _domain.Inverse;
 
         Assert.AreEqual(_domain, number.Domain);
         Assert.AreEqual(_basisFocal, number.Focal);

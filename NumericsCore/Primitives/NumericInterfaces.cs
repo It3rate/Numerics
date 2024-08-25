@@ -9,6 +9,22 @@ using System.Threading.Tasks;
 
 namespace Numerics.Primitives
 {
+    public interface Numeric<T> where T :
+        Numeric<T>,
+        IAdditionOperators<T, T, T>,
+        ISubtractionOperators<T, T, T>,
+        IMultiplyOperators<T, T, T>,
+        IDivisionOperators<T, T, T>,
+        IIncrementOperators<T>,
+        IDecrementOperators<T>,
+        IUnaryNegationOperators<T, T>,
+        IUnaryPlusOperators<T, T>
+        //IMinMaxValue<T>
+    {
+        Number AdditiveIdentity { get; }
+        Number MultiplicativeIdentity { get; }
+    }
+
     // Eventually the core number will be nbit aware and take advantage of simD/gpu capabilities.
     //public interface IPosition {}
     // Join as parallel domains, vs perpendicular (contour vs grid).

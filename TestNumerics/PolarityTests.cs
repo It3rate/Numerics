@@ -31,7 +31,7 @@ public class PolarityTests
 
         _zeroBasis = new Focal(0, 1000);
         _fromZeroDomain = new Domain(_trait, _zeroBasis, _limits);
-        _fromZeroDomainInvert = _fromZeroDomain.InvertedDomain();
+        _fromZeroDomainInvert = _fromZeroDomain.Inverse;
 
         _offsetBasis = new Focal(200, 1200);
         _offsetDomain = new Domain(_trait, _offsetBasis, _limits);
@@ -63,7 +63,7 @@ public class PolarityTests
         var zeroDomain = new Domain(_trait, new Focal(10,10), _limits); // zero len basis
         number = zeroDomain.MapToDomain(number);
         Assert.AreEqual(Polarity.None, number.Polarity);
-        var invZeroDomain = zeroDomain.InvertedDomain();
+        var invZeroDomain = zeroDomain.Inverse;
         number = invZeroDomain.MapToDomain(number);
         Assert.AreEqual(Polarity.None, number.Polarity);
         Assert.IsFalse(number.HasPolarity);
@@ -135,7 +135,7 @@ public class PolarityTests
         _delta = 0.01;
         _invertedBasis = new Focal(8000, 4000); // probably this is aligned
         _invertedDomain = new Domain(_trait, _invertedBasis, _limits);
-        var alignedDomain = _invertedDomain.InvertedDomain();
+        var alignedDomain = _invertedDomain.Inverse;
         var number200 = new Number(_invertedDomain, new(8000, 0)); // 2
         var number300 = new Number(_invertedDomain, new(8000, -4000)); // 3
 
@@ -169,7 +169,7 @@ public class PolarityTests
     {
         _invertedBasis = new Focal(8000, 4000);
         _invertedDomain = new Domain(_trait, _invertedBasis, _limits);
-        var alignedDomain = _invertedDomain.InvertedDomain();
+        var alignedDomain = _invertedDomain.Inverse;
         var number200 = new Number(_invertedDomain, new(0, 2000)); // -2i + 1.5 
         var number300 = new Number(_invertedDomain, new(0, -4000)); // -2i + 3
 
@@ -282,7 +282,7 @@ public class PolarityTests
     {
         var number200 = new Number(_invertedDomain, new(1200, -800));
         var number300 = new Number(_invertedDomain, new(1200, -6800));
-        var alignedDomain = _invertedDomain.InvertedDomain();
+        var alignedDomain = _invertedDomain.Inverse;
 
         var value = number200 / number300;
         Assert.AreEqual(Polarity.Inverted, value.Polarity);

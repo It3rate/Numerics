@@ -26,7 +26,7 @@ public class PRangeConversionTests
         _basisFocal = new Focal(0, 1000);
         _limits = new Focal(-10000, 10000);
         _domain = new Domain(_trait, _basisFocal, _limits);
-        _invDomain = _domain.InvertedDomain();
+        _invDomain = _domain.Inverse;
     }
     [TestMethod]
     public void MultiplyAlignedTests()
@@ -86,7 +86,7 @@ public class PRangeConversionTests
         _basisFocal = new Focal(0, 100);
         _limits = new Focal(-10000, 10000);
         _domain = new Domain(_trait, _basisFocal, _limits);
-        _invDomain = _domain.InvertedDomain();
+        _invDomain = _domain.Inverse;
         var n = new Number(_domain, new(200, 300)); // (-2i+3)
         var prn = PRange.FromNumber(n);
         // preserve length: * 1, * -1, * ~(1), * ~(-1), 
@@ -156,7 +156,7 @@ public class PRangeConversionTests
         _basisFocal = new Focal(0, 100);
         _limits = new Focal(-10000, 10000);
         _domain = new Domain(_trait, _basisFocal, _limits);
-        _invDomain = _domain.InvertedDomain();
+        _invDomain = _domain.Inverse;
         var n = new Number(_invDomain, new(200, 300)); // ~(2-3i)
         var prn = PRange.FromNumber(n);
 
@@ -165,7 +165,6 @@ public class PRangeConversionTests
         Assert.AreEqual(-3, prn.End); // i
 
         // preserve length: * 1, * -1, * ~(1), * ~(-1), 
-        // anything where the 'real' part is one and imaginary part is zero preserves length, independent of polarity.
         var a_pos1 = new Number(_domain, new(0, 100)); // ~seg from 0i->1
         var rap1 = n * a_pos1; // (1)
         var pResult = prn * PRange.FromNumber(a_pos1);
@@ -180,7 +179,7 @@ public class PRangeConversionTests
         Assert.AreEqual(pResult.Start, ran1.StartValue); // i
         Assert.AreEqual(pResult.End, ran1.EndValue);
 
-        var i_neg1 = new Number(_invDomain, new(-100, 0)); // ~seg from 1->0i inverts segments in place
+        var i_neg1 = new Number(_invDomain, new(-100, 0)); // ~seg from -1->0i inverts segments in place
         var r0 = n * i_neg1; // ~(-1)
         pResult = prn * PRange.FromNumber(i_neg1);
         Assert.IsTrue(pResult.Polarity == r0.Polarity);

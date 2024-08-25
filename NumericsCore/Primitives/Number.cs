@@ -11,21 +11,6 @@ using NumericsCore.Utils;
 namespace Numerics.Primitives;
 
 
-public interface Numeric<T> where T :
-    Numeric<T>,
-    IAdditionOperators<T, T, T>,
-    ISubtractionOperators<T, T, T>,
-    IMultiplyOperators<T, T, T>,
-    IDivisionOperators<T, T, T>,
-    IIncrementOperators<T>,
-    IDecrementOperators<T>,
-    IUnaryNegationOperators<T, T>,
-    IUnaryPlusOperators<T, T>
-    //IMinMaxValue<T>
-{
-    Number AdditiveIdentity { get; }
-    Number MultiplicativeIdentity { get; }
-}
 public class Number :
     Numeric<Number>,
     IAdditionOperators<Number, Number, Number>,
@@ -35,28 +20,13 @@ public class Number :
     IIncrementOperators<Number>,
     IDecrementOperators<Number>,
     IUnaryNegationOperators<Number, Number>,
-    IUnaryPlusOperators<Number, Number>
-    //IPolarityOperators<Number, Number, Number>
-//IMinMaxValue<Number>
+    IUnaryPlusOperators<Number, Number>,
+    IPolarityOperators<Number, Number, Number>
+    //IMinMaxValue<Number>
 
 {
-    public Focal Focal { get; private set; }
-    public Domain Domain { get; private set; }
-    public Polarity Polarity => Domain.Polarity;
-    public long StartTick => Focal.StartTick;
-    public long EndTick => Focal.EndTick;
-    public PRange Value => GetRange();
-    public double StartValue => GetRange().Start;
-    public double EndValue => GetRange().End;
-
-    public long TickLength => Focal.TickLength;
-    public long AbsTickLength => Focal.AbsTickLength;
-    public Focal AlignedFocal => IsAligned ? Focal : ~Focal;
-
-    // IsFractional, IsInverted, IsNegative, IsNormalized, IsZero, IsOne, IsZeroStart, IsPoint, IsOverflow, IsUnderflow
-    // IsLessThanBasis, IsGrowable, IsBasisLength, IsMin, HasMask, IsArray, IsMultiDim, IsCalculated, IsRandom
-    // Domain: IsTickLessThanBasis, IsBasisInMinmax, IsTiling, IsClamping, IsInvertable, IsNegateable, IsPoly, HasTrait
-    // scale
+    public Focal Focal { get; }
+    public Domain Domain { get; }
 
     public Number(Domain domain, Focal focal)
     {
@@ -64,16 +34,28 @@ public class Number :
         Focal = focal;
     }
 
+    #region Truths
+    public bool IsZero => Domain.IsZero(this);
+    public bool IsOne => Domain.IsOne(this);
+    public bool IsNegativeDirection => Focal.Direction * Domain.Direction == -1;
+    public bool IsZeroStart => StartValue == 0;
+    public bool IsPoint => StartTick == EndTick;
+    public bool IsSmallerThanBasis => Math.Abs(StartValue) < 1 && Math.Abs(EndValue) < 1;
+    public bool IsBasisPermutation => // 1, -1, i, -i
+        (StartValue == 0 && Math.Abs(EndValue) == 1) || 
+        (EndValue == 0 && Math.Abs(StartValue) == 1);
+    public bool IsFractional => StartValue != (int)StartValue || EndValue != (int)EndValue;
+    // IsNormalized, IsOverflow, IsUnderflow IsGrowable, IsMin, HasMask, IsArray, IsMultiDim, IsCalculated, IsRandom
 
-    //public Number Invert() => Domain.CreateNumber(StartTick, true, EndTick, true, Polarity.Invert());
-    //public Number Aligned => IsAligned ? this : Invert();
-    //public Number Inverted => IsInverted ? this : Invert();
-    //public Number ConvertToPolarity(Polarity target) => target == Polarity ? this : Invert();
-    public Number Reverse() => Domain.Reverse(this);
-    public Number ReverseNegate() => Domain.ReverseNegate(this);
-    public Number MirrorStart() => Domain.MirrorStart(this);// inverted Conjugate, mirror operation
-    public Number MirrorEnd() => Domain.MirrorEnd(this);
+    #endregion
+    #region Properties
+    public Polarity Polarity => Domain.Polarity;
+    public long StartTick => Focal.StartTick;
+    public long EndTick => Focal.EndTick;
 
+    public long TickLength => Focal.TickLength;
+    public long AbsTickLength => Focal.AbsTickLength;
+    #endregion
     #region Add
     public static Number operator +(Number left, Number rightIn)
     {
@@ -87,10 +69,7 @@ public class Number :
     static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => left + right;
 
     public static Number operator +(Number value) => new(value.Domain, value.Focal);
-    public static Number operator ++(Number value) =>
-        value.Domain.CreateNumberRaw(
-            value.Focal.StartTick,
-            value.Focal.EndTick + value.Domain.TickSize);
+    public static Number operator ++(Number value) => new(value.Domain, value.Focal + value.Domain.BasisNumber.Focal);
     public Number AdditiveIdentity => Domain.AdditiveIdentity;
 
     #endregion
@@ -105,7 +84,7 @@ public class Number :
     }
     static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => left - right;
 
-    public static Number operator --(Number value) => new(value.Domain, value.Focal--);
+    public static Number operator --(Number value) => new(value.Domain, value.Focal - value.Domain.BasisNumber.Focal);
     public static Number operator -(Number value) => new(value.Domain, -value.Focal);
     #endregion
     #region Multiply
@@ -190,90 +169,23 @@ public class Number :
     #endregion
     #region Polarity
     public int BasisDirection => Domain.Direction;
-    public bool IsBasisPositive => BasisDirection == 1;
     public bool IsAligned => Polarity == Polarity.Aligned;
     public bool IsInverted => Polarity == Polarity.Inverted;
     public bool HasPolarity => Polarity.HasPolarity();
     public virtual bool IsPolarityEqual(Number num) => Polarity == num.Polarity;
-    public static Number operator ~(Number value) => value.MirrorStart(); // todo: establish this meaning, maybe invert
     public Number Negate() => Domain.Negate(this);
+    public Number InvertPolarity() => new (Domain.Inverse, Focal);
+    public Number InvertPolarityAndFocal()=> new(Domain.Inverse, Focal.Negate());
 
-    private static (long, long, long, long) GetStretchFocals(Number left, Number right, long offset, bool reciprocal)
-    {
-        // This gets the focal positions to multiply or divide.
-        // The reason they are different for * and \ is division has an extra reciprocal when dividing by an inverted number.
-        // 1/2i on the right parameter is inverted compared to 1/2 as the i flips perspective. After this multiply is normal.
-        // The results are processed and still need to be converted to focals for aligned or inverted results, so this is handled in the methods.
-
-        // Multiply (First Last, start, end)
-        // ++ FL FL -s+e
-        // +~ LF FL -e+s
-        // ~+ LF FL +e-s
-        // ~~ FL FL -s-e
-
-        // Divide (First Last, start, end)
-        // ++ FL FL +s+e
-        // +~ LF LF -s+e
-        // ~+ LF FL +e+s
-        // ~~ FL FL -s-e
-
-        long l0, l1, r0, r1;
-        if (left.Polarity == right.Polarity)
-        {
-            l0 = -(left.StartTick - offset);
-            l1 = (left.EndTick - offset);
-        }
-        else
-        {
-            l0 = -(left.EndTick - offset);
-            l1 = (left.StartTick - offset);
-        }
-
-        if (reciprocal == true && left.Polarity == Polarity.Aligned && right.Polarity == Polarity.Inverted)
-        {
-            r0 = -(right.EndTick - offset);
-            r1 = (right.StartTick - offset);
-        }
-        else
-        {
-            r0 = -(right.StartTick - offset);
-            r1 = (right.EndTick - offset);
-        }
-
-        return (l0, l1, r0, r1);
-    }
-    private static (long, long, long, long) GetAdditiveFocals(Number left, Number right, long offset)
-    {
-        // This gets the focal positions to add or subtract, returns in the left context.
-        // Add (First Last)
-        // ++ FL FL
-        // +~ FL LF
-        // ~+ FL LF
-        // ~~ FL FL
-
-        var l0 = (left.StartTick - offset);
-        var l1 = (left.EndTick - offset);
-        long r0, r1;
-        if (left.Polarity == right.Polarity)
-        {
-            r0 = (right.StartTick - offset);
-            r1 = (right.EndTick - offset);
-        }
-        else
-        {
-            r0 = (right.EndTick - offset);
-            r1 = (right.StartTick - offset);
-        }
-
-        return (l0, l1, r0, r1);
-    }
     #endregion
-
-    #region Ranges
-    public PRange GetRange() => Domain.GetRange(this);
+    #region Transforms
+    public Number Reverse() => Domain.Reverse(this);
+    public Number ReverseNegate() => Domain.ReverseNegate(this);
+    public static Number operator ~(Number value) => value.MirrorStart(); // conjugate on i is the 2D mirror operation (flip vertically)
+    public Number MirrorStart() => Domain.MirrorStart(this);// inverted Conjugate, mirror operation
+    public Number MirrorEnd() => Domain.MirrorEnd(this);
     #endregion
-
-    #region Comparisons
+    #region Comparisons Bools
     public static bool operator >(Number left, Number right) =>
         CompareFocals.GreaterThan(left.Focal, right.Focal) != null;
     public static bool operator >=(Number left, Number right) =>
@@ -283,23 +195,23 @@ public class Number :
     public static bool operator <=(Number left, Number right) =>
         CompareFocals.LessThanOrEqual(left.Focal, right.Focal) != null;
     public bool IsMatching(Number right) =>
-        CompareFocals.Matching(AlignedFocal, right.Focal) != null;
+        CompareFocals.Matching(Focal, right.Focal) != null;
     public bool IsContaining(Number right) =>
-        CompareFocals.Containing(AlignedFocal, right.Focal) != null;
+        CompareFocals.Containing(Focal, right.Focal) != null;
     public bool IsContainedBy(Number right) =>
-        CompareFocals.ContainedBy(AlignedFocal, right.Focal) != null;
+        CompareFocals.ContainedBy(Focal, right.Focal) != null;
     public bool IsGreaterThan(Number right) =>
-        CompareFocals.GreaterThan(AlignedFocal, right.Focal) != null;
+        CompareFocals.GreaterThan(Focal, right.Focal) != null;
     public bool IsGreaterThanOrEqual(Number right) =>
-        CompareFocals.GreaterThanOrEqual(AlignedFocal, right.Focal) != null;
+        CompareFocals.GreaterThanOrEqual(Focal, right.Focal) != null;
     public bool IsGreaterThanAndEqual(Number right) =>
-        CompareFocals.GreaterThanAndEqual(AlignedFocal, right.Focal) != null;
+        CompareFocals.GreaterThanAndEqual(Focal, right.Focal) != null;
     public bool IsLessThan(Number right) =>
-        CompareFocals.LessThan(AlignedFocal, right.Focal) != null;
+        CompareFocals.LessThan(Focal, right.Focal) != null;
     public bool IsLessThanOrEqual(Number right) =>
-        CompareFocals.LessThanOrEqual(AlignedFocal, right.Focal) != null;
+        CompareFocals.LessThanOrEqual(Focal, right.Focal) != null;
     public bool IsLessThanAndEqual(Number right) =>
-        CompareFocals.LessThanAndEqual(AlignedFocal, right.Focal) != null;
+        CompareFocals.LessThanAndEqual(Focal, right.Focal) != null;
 
     public static Number? Matching(Number left, Number right)
     {
@@ -392,9 +304,12 @@ public class Number :
         return result;
     }
     #endregion
+    #region Conversions
+    public PRange GetRange() => Domain.GetRange(this);
+    public double StartValue => GetRange().Start;
+    public double EndValue => GetRange().End;
+    #endregion
     #region Equality
-    public bool IsZero => Domain.IsZero(this);
-    public bool IsOne => Domain.IsOne(this);
     public Number Clone() => new Number(Domain, Focal.Clone());
     public static bool operator ==(Number? a, Number? b)
     {

@@ -28,15 +28,6 @@ public static class PolarityExtension
             _ => polarity
         };
     }
-    public static Polarity SolvePolarity(this Polarity left, Polarity right)
-    {
-        var result = left;
-        if (left.HasPolarity())
-        {
-            result = (left == right) ? Polarity.Aligned : Polarity.Inverted;
-        }
-        return result;
-    }
 }
 
 public interface IPolarityOperators<TSelf, TOther, TResult>
@@ -44,10 +35,9 @@ public interface IPolarityOperators<TSelf, TOther, TResult>
 {
     static abstract TResult operator ~(TSelf value);
     TResult InvertPolarity();
-    TResult InvertDirection();
-    TResult InvertPolarityAndDirection();
-    //TResult SolvePolarityWith(TOther right);
+    TResult InvertPolarityAndFocal();
 }
+
 //public interface IBitwiseOperators<TSelf, TOther, TResult> where TSelf : IBitwiseOperators<TSelf, TOther, TResult>?
 //{
 //    static abstract TResult operator ~(TSelf value);

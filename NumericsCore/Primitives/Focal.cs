@@ -459,6 +459,8 @@ public class Focal :
     }
     public bool Equals(Focal? value)
     {
+        if (value is null) return false;
+        if (ReferenceEquals(this, value)) return true;
         return ReferenceEquals(this, value) || StartTick.Equals(value.StartTick) && EndTick.Equals(value.EndTick);
     }
 
