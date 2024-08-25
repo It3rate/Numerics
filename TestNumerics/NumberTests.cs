@@ -31,15 +31,16 @@ public class NumberTests
     {
         var focal = new Focal(2, 8);
         var number = new Number(_domain, focal);
+        var invDomain = _domain.InvertedDomain();
 
         Assert.AreEqual(_domain, number.Domain);
         Assert.AreEqual(_basisFocal, number.Focal);
         Assert.AreEqual(Polarity.Aligned, number.Polarity);
 
         focal = new Focal(2, 8);
-        number = new Number(_domain, focal, Polarity.Inverted);
+        number = new Number(invDomain, focal);
 
-        Assert.AreEqual(_domain, number.Domain);
+        Assert.AreEqual(invDomain, number.Domain);
         Assert.AreEqual(_basisFocal, number.Focal);
         Assert.AreEqual(Polarity.Inverted, number.Polarity);
     }
@@ -246,7 +247,7 @@ public class NumberTests
         _domain = new Domain(_trait, _basisFocal, _limits);
         double decimalValueStart = 0.5;
         double decimalValueEnd = 0.8;
-        var tick = _domain.FocalFromValues(decimalValueStart, decimalValueEnd);
+        var tick = _domain.FocalFromDecimalSigned(decimalValueStart, decimalValueEnd);
         Assert.AreEqual(5000, tick.StartTick);
         Assert.AreEqual(18000, tick.EndTick);
     }

@@ -443,19 +443,8 @@ public class Focal :
 
     #region Utils
     public Focal GetOffset(long offset) => new(StartTick + offset, EndTick + offset);
-    public Focal FocalFromTs(double startT, double endT, bool invertEnds = false)
-    {
-        Focal result;
-        if(invertEnds)
-        {
-            result = new((long)(StartTick + TickLength * startT), (long)(StartTick + TickLength * endT));
-        }
-        else
-        {
-            result = new((long)(EndTick + TickLength * -startT), (long)(EndTick + TickLength * -endT));
-        }
-        return result;
-    }
+    public Focal FocalFromTs(double startT, double endT) =>
+        new((long)(StartTick + TickLength * startT), (long)(StartTick + TickLength * endT));
 
     public static Focal Zero => new Focal(0, 0);
     public static Focal One => new Focal(0, 1);
