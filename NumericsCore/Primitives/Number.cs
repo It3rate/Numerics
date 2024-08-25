@@ -449,7 +449,11 @@ public class Number :
         {
             var midSign = val.End > 0 ? " + " : " ";
             var pol = Polarity == Polarity.Inverted ? "~" : "";
-            var start = Value.Start == 0 ? "0" : $"{val.Start:0.##}";
+            var start = val.Start == 0 ? "0" :
+                val.Start == 1 ? "" :
+                val.Start == -1 ? "-" :
+                $"{val.Start:0.##}";
+
             var end = val.End == 0 ? "0" : $"{val.End:0.##}";
             result = $"{pol}({start}i{midSign}{end})";
         }

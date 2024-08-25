@@ -86,6 +86,7 @@ public class PRangeConversionTests
         _basisFocal = new Focal(0, 100);
         _limits = new Focal(-10000, 10000);
         _domain = new Domain(_trait, _basisFocal, _limits);
+        _invDomain = _domain.InvertedDomain();
         var n = new Number(_domain, new(200, 300)); // (-2i+3)
         var prn = PRange.FromNumber(n);
         // preserve length: * 1, * -1, * ~(1), * ~(-1), 
@@ -155,6 +156,7 @@ public class PRangeConversionTests
         _basisFocal = new Focal(0, 100);
         _limits = new Focal(-10000, 10000);
         _domain = new Domain(_trait, _basisFocal, _limits);
+        _invDomain = _domain.InvertedDomain();
         var n = new Number(_invDomain, new(200, 300)); // ~(2-3i)
         var prn = PRange.FromNumber(n);
 

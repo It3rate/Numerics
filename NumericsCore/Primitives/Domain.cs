@@ -48,10 +48,15 @@ public class Domain
         Number result = value;
         if(value.Domain != this)
         {
-            var start = value.StartValue;
-            var end = value.EndValue;
-            var focal = FocalFromDecimalRaw(start, end);
-            result = new(this, focal);
+            var ratio = AbsBasisLength / (double)value.Domain.AbsBasisLength;
+            var (valueStart, valueEnd) = value.Domain.RawTicksFromZero(value);
+            var start = (long)(valueStart * ratio);
+            var end = (long)(valueEnd * ratio);
+            result = CreateNumberRaw(start, end);
+            //var start = value.StartValue; // need to change focals, otherwise the signs will change on inverting
+            //var end = value.EndValue;
+            //var focal = FocalFromDecimalRaw(start, end);
+            //result = new(this, focal);
         }
         return result;
     }
@@ -78,9 +83,10 @@ public class Domain
 
     public bool IsZero(Number num) => num.StartTick == BasisFocal.StartTick && num.EndTick == BasisFocal.StartTick;
     public bool IsOne(Number num) => num.StartTick == BasisFocal.StartTick && num.EndTick == BasisFocal.EndTick;
-    public long TicksFromZero(long tick) => (tick - BasisFocal.StartTick) * Direction;
+    public long TicksFromZero(long tick) => tick - BasisFocal.StartTick;
+    public long TicksFromZeroDirected(long tick) => (tick - BasisFocal.StartTick) * Direction;
     public (long, long) RawTicksFromZero(Number num) => (TicksFromZero(num.StartTick), TicksFromZero(num.EndTick));
-    public (long, long) SignedTicksFromZero(Number num) => (-TicksFromZero(num.StartTick), TicksFromZero(num.EndTick));
+    public (long, long) SignedTicksFromZero(Number num) => (-TicksFromZeroDirected(num.StartTick), TicksFromZeroDirected(num.EndTick));
     public Number Negate(Number num)
     {
         var (startTicks, endTicks) = RawTicksFromZero(num);
@@ -115,8 +121,8 @@ public class Domain
     public Number CreateNumberSigned(long startTicks, long endTicks)
     {
         return new Number(this, new Focal(
-            BasisFocal.StartTick - startTicks,
-            BasisFocal.StartTick + endTicks));
+            BasisFocal.StartTick - startTicks * Direction,
+            BasisFocal.StartTick + endTicks * Direction));
     }
     public Number CreateNumberFromTs(double startT, double endT) =>
         new(this, BasisFocal.FocalFromTs(-startT, endT));
@@ -139,11 +145,11 @@ public class Domain
         new Focal(TickValueInverted(startValue), TickValueAligned(endValue));
 
     public (double, double) RawValues(Number num) => (
-        TicksFromZero(num.StartTick) / (double)BasisFocal.TickLength,
-        TicksFromZero(num.EndTick) / (double)BasisFocal.TickLength);
+        TicksFromZeroDirected(num.StartTick) / (double)BasisFocal.AbsTickLength,
+        TicksFromZeroDirected(num.EndTick) / (double)BasisFocal.AbsTickLength);
     public (double, double) SignedValues(Number num) => (
-        -TicksFromZero(num.StartTick) / (double)BasisFocal.TickLength,
-        TicksFromZero(num.EndTick) / (double)BasisFocal.TickLength);
+        -TicksFromZeroDirected(num.StartTick) / (double)BasisFocal.AbsTickLength,
+        TicksFromZeroDirected(num.EndTick) / (double)BasisFocal.AbsTickLength);
 
     public PRange GetRange(Number num)
     {
