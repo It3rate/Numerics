@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Numerics.Primitives;
 
-namespace NumericsCore.Ops
+namespace NumericsCore.Interfaces
 {
     public interface OpInterface
     {

@@ -6,11 +6,22 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Numerics.Primitives;
+using NumericsCore.Utils;
 
-namespace Numerics.Primitives
+namespace NumericsCore.Interfaces
 {
+    public interface IValue
+    {
+        double StartValue { get; }
+        double EndValue { get; }
+        double ValueAtT(double t);
+        PRange GetRange();
+    }
+
     public interface Numeric<T> where T :
         Numeric<T>,
+        IValue,
         IAdditionOperators<T, T, T>,
         ISubtractionOperators<T, T, T>,
         IMultiplyOperators<T, T, T>,
@@ -30,10 +41,10 @@ namespace Numerics.Primitives
     // Join as parallel domains, vs perpendicular (contour vs grid).
     public interface IMeasurable
     {
-        long StartTick { get; set; }
-        long EndTick { get; set; }
-        long TickLength { get; }
-        long AbsTickLength { get; }
+        long StartTick { get; }
+        long EndTick { get; }
+        long Length { get; }
+        long AbsLength { get; }
     }
 
     public interface Measurable<T> where T :

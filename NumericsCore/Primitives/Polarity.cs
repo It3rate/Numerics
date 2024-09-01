@@ -9,7 +9,7 @@ using NumericsCore.Utils;
 
 namespace NumericsCore.Primitives;
 
-public enum Polarity { None, Aligned, Inverted };//, Zero, Max }
+public enum Polarity { None, Aligned, Inverted };
 
 public static class PolarityExtension
 {

@@ -43,7 +43,7 @@ public class NumbersTestsV1
         Assert.AreEqual(2, n2.EndValue);
         Assert.AreEqual(2, n3.StartValue);
         Assert.AreEqual(-3, n3.EndValue);
-        _unitFocal.EndTick = 20;
+        _unitFocal.ModifyEnd(20);
         Assert.AreEqual(0, n0.StartValue);
         Assert.AreEqual(1, n0.EndValue);
         Assert.AreEqual(-1, n1.StartValue);
@@ -52,7 +52,7 @@ public class NumbersTestsV1
         Assert.AreEqual(1, n2.EndValue);
         Assert.AreEqual(1, n3.StartValue);
         Assert.AreEqual(-1.5, n3.EndValue);
-        _unitFocal.EndTick = -20;
+        _unitFocal.ModifyEnd(-20);
         Assert.AreEqual(0, n0.StartValue);
         Assert.AreEqual(-1, n0.EndValue);
         Assert.AreEqual(1, n1.StartValue);
@@ -61,7 +61,7 @@ public class NumbersTestsV1
         Assert.AreEqual(-1, n2.EndValue);
         Assert.AreEqual(-1, n3.StartValue);
         Assert.AreEqual(1.5, n3.EndValue);
-        _unitFocal.StartTick = -10; // unot perspective
+        _unitFocal.ModifyStart(-10);
         Assert.AreEqual(1, n0.StartValue);
         Assert.AreEqual(-3, n0.EndValue);
         Assert.AreEqual(3, n1.StartValue);
@@ -70,8 +70,8 @@ public class NumbersTestsV1
         Assert.AreEqual(-3, n2.EndValue);
         Assert.AreEqual(-1, n3.StartValue);
         Assert.AreEqual(2, n3.EndValue);
-        _unitFocal.StartTick = 2000; // unot perspective
-        _unitFocal.EndTick = -2000; // forces things to about the middle
+        _unitFocal.ModifyStart(2000);
+        _unitFocal.ModifyEnd(-2000);
         Assert.AreEqual(-0.5, n0.StartValue);
         Assert.AreEqual(0.495, n0.EndValue);
         Assert.AreEqual(-0.495, n1.StartValue);
@@ -96,8 +96,8 @@ public class NumbersTestsV1
         Assert.AreEqual(20, n2.EndValue);
         Assert.AreEqual(-20, n3.StartValue);
         Assert.AreEqual(-30, n3.EndValue);
-        _unitFocal.StartTick = 100; // unot perspective
-        _unitFocal.EndTick = 0;
+        _unitFocal.ModifyStart(100);
+        _unitFocal.ModifyEnd(0);
         Assert.AreEqual(-1, n0.StartValue);
         Assert.AreEqual(-1, n0.EndValue);
         Assert.AreEqual(-3, n1.StartValue);
@@ -128,12 +128,12 @@ public class NumbersTestsV1
         n0b = n0b + n3;// n0b.Add(n3);
         Assert.AreNotEqual(n0, n0b);
 
-        Assert.AreEqual(_unitFocal.AbsTickLength, n0.Domain.AbsBasisLength);
+        Assert.AreEqual(_unitFocal.AbsLength, n0.Domain.AbsBasisLength);
         Assert.AreEqual(1, n0.BasisDirection);
         Assert.AreEqual(1, n4.BasisDirection);
         Assert.AreEqual(n1.Domain, n0.Domain);
         Assert.AreEqual(n0.StartValue, n1.StartValue, _delta);
-        Assert.AreEqual(n1.EndValue, n1.Focal.TickLength / (double)n1.Domain.BasisLength);
+        Assert.AreEqual(n1.EndValue, n1.Focal.Length / (double)n1.Domain.BasisLength);
         //Assert.AreEqual(0, n3.RemainderStartValue, Utils.Tolerance);
         //Assert.AreEqual(5, n3.RemainderEndValue, Utils.Tolerance);
         //Assert.AreEqual(2, n2.RemainderStartValue, Utils.Tolerance);

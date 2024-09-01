@@ -25,8 +25,8 @@ public class FocalTests
     {
         var focal1 = new Focal(10, 20);
         var focal2 = new Focal(20, 10);
-        long tickLength1 = focal1.TickLength;
-        long tickLength2 = focal2.TickLength;
+        long tickLength1 = focal1.Length;
+        long tickLength2 = focal2.Length;
         Assert.AreEqual(10, tickLength1);
         Assert.AreEqual(-10, tickLength2);
     }

@@ -5,14 +5,16 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using NumericsCore.Interfaces;
 using NumericsCore.Primitives;
 using NumericsCore.Utils;
 
 namespace Numerics.Primitives;
 
 
-public class Number :
+public class Number:
     Numeric<Number>,
+    IValue,
     IAdditionOperators<Number, Number, Number>,
     ISubtractionOperators<Number, Number, Number>,
     IMultiplyOperators<Number, Number, Number>,
@@ -27,12 +29,19 @@ public class Number :
 {
     public Focal Focal { get; }
     public Domain Domain { get; }
+    public double StartValue => Domain.ValueAtT(this, 0);
+    public double EndValue => Domain.ValueAtT(this, 1);
+    public double ValueAtT(double t) => Domain.ValueAtT(this, t);
 
     public Number(Domain domain, Focal focal)
     {
         Domain = domain;
         Focal = focal;
     }
+
+    #region Conversions
+    public PRange GetRange() => Domain.GetRange(this);
+    #endregion
 
     #region Truths
     public bool IsZero => Domain.IsZero(this);
@@ -53,8 +62,8 @@ public class Number :
     public long StartTick => Focal.StartTick;
     public long EndTick => Focal.EndTick;
 
-    public long TickLength => Focal.TickLength;
-    public long AbsTickLength => Focal.AbsTickLength;
+    public long TickLength => Focal.Length;
+    public long AbsTickLength => Focal.AbsLength;
     #endregion
     #region Add
     public static Number operator +(Number left, Number rightIn)
@@ -65,6 +74,7 @@ public class Number :
         return left.Domain.CreateNumberRaw(leftStart + rightStart, leftEnd + rightEnd);
 
     }
+    public Number Add(Number right) => this + right;
     public static Number Add(Number left, Number right) => left + right;
     static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => left + right;
 
@@ -74,6 +84,7 @@ public class Number :
 
     #endregion
     #region Subtract
+    public Number Subtract(Number right) => this - right;
     public static Number Subtract(Number left, Number right) => left - right;
     public static Number operator -(Number left, Number rightIn)
     {
@@ -88,6 +99,7 @@ public class Number :
     public static Number operator -(Number value) => new(value.Domain, -value.Focal);
     #endregion
     #region Multiply
+    public Number Multiply(Number right) => this * right;
     public static Number Multiply(Number left, Number right) =>  left * right;
     public static Number operator *(Number left, Number rightIn)
     {
@@ -106,6 +118,7 @@ public class Number :
 
     #endregion
     #region Divide
+    public Number Divide(Number right) => this / right;
     public static Number Divide(Number left, Number right) => left / right;
     public static Number operator /(Number left, Number rightIn)
     {
@@ -132,8 +145,8 @@ public class Number :
     }
     #endregion
     #region Pow
-
-    public static Number Pow(Number value, Number power)
+    public Number Pow(Number power) => this ^ power;
+    public static Number operator ^(Number value, Number power)
     {
         if (power.IsZero)
         {
@@ -165,7 +178,7 @@ public class Number :
         //return new Number(t * Math.Cos(newRho), t * Math.Sin(newRho));
     }
 
-    public static Number operator ^(Number left, Number right) => left ^ right;
+    public static Number Pow(Number value, Number power)  => value ^ power;
     #endregion
     #region Polarity
     public int BasisDirection => Domain.Direction;
@@ -303,11 +316,6 @@ public class Number :
         }
         return result;
     }
-    #endregion
-    #region Conversions
-    public PRange GetRange() => Domain.GetRange(this);
-    public double StartValue => GetRange().Start;
-    public double EndValue => GetRange().End;
     #endregion
     #region Equality
     public Number Clone() => new Number(Domain, Focal.Clone());
