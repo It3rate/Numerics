@@ -15,8 +15,18 @@ namespace NumericsCore.Interfaces
     {
         double StartValue { get; }
         double EndValue { get; }
-        double AsBasisTValue(double t);
-        PRange GetRange();
+    }
+    public class ValueAtTime : IValue
+    {
+        public long Timestamp { get; }
+        public double StartValue { get; }
+        public double EndValue { get; }
+        public ValueAtTime(long timestamp, double startValue, double endValue)
+        {
+            Timestamp = timestamp;
+            StartValue = startValue;
+            EndValue = endValue;
+        }
     }
 
     public interface Numeric<T> where T :

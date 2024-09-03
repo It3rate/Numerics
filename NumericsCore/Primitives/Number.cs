@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NumericsCore.Interfaces;
 using NumericsCore.Primitives;
+using NumericsCore.Sequencer;
 using NumericsCore.Structures;
 using NumericsCore.Utils;
 
@@ -40,11 +41,6 @@ public class Number:
             }
             return -Domain.RawTickValue(Focal.StartTick);
         }
-        set
-        {
-            // allow changes by optionally recording old values and timestamping. This allows history to be preserved for trend analysis, and rewind. Need not be perfect (forgetting allowed)
-            // maybe count accesses as well as changes if that helps understanding. Or access with an expected value to create defaults and understand differences.
-        }
     }
     public double EndValue
     {
@@ -65,6 +61,7 @@ public class Number:
     {
         Domain = domain;
         Focal = focal;
+        _history.Add(new(_curMS, StartValue, EndValue));
     }
     public Number(Domain domain, IValueRef startLandmark, IValueRef endLandmark)
     {
@@ -75,9 +72,16 @@ public class Number:
         EnsureLandmarks();
     }
 
+
     #region Mutations
+    private long _curMS => Runner.Instance.CurrentMS;
+    private List<ValueAtTime> _history = new System.Collections.Generic.List<ValueAtTime>();
+    public ValueAtTime? CurrentHistoricalValue() => _history.Count > 0 ? _history[_history.Count - 1] : null;
+    public ValueAtTime? PreviousHistoricalValue() => _history.Count > 1 ? _history[_history.Count - 2] : null;
     public bool SetValues(double startValue, double endValue)
     {
+        // allow changes by optionally recording old values and timestamping. This allows history to be preserved for trend analysis, and rewind. Need not be perfect (forgetting allowed)
+        // maybe count accesses as well as changes if that helps understanding. Or access with an expected value to create defaults and understand differences.
         var result = true;
         if (StartLandmark != null || EndLandmark != null)
         {
@@ -85,8 +89,14 @@ public class Number:
         }
         else
         {
-            Focal.StartTick = Domain.TickValueInverted(startValue);
-            Focal.EndTick = Domain.TickValueAligned(endValue);
+            var startTick = Domain.TickValueInverted(startValue);
+            var endTick = Domain.TickValueAligned(endValue);
+            if (startTick != Focal.StartTick || endTick != Focal.EndTick)
+            {
+                Focal.StartTick = startTick;
+                Focal.EndTick = endTick;
+                _history.Add(new(_curMS, StartValue, EndValue));
+            }
         }
         return result;
     }
@@ -99,7 +109,12 @@ public class Number:
         }
         else
         {
-            Focal.StartTick = Domain.TickValueInverted(startValue);
+            var tick = Domain.TickValueInverted(startValue);
+            if (tick != Focal.StartTick)
+            {
+                Focal.StartTick = tick;
+                _history.Add(new(_curMS, StartValue, EndValue));
+            }
         }
         return result;
     }
@@ -112,7 +127,12 @@ public class Number:
         }
         else
         {
-            Focal.EndTick = Domain.TickValueAligned(endValue);
+            var tick = Domain.TickValueAligned(endValue);
+            if (tick != Focal.EndTick)
+            {
+                Focal.EndTick = tick;
+                _history.Add(new(_curMS, StartValue, EndValue));
+            }
         }
         return result;
     }

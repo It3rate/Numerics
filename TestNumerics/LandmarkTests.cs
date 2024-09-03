@@ -67,8 +67,16 @@ namespace TestNumerics
 
             num.SetStartValue(8);
             Assert.AreEqual(8, num.StartValue);
+            var phv = num.PreviousHistoricalValue();
+            Assert.IsNotNull(phv);
+            Assert.AreEqual(6, phv.StartValue);
+
             num.SetEndValue(11);
             Assert.AreEqual(11, num.EndValue);
+            phv = num.PreviousHistoricalValue();
+            Assert.IsNotNull(phv);
+            Assert.AreEqual(10, phv.EndValue);
+
             var r0 = num + right;
             Assert.AreEqual(11, r0.StartValue);
             Assert.AreEqual(17, r0.EndValue);
@@ -76,6 +84,12 @@ namespace TestNumerics
             num.SetValues(6, 7);
             Assert.AreEqual(6, num.StartValue);
             Assert.AreEqual(7, num.EndValue);
+
+            phv = num.PreviousHistoricalValue();
+            Assert.IsNotNull(phv);
+            Assert.AreEqual(8, phv.StartValue);
+            Assert.AreEqual(11, phv.EndValue);
+
             var r1 = num + right;
             Assert.AreEqual(9, r1.StartValue);
             Assert.AreEqual(13, r1.EndValue);

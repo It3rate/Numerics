@@ -453,6 +453,8 @@ public class Focal :
 
     public static Focal Zero => new Focal(0, 0);
     public static Focal One => new Focal(0, 1);
+    public static Focal FullLimits => new Focal(long.MinValue, long.MaxValue);
+    public static Focal PositiveLimits => new Focal(0, long.MaxValue);
     public static Focal ZeroAnchoredFocal(long ticks) { return new Focal(0, ticks); }
 
     // for testing
