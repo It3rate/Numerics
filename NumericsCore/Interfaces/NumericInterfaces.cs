@@ -15,7 +15,7 @@ namespace NumericsCore.Interfaces
     {
         double StartValue { get; }
         double EndValue { get; }
-        double ValueAtT(double t);
+        double AsBasisTValue(double t);
         PRange GetRange();
     }
 

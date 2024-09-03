@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NumericsCore.Interfaces;
 using NumericsCore.Primitives;
+using NumericsCore.Structures;
 using NumericsCore.Utils;
 
 namespace Numerics.Primitives;
@@ -27,22 +28,115 @@ public class Number:
     //IMinMaxValue<Number>
 
 {
-    public Focal Focal { get; }
     public Domain Domain { get; }
-    public double StartValue => Domain.ValueAtT(this, 0);
-    public double EndValue => Domain.ValueAtT(this, 1);
-    public double ValueAtT(double t) => Domain.ValueAtT(this, t);
+    public Focal Focal { get; }
+    public double StartValue
+    {
+        get
+        {
+            if (StartLandmark != null)
+            {
+                EnsureLandmarks();
+            }
+            return -Domain.RawTickValue(Focal.StartTick);
+        }
+        set
+        {
+            // allow changes by optionally recording old values and timestamping. This allows history to be preserved for trend analysis, and rewind. Need not be perfect (forgetting allowed)
+            // maybe count accesses as well as changes if that helps understanding. Or access with an expected value to create defaults and understand differences.
+        }
+    }
+    public double EndValue
+    {
+        get
+        {
+            if (EndLandmark != null)
+            {
+                EnsureLandmarks();
+            }
+            return Domain.RawTickValue(Focal.EndTick);
+        }
+    }
+    // allow start and end landmarks to adjust the focals when reference changes.
+    private IValueRef? StartLandmark;
+    private IValueRef? EndLandmark;
 
     public Number(Domain domain, Focal focal)
     {
         Domain = domain;
         Focal = focal;
     }
+    public Number(Domain domain, IValueRef startLandmark, IValueRef endLandmark)
+    {
+        Domain = domain;
+        StartLandmark = startLandmark;
+        EndLandmark = endLandmark;
+        Focal = new Focal(0, 0);
+        EnsureLandmarks();
+    }
 
-    #region Conversions
+    #region Mutations
+    public bool SetValues(double startValue, double endValue)
+    {
+        var result = true;
+        if (StartLandmark != null || EndLandmark != null)
+        {
+            result = false; // only raw values controlled by this instance can be set, not references.
+        }
+        else
+        {
+            Focal.StartTick = Domain.TickValueInverted(startValue);
+            Focal.EndTick = Domain.TickValueAligned(endValue);
+        }
+        return result;
+    }
+    public bool SetStartValue(double startValue)
+    {
+        var result = true;
+        if (StartLandmark != null)
+        {
+            result = false;
+        }
+        else
+        {
+            Focal.StartTick = Domain.TickValueInverted(startValue);
+        }
+        return result;
+    }
+    public bool SetEndValue(double endValue)
+    {
+        var result = true;
+        if (EndLandmark != null)
+        {
+            result = false;
+        }
+        else
+        {
+            Focal.EndTick = Domain.TickValueAligned(endValue);
+        }
+        return result;
+    }
+
+    private void EnsureLandmarks()
+    {
+        if(StartLandmark != null && EndLandmark != null) // both must be set
+        {
+            if (StartLandmark.NeedsUpdate)
+            {
+                Focal.StartTick = Domain.TickValueInverted(StartLandmark.Value);
+                //StartLandmark.NeedsUpdate = false;
+            }
+            if (EndLandmark.NeedsUpdate)
+            {
+                Focal.EndTick = Domain.TickValueAligned(EndLandmark.Value);
+                //EndLandmark.NeedsUpdate = false;
+            }
+        }
+    }
+    public double AsBasisTValue(double t) => (EndValue - StartValue) * t + StartValue; // number is basis, so 0 is startValue, 1 is endValue.
     public PRange GetRange() => Domain.GetRange(this);
     #endregion
-
+    
     #region Truths
     public bool IsZero => Domain.IsZero(this);
     public bool IsOne => Domain.IsOne(this);

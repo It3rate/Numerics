@@ -152,13 +152,13 @@ public class Domain : IEquatable<Domain>
     public long TicksFromZeroDirected(long tick) => (tick - BasisFocal.StartTick) * Direction;
     public (long, long) RawTicksFromZero(Number num) => (TicksFromZero(num.StartTick), TicksFromZero(num.EndTick));
     public (long, long) SignedTicksFromZero(Number num) => (-TicksFromZeroDirected(num.StartTick), TicksFromZeroDirected(num.EndTick));
-    private long TickValueAligned(double value)
+    public long TickValueAligned(double value)
     {
         var result = (long)(BasisFocal.StartTick + (value * BasisFocal.Length));
         // todo: Clamp to limits, account for basis direction.
         return result;
     }
-    private long TickValueInverted(double value)
+    public long TickValueInverted(double value)
     {
         var result = (long)(BasisFocal.StartTick - (value * BasisFocal.Length));
         // todo: Clamp to limits, account for basis direction.
@@ -185,21 +185,25 @@ public class Domain : IEquatable<Domain>
         }
         return new PRange(start, end, num.Polarity);
     }
-    public double ValueAtT(Number num, double t)
+    public double RawTickValue(long tick) => TicksFromZeroDirected(tick) / (double)BasisFocal.AbsLength;
+
+        
+    public double AlignedValueAtT(Number num, double t)
     {
         double result;
         if(t == 0)
         {
-            result =  -TicksFromZeroDirected(num.StartTick) / (double)BasisFocal.AbsLength;
+            result = RawTickValue(num.StartTick);
         }
         else if (t == 1)
         {
-            result = TicksFromZeroDirected(num.EndTick) / (double)BasisFocal.AbsLength;
+            result = RawTickValue(num.EndTick);
         }
         else
         {
-            var range = GetRange(num);
-            result = (range.End - range.Start) * t + range.Start;
+            var start = RawTickValue(num.StartTick);
+            var end = RawTickValue(num.EndTick);
+            result = (end - start) * t + start;
         }
         return result;
     }

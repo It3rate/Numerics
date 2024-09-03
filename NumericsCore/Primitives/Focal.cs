@@ -45,18 +45,18 @@ public class Focal :
     public virtual long StartTick
     {
         get => _positions[0];
-        //set
-        //{
-        //    _positions[0] = value;
-        //}
+        set
+        {
+            _positions[0] = value;
+        }
     }
     public virtual long EndTick
     {
         get => _positions[_positions.Length - 1];
-        //set
-        //{
-        //     _positions[_positions.Length - 1] = value;
-        //}
+        set
+        {
+            _positions[_positions.Length - 1] = value;
+        }
     }
 
     public long NonZeroTickLength => Length == 0 ? 1 : Length;

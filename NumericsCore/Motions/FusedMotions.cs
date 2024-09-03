@@ -11,6 +11,6 @@ namespace NumericsCore.Composites
     /// </summary>
     public class FusedMotions
     {
-        
+        // each dimension gets a new domain? Like the same traits, but the domain is mallable to allow weighting, resolution and valence.
     }
 }
