@@ -7,7 +7,7 @@ using Numerics.Primitives;
 using NumericsCore.Primitives;
 using NumericsCore.Utils;
 
-namespace TestNumerics;
+namespace TestNumerics.Primitives;
 
 [TestClass]
 public class PolarityTests
@@ -17,9 +17,9 @@ public class PolarityTests
     private Focal _zeroBasis = null!;
     private Domain _fromZeroDomain = null!;
     private Domain _fromZeroDomainInvert = null!;
-    private Focal  _offsetBasis = null!;
+    private Focal _offsetBasis = null!;
     private Domain _offsetDomain = null!;
-    private Focal  _invertedBasis = null!;
+    private Focal _invertedBasis = null!;
     private Domain _invertedDomain = null!;
     private static double _delta = 0.001;
 
@@ -60,7 +60,7 @@ public class PolarityTests
         //Assert.AreEqual(Polarity.Unknown, number.Polarity);
         //Assert.IsFalse(number.HasPolarity);
 
-        var zeroDomain = new Domain(_trait, new Focal(10,10), _limits); // zero len basis
+        var zeroDomain = new Domain(_trait, new Focal(10, 10), _limits); // zero len basis
         number = zeroDomain.MapToDomain(number);
         Assert.AreEqual(Polarity.None, number.Polarity);
         var invZeroDomain = zeroDomain.Inverse;

@@ -7,7 +7,7 @@ using Numerics.Primitives;
 using NumericsCore.Primitives;
 using NumericsCore.Utils;
 
-namespace TestNumerics;
+namespace TestNumerics.Utils;
 
 [TestClass]
 public class PRangeConversionTests

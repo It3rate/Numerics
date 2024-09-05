@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Numerics.Primitives;
 using NumericsCore.Utils;
 
-namespace TestNumerics;
+namespace TestNumerics.Primitives;
 [TestClass]
 public class FocalTests
 {

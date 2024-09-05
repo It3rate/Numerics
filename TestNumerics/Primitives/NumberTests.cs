@@ -7,7 +7,7 @@ using Numerics.Primitives;
 using NumericsCore.Primitives;
 using NumericsCore.Utils;
 
-namespace TestNumerics;
+namespace TestNumerics.Primitives;
 
 [TestClass]
 public class NumberTests
@@ -145,7 +145,7 @@ public class NumberTests
         Assert.AreEqual(-0.11, result.StartValue, _delta);
         Assert.AreEqual(0.555, result.EndValue, _delta);
 
-       prResult = PRange.FromNumber(number1) * PRange.FromNumber(number2);// {.11, .56}
+        prResult = PRange.FromNumber(number1) * PRange.FromNumber(number2);// {.11, .56}
         Assert.AreEqual(prResult.Start, result.StartValue, .01);
         Assert.AreEqual(prResult.End, result.EndValue, .01);
     }
@@ -193,7 +193,7 @@ public class NumberTests
 
         var pr1 = PRange.FromNumber(number1);
         var pr2 = PRange.FromNumber(number2);
-        var prResult = pr1 / pr2; 
+        var prResult = pr1 / pr2;
 
         Assert.AreEqual(0.7683, result.StartValue, _delta);
         Assert.AreEqual(7.845, result.EndValue, _delta);

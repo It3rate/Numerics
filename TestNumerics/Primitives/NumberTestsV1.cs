@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Numerics.Primitives;
 using NumericsCore.Primitives;
 
-namespace TestNumerics;
+namespace TestNumerics.Primitives;
 
 [TestClass]
 public class NumbersTestsV1

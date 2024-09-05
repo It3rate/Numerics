@@ -1,7 +1,7 @@
 //using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Numerics.Primitives;
 
-namespace NumericsTest
+namespace TestNumerics.Primitives
 {
     [TestClass]
     public class DomainTests
