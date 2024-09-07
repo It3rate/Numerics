@@ -136,7 +136,10 @@ public class Number:
         }
         return result;
     }
-
+    //public void IncrementStartTick() => Focal.StartTick += BasisDirection;
+    //public void DecrementStartTick() => Focal.StartTick -= BasisDirection;
+    //public void IncrementEndTick() => Focal.EndTick += BasisDirection;
+    //public void DecrementEndTick() => Focal.EndTick -= BasisDirection;
     private void EnsureLandmarks()
     {
         if(StartLandmark != null && EndLandmark != null) // both must be set
@@ -193,6 +196,8 @@ public class Number:
     static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => left + right;
 
     public static Number operator +(Number value) => new(value.Domain, value.Focal);
+    public Number Increment() => new(Domain, Focal + Domain.BasisNumber.Focal);
+    public Number IncrementEndTick() => new(Domain, new Focal(StartTick, EndTick + BasisDirection));
     public static Number operator ++(Number value) => new(value.Domain, value.Focal + value.Domain.BasisNumber.Focal);
     public Number AdditiveIdentity => Domain.AdditiveIdentity;
 
@@ -209,6 +214,8 @@ public class Number:
     }
     static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => left - right;
 
+    public Number Decrement() => new(Domain, Focal - Domain.BasisNumber.Focal);
+    public Number DecrementEndTick() => new(Domain, new Focal(StartTick, EndTick - BasisDirection));
     public static Number operator --(Number value) => new(value.Domain, value.Focal - value.Domain.BasisNumber.Focal);
     public static Number operator -(Number value) => new(value.Domain, -value.Focal);
     #endregion
