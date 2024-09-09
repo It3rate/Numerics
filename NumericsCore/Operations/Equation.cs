@@ -10,15 +10,26 @@ using NumericsCore.Interfaces;
 
 namespace NumericsCore.Structures;
 
+public interface IEquationElement
+{
+    TileMode TileMode { get; }
+    long Duration { get; }
+    Number Calculate(Number input);
+    Number CalculateAtT(Number input, double t);
+}
 /// <summary>
 /// A series of operations that transform an input.
 /// </summary>
-public class Equation
+public class Equation : IEquationElement
 {
+    public TileMode TileMode { get; } = TileMode.Invert;
+    public long Duration { get; } = 1; // can either be based on length, or hard coded. In either case is multiplied by some basis (speed of time, allowing slowing or reversing effect)
+    public Number? CurrentResult { get; private set; }
     // akin to samplers, can be fixed data, looked up, random, or computed
     List<Number> Numbers { get; }
-    List<EquationStep> EquationSteps { get; } = new List<EquationStep> { };
-    private int CurrentIndex { get; } = 0;
+    List<IEquationElement> EquationChain { get; } = new List<IEquationElement> { }; // equations can be part of equations
+    public int CurrentIndex { get; private set; } = 0; // current index will be a number. Eg if equation is *3, then -7i+9 is the value of that over the duration of 7->9.
+    public bool IsComplete => CurrentIndex >= EquationChain.Count;
 
     public Equation()
     {
@@ -36,26 +47,46 @@ public class Equation
     }
     public int AddEquationSteps(params EquationStep[] equationSteps)
     {
-        EquationSteps.AddRange(equationSteps);
-        return EquationSteps.Count - 1;
+        EquationChain.AddRange(equationSteps);
+        return EquationChain.Count - 1;
+    }
+    public void SetInput(Number input)
+    {
+        CurrentResult = input;
+        CurrentIndex = 0;
+    }
+    public Number Next()
+    {
+        if(!IsComplete) // todo: check and implement duration, bounce mode etc.
+        {
+            CurrentResult = EquationChain[CurrentIndex].Calculate(CurrentResult);
+            CurrentIndex++;
+        }
+        return CurrentResult!;
     }
     public Number Calculate(Number input)
     {
-        var result = input;
-        foreach (var step in EquationSteps)
+        SetInput(input);
+        while(!IsComplete)
         {
-            result = step.Calculate(result);
+            Next();
         }
-        return result;
+        return CurrentResult!;
+    }
+    public Number CalculateAtT(Number input, double t)
+    {
+        throw new NotImplementedException();
     }
 }
-public class EquationStep
+
+public class EquationStep : IEquationElement
 {
+    public TileMode TileMode { get; } = TileMode.Invert;
+    public long Duration { get; } = 1;
     public int RightIndex { get; }
     public OperationBase Operation { get; }
-    public long Duration { get; }
     private List<Number> Numbers { get; }
-    private TileMode TileMode { get; } = TileMode.Invert;
+
 
     public EquationStep(List<Number> numbers, int rightIndex, OperationBase operation, long duration)
     {
@@ -72,7 +103,7 @@ public class EquationStep
     }
     public Number Calculate(Number input)
     {
-        Number result;
+        var result = input;
         if(Operation is BinaryOperationsBase binary)
         {
             result = binary.Calculate(input, Numbers[RightIndex]);
@@ -82,5 +113,9 @@ public class EquationStep
             result = Operation.Calculate(input);
         }
         return result;
+    }
+    public Number CalculateAtT(Number input, double t)
+    {
+        throw new NotImplementedException();
     }
 }
