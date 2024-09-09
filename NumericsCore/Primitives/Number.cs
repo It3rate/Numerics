@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using NumericsCore.Interfaces;
 using NumericsCore.Primitives;
 using NumericsCore.Sequencer;
-using NumericsCore.Structures;
+using NumericsCore.Expressions;
 using NumericsCore.Utils;
 
 namespace Numerics.Primitives;

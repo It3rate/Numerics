@@ -7,7 +7,7 @@ using Numerics.Primitives;
 using NumericsCore.Primitives;
 using NumericsCore.Utils;
 
-namespace NumericsCore.Structures
+namespace NumericsCore.Expressions
 {
 
     public interface IValueRef

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Numerics.Primitives;
 
-namespace NumericsCore.Structures
+namespace NumericsCore.Expressions
 {
     #region Unary
     public abstract class OperationBase

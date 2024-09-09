@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Numerics.Primitives;
-using NumericsCore.Structures;
+using NumericsCore.Expressions;
 
 namespace NumericsCore.Composites
 {
@@ -34,6 +34,6 @@ namespace NumericsCore.Composites
         // can create square wave. Without #3 it's sawtooth. This pattern naturally ends up at next start point.
 
         public List<Domain> Domains { get; } = new List<Domain>();
-        public List<Equation> Equations {  get; } = new List<Equation>();
+        public List<Expression> Equations {  get; } = new List<Expression>();
     }
 }

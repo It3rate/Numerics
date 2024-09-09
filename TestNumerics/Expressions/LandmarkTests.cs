@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Numerics.Primitives;
-using NumericsCore.Structures;
+using NumericsCore.Expressions;
 
 namespace TestNumerics.Operations;
 
