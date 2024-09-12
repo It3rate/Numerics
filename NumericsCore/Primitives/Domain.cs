@@ -113,6 +113,8 @@ public class Domain : IEquatable<Domain>
         var (startTicks, endTicks) = RawTicksFromZero(num);
         return CreateNumberRaw(-endTicks, -startTicks);
     }
+    public Number Invert(Number num) => new(num.Domain.Inverse, num.Focal);
+    public Number InvertNegate(Number num) => new(num.Domain.Inverse, num.Focal.Negate());
     public Number MirrorStart(Number num) // inverted Conjugate
     {
         var (startTicks, endTicks) = RawTicksFromZero(num);

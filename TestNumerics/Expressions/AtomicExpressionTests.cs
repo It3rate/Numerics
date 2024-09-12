@@ -19,7 +19,7 @@ public class AtomicExpressionTests
         private Domain _domain = null!;
         private Number _num2_8 = null!;
         private Number _num3_6 = null!;
-        private List<Number> _numList = null!;
+        private Number[] _numList = null!;
         private static double _delta = 0.001;
 
         [TestInitialize]
@@ -31,7 +31,7 @@ public class AtomicExpressionTests
             _domain = new Domain(_trait, _basisFocal, _limits);
             _num2_8 = new Number(_domain, new(-200, 800)); //   (2i + 8)
             _num3_6 = new Number(_domain, new(-300, 600)); //   (3i + 6)
-            _numList = new List<Number> { _num2_8, _num3_6 };
+            _numList = new Number[] { _num2_8, _num3_6 };
         }
 
         [TestMethod]
@@ -43,7 +43,7 @@ public class AtomicExpressionTests
             Assert.AreEqual(0, result.EndValue);
 
 
-            step = new AtomicExpression(new FlipPolarityOperation(), 2);
+            step = new AtomicExpression(new InvertOperation(), 2);
             result = step.Calculate(_num2_8);
             Assert.AreEqual(-2, result.StartValue);
             Assert.AreEqual(-8, result.EndValue);
@@ -72,22 +72,28 @@ public class AtomicExpressionTests
         [TestMethod]
         public void BinaryStepTests()
         {
-            var step = new AtomicExpression(_numList, 0, new AddOperation(), 2);
+            var expr = new Expression(_numList);
+
+            var step = new AtomicExpression(0, new AddOperation(), 2);
+            expr.AddAtomicExpression(step);
             var result = step.Calculate(_num3_6);
             Assert.AreEqual(5, result.StartValue);
             Assert.AreEqual(14, result.EndValue);
 
-            step = new AtomicExpression(_numList, 0, new SubtractOperation(), 2);
+            step = new AtomicExpression(0, new SubtractOperation(), 2);
+            expr.AddAtomicExpression(step);
             result = step.Calculate(_num3_6);
             Assert.AreEqual(1, result.StartValue);
             Assert.AreEqual(-2, result.EndValue);
 
-            step = new AtomicExpression(_numList, 0, new MultiplyOperation(), 2);
+            step = new AtomicExpression( 0, new MultiplyOperation(), 2);
+            expr.AddAtomicExpression(step);
             result = step.Calculate(_num3_6);
             Assert.AreEqual(36, result.StartValue);
             Assert.AreEqual(42, result.EndValue);
 
-            step = new AtomicExpression(_numList, 0, new DivideOperation(), 2);
+            step = new AtomicExpression(0, new DivideOperation(), 2);
+            expr.AddAtomicExpression(step);
             result = step.Calculate(_num3_6);
             Assert.AreEqual(0.17, result.StartValue, _delta);
             Assert.AreEqual(0.79, result.EndValue, _delta);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -85,60 +86,70 @@ public class Focal :
 
 
     #region Add
+
+    public static Func<Focal, Focal, Focal> ADD = (left, right) => { left.StartTick += right.StartTick; left.EndTick += right.EndTick; return left; };
+    public Focal Add(Focal right) => ADD(this, right);
     public static Focal Add(Focal left, Focal right) => left + right;
-    public static Focal operator +(Focal left, Focal right) => new(left.StartTick + right.StartTick, left.EndTick + right.EndTick);
+    public static Focal operator +(Focal left, Focal right) => ADD(left.Clone(), right);
     static Focal IAdditionOperators<Focal, Focal, Focal>.operator +(Focal left, Focal right) => left + right;
 
     public static Focal AdditiveIdentity => new(0, 0);
 
     #endregion
     #region Subtract
+    public static Func<Focal, Focal, Focal> SUBTRACT = (left, right) => { left.StartTick -= right.StartTick; left.EndTick -= right.EndTick; return left; };
+    public Focal Subtract(Focal right) => SUBTRACT(this, right);
     public static Focal Subtract(Focal left, Focal right) => left - right;
-    public static Focal operator -(Focal left, Focal right) => new(left.StartTick - right.StartTick, left.EndTick - right.EndTick);
+    public static Focal operator -(Focal left, Focal right) => SUBTRACT(left.Clone(), right);
     static Focal ISubtractionOperators<Focal, Focal, Focal>.operator -(Focal left, Focal right) => left - right;
     #endregion
     #region Multiply
-    public static Focal Multiply(Focal left, Focal right)
+    public static Func<Focal, Focal, Focal> MULTIPLY = (left, right) =>
     {
-        return left * right;
-    }
-    public static Focal operator *(Focal left, Focal right) => new(
-        left.StartTick * right.EndTick + left.EndTick * right.StartTick,
-        left.EndTick * right.EndTick - left.StartTick * right.StartTick);
+        var start = left.StartTick * right.EndTick + left.EndTick * right.StartTick;
+        var end = left.EndTick * right.EndTick - left.StartTick * right.StartTick;
+        left.StartTick = start;
+        left.EndTick = end;
+        return left; 
+    };
+    public Focal Multiply(Focal right) => MULTIPLY(this, right);
+    public static Focal Multiply(Focal left, Focal right) => left * right;
+
+    public static Focal operator *(Focal left, Focal right) => MULTIPLY(left.Clone(), right);
 
     static Focal IMultiplyOperators<Focal, Focal, Focal>.operator *(Focal left, Focal right) => left * right;
     public static Focal MultiplicativeIdentity => new(0, 1);
 
     #endregion
     #region Divide
-    public static Focal Divide(Focal left, Focal right)
+    public static Func<Focal, Focal, Focal> DIVIDE = (left, right) =>
     {
-        return left / right;
-    }
-
-    public static Focal operator /(Focal left, Focal right)
-    {
-        Focal result;
         double leftEnd = left.EndTick;
         double leftStart = left.StartTick;
         double rightEnd = right.EndTick;
         double rightStart = right.StartTick;
+        long start, end;
         if (Math.Abs(rightStart) < Math.Abs(rightEnd))
         {
             double num = rightStart / rightEnd;
-            result = new Focal(
-                (long)((leftStart - leftEnd * num) / (rightEnd + rightStart * num)),
-                (long)((leftEnd + leftStart * num) / (rightEnd + rightStart * num)));
+            start = (long)((leftStart - leftEnd * num) / (rightEnd + rightStart * num));
+            end = (long)((leftEnd + leftStart * num) / (rightEnd + rightStart * num));
         }
         else
         {
             double num1 = rightEnd / rightStart;
-            result = new Focal(
-                (long)((-leftEnd + leftStart * num1) / (rightStart + rightEnd * num1)),
-                (long)((leftStart + leftEnd * num1) / (rightStart + rightEnd * num1)));
+            start = (long)((-leftEnd + leftStart * num1) / (rightStart + rightEnd * num1));
+            end = (long)((leftStart + leftEnd * num1) / (rightStart + rightEnd * num1));
         }
-        return result;
-    }
+
+        left.StartTick = start;
+        left.EndTick = end;
+        return left;
+    };
+    public Focal Divide(Focal right) => DIVIDE(this, right);
+    public static Focal Divide(Focal left, Focal right) => left / right;
+
+    public static Focal operator /(Focal left, Focal right) => DIVIDE(left.Clone(), right);
     static Focal IDivisionOperators<Focal, Focal, Focal>.operator /(Focal left, Focal right) => left / right;
 
     #endregion

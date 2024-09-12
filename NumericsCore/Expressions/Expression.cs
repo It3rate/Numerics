@@ -19,33 +19,46 @@ public class Expression : IExpression
     public long Duration { get; } = 1; // can either be based on length, or hard coded. In either case is multiplied by some basis (speed of time, allowing slowing or reversing effect)
     public Number? CurrentResult { get; private set; }
     // akin to samplers, can be fixed data, looked up, random, or computed
-    List<Number> Numbers { get; }
-    List<IExpression> ExpressionChain { get; } = new List<IExpression> { }; // equations can be part of equations
+    public List<Number> Results { get; } = new List<Number>();
+    private List<IExpression> ExpressionChain { get; } = new List<IExpression> { }; // equations can be part of equations
     public int CurrentIndex { get; private set; } = 0; // current index will be a number. Eg if equation is *3, then -7i+9 is the value of that over the duration of 7->9.
     public bool IsComplete => TileMode != TileMode.Ignore && CurrentIndex >= ExpressionChain.Count;
+    public bool PreserveResults { get; private set; } = false;
 
     public Expression()
     {
-        Numbers = new List<Number>();
     }
-    public Expression(List<Number> numbers)
+    public Expression(params Number[] numbers)
     {
-        Numbers = numbers;
+        AddNumbers(numbers);
     }
-    public Expression(List<Number> numbers, long duration, TileMode tileMode) : this(numbers)
+    public Expression(IEnumerable<Number> numbers, long duration, TileMode tileMode, bool preserveResults) : this(numbers.ToArray())
     {
         Duration = duration;
         TileMode = tileMode;
+        PreserveResults = preserveResults;
     }
 
+    public int AddNumbers(params Number[] numbers)
+    {
+        foreach (var number in numbers)
+        {
+            Results.Add(number);
+        }
+        return Results.Count - 1;
+    }
     public int AddNumber(Number number)
     {
-        Numbers.Add(number);
-        return Numbers.Count - 1;
+        Results.Add(number);
+        return Results.Count - 1;
     }
-    public int AddEquationSteps(params AtomicExpression[] equationSteps)
+    public int AddAtomicExpression(params AtomicExpression[] atomics)
     {
-        ExpressionChain.AddRange(equationSteps);
+        foreach (var atomic in atomics) 
+        {
+            atomic.Parent = this;
+            ExpressionChain.Add(atomic);
+        }
         return ExpressionChain.Count - 1;
     }
     public void SetInput(Number input)
@@ -60,6 +73,11 @@ public class Expression : IExpression
             var index = CurrentIndex >= ExpressionChain.Count ? ExpressionChain.Count - 1 : CurrentIndex;
             CurrentResult = ExpressionChain[index].Calculate(CurrentResult);
             CurrentIndex++;
+
+            if (PreserveResults && Results != null)
+            {
+                Results.Add(CurrentResult);
+            }
         }
         return CurrentResult;
     }
@@ -76,5 +94,24 @@ public class Expression : IExpression
     {
         throw new NotImplementedException();
     }
+}
+
+
+
+
+
+
+public interface IScheduleable { }
+// these go in the sequencer. It holds a list of expressions with durations, which can split, choose, and merge. The primitive is add/remove expressions, not expressions themselves.
+public class SplitExpression : IScheduleable
+{
+    public TileMode TileMode => TileMode.Ignore;
+    public long Duration => 0;
+    // add, remove, merge, split etc These form the letter shape type paths.
+}
+public class MergeExpression : IScheduleable
+{
+    public TileMode TileMode => TileMode.Ignore;
+    public long Duration => 0;
 }
 

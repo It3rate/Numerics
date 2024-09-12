@@ -181,7 +181,11 @@ public class Number:
 
     public long TickLength => Focal.Length;
     public long AbsTickLength => Focal.AbsLength;
+    public Number Length => new Number(Domain, new(0, Focal.Length));
+    public Number StartPortion => new Number(Domain, new(0, Focal.StartTick));
+    public Number EndPortion => new Number(Domain, new(0, Focal.EndTick));
     #endregion
+    
     #region Add
     public static Number operator +(Number left, Number rightIn)
     {
@@ -308,8 +312,8 @@ public class Number:
     public bool HasPolarity => Polarity.HasPolarity();
     public virtual bool IsPolarityEqual(Number num) => Polarity == num.Polarity;
     public Number Negate() => Domain.Negate(this);
-    public Number InvertPolarity() => new (Domain.Inverse, Focal);
-    public Number InvertPolarityAndFocal()=> new(Domain.Inverse, Focal.Negate());
+    public Number Invert() => Domain.Invert(this);
+    public Number InvertNegate()=> Domain.InvertNegate(this);
 
     #endregion
     #region Transforms

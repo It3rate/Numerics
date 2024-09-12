@@ -9,7 +9,6 @@ using NumericsCore.Utils;
 
 namespace NumericsCore.Expressions
 {
-
     public interface IValueRef
     {
         double Value { get; }

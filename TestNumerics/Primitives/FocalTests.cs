@@ -30,6 +30,15 @@ public class FocalTests
         Assert.AreEqual(10, tickLength1);
         Assert.AreEqual(-10, tickLength2);
     }
+    [TestMethod]
+    public void PlusEqualTest()
+    {
+        var focal1 = new Focal(10, 20);
+        var focal2 = new Focal(20, 10);
+        focal1 += focal2;
+        Assert.AreEqual(30, focal1.StartTick);
+        Assert.AreEqual(30, focal1.EndTick);
+    }
 
     [TestMethod]
     public void NonZeroTickLength_ZeroTickLength_ReturnsOne()

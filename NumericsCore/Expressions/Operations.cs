@@ -22,10 +22,20 @@ namespace NumericsCore.Expressions
         public override Number Calculate(Number input) => input.Domain.Zero;
     }
 
-    public class FlipPolarityOperation : OperationBase
+    public class InvertOperation : OperationBase
     {
-        public FlipPolarityOperation() { }
-        public override Number Calculate(Number input) => input.InvertPolarity();
+        public InvertOperation() { }
+        public override Number Calculate(Number input) => input.Invert();
+    }
+    public class InvertNegateOperation : OperationBase
+    {
+        public InvertNegateOperation() { }
+        public override Number Calculate(Number input) => input.InvertNegate();
+    }
+    public class LengthOperation : OperationBase
+    {
+        public LengthOperation() { }
+        public override Number Calculate(Number input) => input.Length;
     }
     public class IncrementOperation : OperationBase
     {
@@ -49,61 +59,94 @@ namespace NumericsCore.Expressions
     }
     #endregion
 
+
+
+
     #region Binary
     public abstract class BinaryOperationsBase : OperationBase
     {
-        public Number? RightSide { get; }
+        protected Number? _rightSide;
         public BinaryOperationsBase()
         {
         }
         public BinaryOperationsBase(Number rightSide)
         {
-            RightSide = rightSide;
+            _rightSide = rightSide;
+        }
+        public void SetRightSide(Number rightSide)
+        {
+            _rightSide = rightSide;
         }
 
-        public override Number Calculate(Number input) => RightSide == null ? input : Calculate(input, RightSide);
-        public abstract Number Calculate(Number input, Number rightSide);
+        public override Number Calculate(Number input) => _rightSide == null ? input : Calculate(input, _rightSide);
+        protected abstract Number Calculate(Number input, Number rightSide);
     }
 
     public class SetOperation : BinaryOperationsBase
     {
         public SetOperation() { }
         public SetOperation(Number rightSide) : base(rightSide) { }
-        public override Number Calculate(Number input, Number rightSide) => rightSide; // set fixed value regardless of input
+        protected override Number Calculate(Number input, Number rightSide) => rightSide; // set fixed value regardless of input
     }
     public class AddOperation : BinaryOperationsBase
     {
         public AddOperation() { }
         public AddOperation(Number rightSide) : base(rightSide) { }
-        public override Number Calculate(Number input, Number rightSide) => input + rightSide;
+        protected override Number Calculate(Number input, Number rightSide) => input + rightSide;
     }
 
     public class SubtractOperation : BinaryOperationsBase
     {
         public SubtractOperation() { }
         public SubtractOperation(Number rightSide) : base(rightSide) { }
-        public override Number Calculate(Number input, Number rightSide) => input - rightSide;
+        protected override Number Calculate(Number input, Number rightSide) => input - rightSide;
     }
 
     public class MultiplyOperation : BinaryOperationsBase
     {
         public MultiplyOperation() { }
         public MultiplyOperation(Number rightSide) : base(rightSide) { }
-        public override Number Calculate(Number input, Number rightSide) => input * rightSide;
+        protected override Number Calculate(Number input, Number rightSide) => input * rightSide;
     }
 
     public class DivideOperation : BinaryOperationsBase
     {
         public DivideOperation() { }
         public DivideOperation(Number rightSide) : base(rightSide) { }
-        public override Number Calculate(Number input, Number rightSide) => input / rightSide;
+        protected override Number Calculate(Number input, Number rightSide) => input / rightSide;
     }
 
     public class PowOperation : BinaryOperationsBase
     {
         public PowOperation() { }
         public PowOperation(Number rightSide) : base(rightSide) { }
-        public override Number Calculate(Number input, Number rightSide) => input.Pow(rightSide);
+        protected override Number Calculate(Number input, Number rightSide) => input.Pow(rightSide);
+    }
+    public class CompareOperation : BinaryOperationsBase
+    {
+        public CompareOperation() { }
+        public CompareOperation(Number rightSide) : base(rightSide) { }
+        protected override Number Calculate(Number input, Number rightSide) => input;//todo: comparisons
+    }
+    #endregion
+
+    #region Ternary
+
+    public class TernaryOperation : OperationBase
+    {
+        private Number TrueSide { get; }
+        private Number FalseSide { get; }
+        public TernaryOperation(OperationBase operation) { }
+        public TernaryOperation(OperationBase operation, Number trueSide, Number falseSide)
+        { 
+            TrueSide = trueSide;
+            FalseSide = falseSide;
+        }
+
+        public override Number Calculate(Number input)
+        {
+            throw new NotImplementedException();
+        }
     }
     #endregion
 }
