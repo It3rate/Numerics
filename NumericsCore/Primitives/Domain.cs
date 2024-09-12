@@ -54,7 +54,7 @@ public class Domain : IEquatable<Domain>
         {
             if ((_inverse == null))
             {
-                _inverse = new Domain(Trait, BasisFocal.FlipAroundFirst(), LimitsFocal.Invert());
+                _inverse = new Domain(Trait, BasisFocal.FlipAroundFirstClone(), LimitsFocal.InvertClone());
                 _inverse._inverse = this;
             }
             return _inverse;        
@@ -114,7 +114,7 @@ public class Domain : IEquatable<Domain>
         return CreateNumberRaw(-endTicks, -startTicks);
     }
     public Number Invert(Number num) => new(num.Domain.Inverse, num.Focal);
-    public Number InvertNegate(Number num) => new(num.Domain.Inverse, num.Focal.Negate());
+    public Number InvertNegate(Number num) => new(num.Domain.Inverse, num.Focal.NegateClone());
     public Number MirrorStart(Number num) // inverted Conjugate
     {
         var (startTicks, endTicks) = RawTicksFromZero(num);
@@ -145,9 +145,9 @@ public class Domain : IEquatable<Domain>
     public Number MultiplicativeIdentity => new Number(this, BasisFocal);
     public Number Zero => new(this, new Focal(BasisFocal.StartTick, BasisFocal.StartTick));
     public Number One => new(this, BasisFocal.Clone());
-    public Number MinusOne => new(this, BasisFocal.FlipAroundFirst());
-    public Number One_i => new(this, BasisFocal.FlipAroundFirst().Invert());
-    public Number MinusOne_i => new(this, BasisFocal.Invert());
+    public Number MinusOne => new(this, BasisFocal.FlipAroundFirstClone());
+    public Number One_i => new(this, BasisFocal.FlipAroundFirstClone().InvertClone());
+    public Number MinusOne_i => new(this, BasisFocal.InvertClone());
     #endregion
     #region Conversions
     public long TicksFromZero(long tick) => tick - BasisFocal.StartTick;
