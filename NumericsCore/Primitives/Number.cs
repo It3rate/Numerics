@@ -72,7 +72,6 @@ public class Number:
         EnsureLandmarks();
     }
 
-
     #region Mutations
     private long _curMS => Runner.Instance.CurrentMS;
     private List<ValueAtTime> _history = new System.Collections.Generic.List<ValueAtTime>();
@@ -159,7 +158,6 @@ public class Number:
     public double AsBasisTValue(double t) => (EndValue - StartValue) * t + StartValue; // number is basis, so 0 is startValue, 1 is endValue.
     public PRange GetRange() => Domain.GetRange(this);
     #endregion
-    
     #region Truths
     public bool IsZero => Domain.IsZero(this);
     public bool IsOne => Domain.IsOne(this);
@@ -185,48 +183,30 @@ public class Number:
     public Number StartPortion => new Number(Domain, new(0, Focal.StartTick));
     public Number EndPortion => new Number(Domain, new(0, Focal.EndTick));
     #endregion
-    
-    #region Add
-    public static Number operator +(Number left, Number rightIn)
+
+    #region Funcs
+
+    public static Func<Number, Number, Number> ADD = (left, rightIn) =>
     {
         var right = left.Domain.MapToDomain(rightIn);
         var (leftStart, leftEnd) = left.Domain.RawTicksFromZero(left);
-        var (rightStart, rightEnd) = left.Domain.RawTicksFromZero(rightIn);
-        return left.Domain.CreateNumberRaw(leftStart + rightStart, leftEnd + rightEnd);
-
-    }
-    public Number Add(Number right) => this + right;
-    public static Number Add(Number left, Number right) => left + right;
-    static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => left + right;
-
-    public static Number operator +(Number value) => new(value.Domain, value.Focal);
-    public Number Increment() => new(Domain, Focal + Domain.BasisNumber.Focal);
-    public Number IncrementEndTick() => new(Domain, new Focal(StartTick, EndTick + BasisDirection));
-    public static Number operator ++(Number value) => new(value.Domain, value.Focal + value.Domain.BasisNumber.Focal);
-    public Number AdditiveIdentity => Domain.AdditiveIdentity;
-
-    #endregion
-    #region Subtract
-    public Number Subtract(Number right) => this - right;
-    public static Number Subtract(Number left, Number right) => left - right;
-    public static Number operator -(Number left, Number rightIn)
+        var (rightStart, rightEnd) = left.Domain.RawTicksFromZero(right);
+        var bf = left.Domain.BasisFocal;
+        left.Focal.StartTick = bf.StartTick + (leftStart + rightStart);
+        left.Focal.EndTick = bf.StartTick + (leftEnd + rightEnd);
+        return left;
+    };
+    public static Func<Number, Number, Number> SUBTRACT = (left, rightIn) =>
     {
         var right = left.Domain.MapToDomain(rightIn);
         var (leftStart, leftEnd) = left.Domain.RawTicksFromZero(left);
-        var (rightStart, rightEnd) = left.Domain.RawTicksFromZero(rightIn);
-        return left.Domain.CreateNumberRaw(leftStart - rightStart, leftEnd - rightEnd);
-    }
-    static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => left - right;
-
-    public Number Decrement() => new(Domain, Focal - Domain.BasisNumber.Focal);
-    public Number DecrementEndTick() => new(Domain, new Focal(StartTick, EndTick - BasisDirection));
-    public static Number operator --(Number value) => new(value.Domain, value.Focal - value.Domain.BasisNumber.Focal);
-    public static Number operator -(Number value) => new(value.Domain, -value.Focal);
-    #endregion
-    #region Multiply
-    public Number Multiply(Number right) => this * right;
-    public static Number Multiply(Number left, Number right) =>  left * right;
-    public static Number operator *(Number left, Number rightIn)
+        var (rightStart, rightEnd) = left.Domain.RawTicksFromZero(right);
+        var bf = left.Domain.BasisFocal;
+        left.Focal.StartTick = bf.StartTick + (leftStart - rightStart);
+        left.Focal.EndTick = bf.StartTick + (leftEnd - rightEnd);
+        return left;
+    };
+    public static Func<Number, Number, Number> MULTIPLY = (left, rightIn) =>
     {
         var right = left.Domain.MapToDomain(rightIn);
         var (leftStart, leftEnd) = left.Domain.SignedTicksFromZero(left);
@@ -234,18 +214,12 @@ public class Number:
         var iVal = leftStart * rightEnd + leftEnd * rightStart;
         var rVal = leftEnd * rightEnd - leftStart * rightStart;
         var len = left.Domain.AbsBasisLength;
-        return left.Domain.CreateNumberSigned(iVal / len, rVal / len);
-    }
-
-
-    static Number IMultiplyOperators<Number, Number, Number>.operator *(Number left, Number right) => left * right;
-    public Number MultiplicativeIdentity => Domain.MultiplicativeIdentity;
-
-    #endregion
-    #region Divide
-    public Number Divide(Number right) => this / right;
-    public static Number Divide(Number left, Number right) => left / right;
-    public static Number operator /(Number left, Number rightIn)
+        var bf = left.Domain.BasisFocal;
+        left.Focal.StartTick = bf.StartTick - (iVal / len) * bf.Direction;
+        left.Focal.EndTick = bf.StartTick + (rVal / len) * bf.Direction;
+        return left;
+    };
+    public static Func<Number, Number, Number> DIVIDE = (left, rightIn) =>
     {
         var right = left.Domain.MapToDomain(rightIn);
         var (leftStart, leftEnd) = left.Domain.SignedTicksFromZero(left);
@@ -266,12 +240,12 @@ public class Number:
             iVal = (long)((-leftEnd + leftStart * num1) / (rightStart + rightEnd * num1) * absLen);
             rVal = (long)((leftStart + leftEnd * num1) / (rightStart + rightEnd * num1) * absLen);
         }
-        return left.Domain.CreateNumberSigned(iVal, rVal);
-    }
-    #endregion
-    #region Pow
-    public Number Pow(Number power) => this ^ power;
-    public static Number operator ^(Number value, Number power)
+        var bf = left.Domain.BasisFocal;
+        left.Focal.StartTick = bf.StartTick - iVal * bf.Direction;
+        left.Focal.EndTick = bf.StartTick + rVal * bf.Direction;
+        return left;
+    };
+    public static Func<Number, Number, Number> POW => (Number value, Number power) =>
     {
         if (power.IsZero)
         {
@@ -287,8 +261,9 @@ public class Number:
         var p = power.GetRange();
         var presult = PRange.Pow(v, p);
         var result = presult.ToNumber(value.Domain);
-        return result;
-
+        value.Focal.StartTick = result.StartTick;
+        value.Focal.EndTick = result.EndTick;
+        return value;
         //double valueReal = value.m_real;
         //double valueImaginary = value.m_imaginary;
         //double powerReal = power.m_real;
@@ -301,9 +276,70 @@ public class Number:
         //double t = Math.Pow(rho, powerReal) * Math.Pow(Math.E, -powerImaginary * theta);
 
         //return new Number(t * Math.Cos(newRho), t * Math.Sin(newRho));
-    }
+    };
 
-    public static Number Pow(Number value, Number power)  => value ^ power;
+    public static Func<Number, Number> PLUS_PLUS = (left) =>
+    {
+        left.Focal.Add(left.Domain.BasisNumber.Focal);
+        return left;
+    };
+
+    public static Func<Number, Number> MINUS_MINUS = (left) =>
+    {
+        left.Focal.Subtract(left.Domain.BasisNumber.Focal);
+        return left;
+    };
+    public static Func<Number, Number> PLUS = (left) => { return left; };
+    public static Func<Number, Number> MINUS = (left) => { left.Focal.Negate(); return left; };
+    //public static Func<Number, Number> INVERT = (left) => { var temp = left.StartTick; left.StartTick = left.EndTick; left.EndTick = temp; return left; };
+    #endregion
+
+    #region Add
+    public Number Add(Number right) => ADD(this, right);
+    public static Number operator +(Number left, Number right) => ADD(left.Clone(), right);
+    public static Number Add(Number left, Number right) => ADD(left.Clone(), right);
+    static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => ADD(left.Clone(), right);
+
+    public Number Increment() => PLUS_PLUS(this);
+    public Number IncrementEndTick() { Focal.Add(0, BasisDirection); return this; }
+    public Number Plus() => PLUS(this);
+    public static Number operator +(Number value) => PLUS(value);
+    public Number PlusPlus() => PLUS_PLUS(this);
+    public static Number operator ++(Number value) => PLUS_PLUS(value);
+    public Number AdditiveIdentity => Domain.AdditiveIdentity;
+
+    #endregion
+    #region Subtract
+    public Number Subtract(Number right) => SUBTRACT(this, right);
+    public static Number operator -(Number left, Number right) => SUBTRACT(left.Clone(), right);
+    public static Number Subtract(Number left, Number right) => SUBTRACT(left.Clone(), right);
+    static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => SUBTRACT(left.Clone(), right);
+
+    public Number Decrement() => new(Domain, Focal - Domain.BasisNumber.Focal);
+    public Number DecrementEndTick() => new(Domain, new Focal(StartTick, EndTick - BasisDirection));
+
+    public Number Minus() => MINUS(this);
+    public static Number operator -(Number value) => MINUS(value);
+    public Number MinusMinus() => MINUS_MINUS(this);
+    public static Number operator --(Number value) => MINUS_MINUS(value);
+    #endregion
+    #region Multiply
+    public Number Multiply(Number right) => MULTIPLY(this, right);
+    public static Number operator *(Number left, Number right)  => MULTIPLY(left.Clone(), right);
+    public static Number Multiply(Number left, Number right) => MULTIPLY(left.Clone(), right);
+    static Number IMultiplyOperators<Number, Number, Number>.operator *(Number left, Number right) => MULTIPLY(left.Clone(), right);
+    public Number MultiplicativeIdentity => Domain.MultiplicativeIdentity;
+
+    #endregion
+    #region Divide
+    public Number Divide(Number right) => DIVIDE(this, right);
+    public static Number Divide(Number left, Number right) => DIVIDE(left.Clone(), right);
+    public static Number operator /(Number left, Number right) => DIVIDE(left.Clone(), right);
+    #endregion
+    #region Pow
+    public Number Pow(Number power) => POW(this, power);
+    public static Number operator ^(Number value, Number power) => POW(value.Clone(), power);
+    public static Number Pow(Number value, Number power)  => POW(value.Clone(), power);
     #endregion
     #region Polarity
     public int BasisDirection => Domain.Direction;

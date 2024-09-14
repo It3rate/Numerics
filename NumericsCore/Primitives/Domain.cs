@@ -17,7 +17,7 @@ namespace Numerics.Primitives;
 public class Domain : IEquatable<Domain>
 {
     public Trait? Trait { get; }
-    private Focal BasisFocal { get; }
+    public Focal BasisFocal { get; }
     private Focal LimitsFocal { get; }
     private Domain(Focal basisFocal, Focal limitsFocal) : this(Trait.WorkingTrait, basisFocal, limitsFocal) { }
     public Domain(Trait? trait, Focal basisFocal, Focal limitsFocal)

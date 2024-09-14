@@ -27,9 +27,9 @@ namespace Numerics.Primitives;
 
 public class Focal :
     IMeasurable,
-    Measurable<Focal>, 
+    Measurable<Focal>,
     IEquatable<Focal>,
-    IAdditionOperators<Focal, Focal, Focal>,   
+    IAdditionOperators<Focal, Focal, Focal>,
     ISubtractionOperators<Focal, Focal, Focal>,
     IAdditiveIdentity<Focal, Focal>,
     IMultiplyOperators<Focal, Focal, Focal>,
@@ -84,44 +84,17 @@ public class Focal :
     {
     }
 
-
-    #region Add
-
+    #region Funcs
     public static Func<Focal, Focal, Focal> ADD = (left, right) => { left.StartTick += right.StartTick; left.EndTick += right.EndTick; return left; };
-    public Focal Add(Focal right) => ADD(this, right);
-    public static Focal Add(Focal left, Focal right) => left + right;
-    public static Focal operator +(Focal left, Focal right) => ADD(left.Clone(), right);
-    static Focal IAdditionOperators<Focal, Focal, Focal>.operator +(Focal left, Focal right) => left + right;
-
-    public static Focal AdditiveIdentity => new(0, 0);
-
-    #endregion
-    #region Subtract
     public static Func<Focal, Focal, Focal> SUBTRACT = (left, right) => { left.StartTick -= right.StartTick; left.EndTick -= right.EndTick; return left; };
-    public Focal Subtract(Focal right) => SUBTRACT(this, right);
-    public static Focal Subtract(Focal left, Focal right) => left - right;
-    public static Focal operator -(Focal left, Focal right) => SUBTRACT(left.Clone(), right);
-    static Focal ISubtractionOperators<Focal, Focal, Focal>.operator -(Focal left, Focal right) => left - right;
-    #endregion
-    #region Multiply
     public static Func<Focal, Focal, Focal> MULTIPLY = (left, right) =>
     {
         var start = left.StartTick * right.EndTick + left.EndTick * right.StartTick;
         var end = left.EndTick * right.EndTick - left.StartTick * right.StartTick;
         left.StartTick = start;
         left.EndTick = end;
-        return left; 
+        return left;
     };
-    public Focal Multiply(Focal right) => MULTIPLY(this, right);
-    public static Focal Multiply(Focal left, Focal right) => left * right;
-
-    public static Focal operator *(Focal left, Focal right) => MULTIPLY(left.Clone(), right);
-
-    static Focal IMultiplyOperators<Focal, Focal, Focal>.operator *(Focal left, Focal right) => left * right;
-    public static Focal MultiplicativeIdentity => new(0, 1);
-
-    #endregion
-    #region Divide
     public static Func<Focal, Focal, Focal> DIVIDE = (left, right) =>
     {
         double leftEnd = left.EndTick;
@@ -146,6 +119,41 @@ public class Focal :
         left.EndTick = end;
         return left;
     };
+    public static Func<Focal, Focal> PLUS_PLUS = (left) => { left.StartTick += 1; left.EndTick += 1; return left; };
+    public static Func<Focal, Focal> MINUS_MINUS = (left) => { left.StartTick -= 1; left.EndTick -= 1; return left; };
+    public static Func<Focal, Focal> PLUS = (left) => { return left; };
+    public static Func<Focal, Focal> MINUS = (left) => { left.StartTick = -left.StartTick; left.EndTick = -left.EndTick; return left; };
+    public static Func<Focal, Focal> INVERT = (left) => { var temp = left.StartTick; left.StartTick = left.EndTick; left.EndTick = temp; return left; };
+    #endregion
+
+    #region Add
+
+    public Focal Add(Focal right) => ADD(this, right);
+    public static Focal Add(Focal left, Focal right) => left + right;
+    public static Focal operator +(Focal left, Focal right) => ADD(left.Clone(), right);
+    static Focal IAdditionOperators<Focal, Focal, Focal>.operator +(Focal left, Focal right) => left + right;
+
+    public static Focal AdditiveIdentity => new(0, 0);
+    public Focal Add(long start, long end) {StartTick += start; EndTick += end; return this;}
+
+    #endregion
+    #region Subtract
+    public Focal Subtract(Focal right) => SUBTRACT(this, right);
+    public static Focal Subtract(Focal left, Focal right) => left - right;
+    public static Focal operator -(Focal left, Focal right) => SUBTRACT(left.Clone(), right);
+    static Focal ISubtractionOperators<Focal, Focal, Focal>.operator -(Focal left, Focal right) => left - right;
+    #endregion
+    #region Multiply
+    public Focal Multiply(Focal right) => MULTIPLY(this, right);
+    public static Focal Multiply(Focal left, Focal right) => left * right;
+
+    public static Focal operator *(Focal left, Focal right) => MULTIPLY(left.Clone(), right);
+
+    static Focal IMultiplyOperators<Focal, Focal, Focal>.operator *(Focal left, Focal right) => left * right;
+    public static Focal MultiplicativeIdentity => new(0, 1);
+
+    #endregion
+    #region Divide
     public Focal Divide(Focal right) => DIVIDE(this, right);
     public static Focal Divide(Focal left, Focal right) => left / right;
 
@@ -155,33 +163,23 @@ public class Focal :
     #endregion
     #region Unary Ops
 
-    public static Func<Focal, Focal> PLUS_PLUS = (left) => { left.StartTick += 1; left.EndTick += 1; return left; };
     public Focal PlusPlus() => PLUS_PLUS(this);
     public static Focal operator ++(Focal value) => PLUS_PLUS(value.Clone());
 
-    public static Func<Focal, Focal> MINUS_MINUS = (left) => { left.StartTick -= 1; left.EndTick -= 1; return left; };
     public Focal MinusMinus() => MINUS_MINUS(this);
     public static Focal operator --(Focal value) => MINUS_MINUS(value.Clone());
 
-
-    public static Func<Focal, Focal> PLUS = (left) => { return left; };
     public Focal Plus() => PLUS(this);
     public static Focal operator +(Focal value) => PLUS(value.Clone());
 
-
-
-    public static Func<Focal, Focal> MINUS = (left) => { left.StartTick = -left.StartTick; left.EndTick = -left.EndTick;  return left; };
     public Focal Minus() => MINUS(this);
     public static Focal operator -(Focal value) => MINUS(value.Clone());
     public Focal NegateClone() => -this;
     public Focal Negate() => MINUS(this);
 
-
-    public static Func<Focal, Focal> INVERT = (left) => { var temp = left.StartTick;  left.StartTick = left.EndTick; left.EndTick = temp; return left; };
     public Focal Invert() => INVERT(this);
     public Focal InvertClone() => INVERT(Clone());
     public static Focal operator ~(Focal value) => INVERT(value.Clone());
-
 
     public Focal MakePositiveDirection() { if (Direction < 0) { Invert(); } return this; }
     public Focal MakeNegativeDirection() { if (Direction >= 0) { Invert(); } return this; }
