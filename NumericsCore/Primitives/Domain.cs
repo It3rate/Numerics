@@ -16,7 +16,7 @@ namespace Numerics.Primitives;
 // Min size is tick size. BasisFocal is start/end point (only one focal allowed for a unit). MinMaxFocal is bounds in ticks. todo: add conversion methods etc.
 public class Domain : IEquatable<Domain>
 {
-    public Trait? Trait { get; }
+    public Trait? Trait { get; } // todo: Probably merge domain and trait?
     public Number DefaultBasisNumber { get; }
     public Focal DefaultBasisFocal => DefaultBasisNumber.Focal;
     private Focal DefaultLimitsFocal { get; }
@@ -33,17 +33,6 @@ public class Domain : IEquatable<Domain>
     //    DefaultBasisFocal.Direction > 0 ? Polarity.Aligned :
     //    DefaultBasisFocal.Direction < 0 ? Polarity.Inverted : Polarity.None;
 
-    public Number DefaultLimitsNumber => new(DefaultBasisNumber, DefaultLimitsFocal);
-    public long TickSize { get; protected set; } = 1;
-    public long BasisLength => DefaultBasisFocal.Length;
-    public long AbsBasisLength => DefaultBasisFocal.AbsLength;
-    public int Direction => DefaultBasisFocal.Direction;
-    public bool IsInverted => DefaultBasisFocal.Direction == -1;
-    public long AbsLimitsSize => DefaultLimitsFocal.AbsLength;
-    public bool BasisIsReciprocal => Math.Abs(TickSize) > DefaultBasisFocal.AbsLength;
-    public double TickToBasisRatio => TickSize / DefaultBasisFocal.NonZeroTickLength;
-    public bool IsZero(Number num) => num.StartTick == DefaultBasisFocal.StartTick && num.EndTick == DefaultBasisFocal.StartTick;
-    public bool IsOne(Number num) => num.StartTick == DefaultBasisFocal.StartTick && num.EndTick == DefaultBasisFocal.EndTick;
     // IsTickLessThanBasis, IsBasisInMinmax, IsTiling, IsClamping, IsInvertable, IsNegateable, IsPoly, HasTrait
     #endregion
     #region Transformations
@@ -59,94 +48,6 @@ public class Domain : IEquatable<Domain>
             }
             return _inverse;        
         }
-    }
-    public static Domain CommonDomain(Domain left, Domain right)
-    {
-        var result = left;
-        if (left != right)
-        {
-            var maxBasis = left.AbsBasisLength >= right.AbsBasisLength ? left.DefaultBasisFocal : right.DefaultBasisFocal;
-            var maxLimits = left.AbsLimitsSize >= right.AbsLimitsSize ? left.DefaultLimitsFocal : right.DefaultLimitsFocal;
-            result = new Domain(maxBasis, maxLimits);
-        }
-        return result;
-    }
-    public Number CreateNumberRaw(long startTicks, long endTicks, Focal? basis = null)
-    {
-        basis = basis ?? DefaultBasisFocal;
-        return new Number(DefaultBasisNumber, new Focal(
-            basis.StartTick + startTicks,
-            basis.StartTick + endTicks));
-    }
-    //public double DecimalValue(long tick)
-    //{
-    //    var clamped =
-    //        (tick < LimitsFocal.FirstTick) ? LimitsFocal.FirstTick :
-    //        (tick > LimitsFocal.LastTick) ? LimitsFocal.LastTick : tick;
-    //    var offset = clamped - BasisFocal.FirstTick;
-    //    var result = offset / (double)BasisFocal.NonZeroTickLength;
-    //    return result;
-    //}
-    #endregion
-    #region Conversions
-    //public long TicksFromZero(long tick) => tick - DefaultBasisFocal.StartTick;
-    public long TicksFromZeroDirected(long tick) => (tick - DefaultBasisFocal.StartTick) * Direction;
-    //public (long, long) RawTicksFromZero(Number num) => (TicksFromZero(num.StartTick), TicksFromZero(num.EndTick));
-    //public (long, long) SignedTicksFromZero(Number num) => (-TicksFromZeroDirected(num.StartTick), TicksFromZeroDirected(num.EndTick));
-    public long TickValueAligned(double value)
-    {
-        var result = (long)(DefaultBasisFocal.StartTick + (value * DefaultBasisFocal.Length));
-        // todo: Clamp to limits, account for basis direction.
-        return result;
-    }
-    public long TickValueInverted(double value)
-    {
-        var result = (long)(DefaultBasisFocal.StartTick - (value * DefaultBasisFocal.Length));
-        // todo: Clamp to limits, account for basis direction.
-        return result;
-    }
-    public Focal FocalFromDecimalRaw(double startValue, double endValue) =>
-    new Focal(TickValueAligned(startValue), TickValueAligned(endValue));
-    public Focal FocalFromDecimalSigned(double startValue, double endValue) =>
-        new Focal(TickValueInverted(startValue), TickValueAligned(endValue));
-
-    public (double, double) RawValues(Number num) => (
-        TicksFromZeroDirected(num.StartTick) / (double)num.BasisFocal.AbsLength,
-        TicksFromZeroDirected(num.EndTick) / (double)num.BasisFocal.AbsLength);
-    public (double, double) SignedValues(Number num) => (
-        -TicksFromZeroDirected(num.StartTick) / (double)num.BasisFocal.AbsLength,
-        TicksFromZeroDirected(num.EndTick) / (double)num.BasisFocal.AbsLength);
-    public PRange GetRange(Number num)
-    {
-        var (start, end) = SignedValues(num);
-        if (BasisIsReciprocal)
-        {
-            start = Math.Round(start) * num.BasisFocal.AbsLength;
-            end = Math.Round(end) * num.BasisFocal.AbsLength;
-        }
-        return new PRange(start, end, num.Polarity);
-    }
-    public double RawTickValue(long tick) => TicksFromZeroDirected(tick) / (double)DefaultBasisFocal.AbsLength;
-
-
-    public double AlignedValueAtT(Number num, double t)
-    {
-        double result;
-        if(t == 0)
-        {
-            result = RawTickValue(num.StartTick);
-        }
-        else if (t == 1)
-        {
-            result = RawTickValue(num.EndTick);
-        }
-        else
-        {
-            var start = RawTickValue(num.StartTick);
-            var end = RawTickValue(num.EndTick);
-            result = (end - start) * t + start;
-        }
-        return result;
     }
     #endregion
 

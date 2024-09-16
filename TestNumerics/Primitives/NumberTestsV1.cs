@@ -84,10 +84,11 @@ public class NumbersTestsV1
     [TestMethod]
     public void UnitChangeValueTests()
     {
-        var n0 = new Number(_domain.DefaultBasisNumber, _domain.FocalFromDecimalSigned(0, 20));
-        var n1 = new Number(_domain.DefaultBasisNumber, _domain.FocalFromDecimalSigned(20, 0));
-        var n2 = new Number(_domain.DefaultBasisNumber, _domain.FocalFromDecimalSigned(-30, 20));
-        var n3 = new Number(_domain.DefaultBasisNumber, _domain.FocalFromDecimalSigned(-20, -30));
+        var num = _domain.DefaultBasisNumber;
+        var n0 = new Number(num, num.FocalFromDecimalSigned(0, 20));
+        var n1 = new Number(num, num.FocalFromDecimalSigned(20, 0));
+        var n2 = new Number(num, num.FocalFromDecimalSigned(-30, 20));
+        var n3 = new Number(num, num.FocalFromDecimalSigned(-20, -30));
         Assert.AreEqual(0, n0.StartValue);
         Assert.AreEqual(20, n0.EndValue);
         Assert.AreEqual(20, n1.StartValue);
@@ -128,12 +129,12 @@ public class NumbersTestsV1
         n0b = n0b + n3;// n0b.Add(n3);
         Assert.AreNotEqual(n0, n0b);
 
-        Assert.AreEqual(_unitFocal.AbsLength, n0.Domain.AbsBasisLength);
+        Assert.AreEqual(_unitFocal.AbsLength, n0.AbsBasisLength);
         Assert.AreEqual(1, n0.BasisDirection);
         Assert.AreEqual(1, n4.BasisDirection);
         Assert.AreEqual(n1.Domain, n0.Domain);
         Assert.AreEqual(n0.StartValue, n1.StartValue, _delta);
-        Assert.AreEqual(n1.EndValue, n1.Focal.Length / (double)n1.Domain.BasisLength);
+        Assert.AreEqual(n1.EndValue, n1.Focal.Length / (double)n1.BasisLength);
         //Assert.AreEqual(0, n3.RemainderStartValue, Utils.Tolerance);
         //Assert.AreEqual(5, n3.RemainderEndValue, Utils.Tolerance);
         //Assert.AreEqual(2, n2.RemainderStartValue, Utils.Tolerance);

@@ -19,10 +19,5 @@ namespace TestNumerics.Primitives
             _maxMin = new Focal(-54, 46);
             _domain = new Domain(_trait, _unitFocal, _maxMin);
         }
-        [TestMethod]
-        public void DomainSizeTests()
-        {
-            Assert.AreEqual(1, _domain.TickSize);
-        }
     }
 }

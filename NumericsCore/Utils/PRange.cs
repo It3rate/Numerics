@@ -237,9 +237,9 @@ public struct PRange
     #region Conversions
     public Focal ToFocal() => new((long)Start, (long)End);
     public static PRange FromFocal(Focal value) => new(value.StartTick, value.EndTick);
-    public Number ToNumber(Domain domain) => new(
-        domain.DefaultBasisNumber, 
-        domain.FocalFromDecimalSigned(Start, End));
+    public Number ToNumber(Number basisNumber) => new(
+        basisNumber,
+        basisNumber.FocalFromDecimalSigned(Start, End));
     #endregion
 
     #region Equality

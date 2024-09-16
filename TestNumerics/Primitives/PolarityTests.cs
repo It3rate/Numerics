@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -72,6 +73,7 @@ public class PolarityTests
         //Assert.IsFalse(number.HasPolarity);
 
         var zeroDomain = new Domain(_trait, new Focal(10, 10), _limits); // zero len basis
+        Trace.WriteLine(zeroDomain.DefaultBasisNumber.ToString());
         number = zeroDomain.DefaultBasisNumber.MapToDomain(number);
         Assert.AreEqual(Polarity.None, number.Polarity);
         var invZeroDomain = zeroDomain.Inverse;

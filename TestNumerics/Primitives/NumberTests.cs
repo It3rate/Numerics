@@ -245,9 +245,10 @@ public class NumberTests
         _basisFocal = new Focal(10000, 20000);
         _limits = new Focal(-100000, 100000);
         _domain = new Domain(_trait, _basisFocal, _limits);
+        var num = new Number(_domain.DefaultBasisNumber, _basisFocal);
         double decimalValueStart = 0.5;
         double decimalValueEnd = 0.8;
-        var tick = _domain.FocalFromDecimalSigned(decimalValueStart, decimalValueEnd);
+        var tick = num.FocalFromDecimalSigned(decimalValueStart, decimalValueEnd);
         Assert.AreEqual(5000, tick.StartTick);
         Assert.AreEqual(18000, tick.EndTick);
     }

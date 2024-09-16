@@ -33,6 +33,7 @@ public class Number:
 
     public Number BasisNumber { get; }
     public Focal Focal { get; }
+    public long TickSize { get; protected set; } = 1;
     public Domain Domain => _tlDomain ?? BasisNumber.Domain;
     public Focal BasisFocal => BasisNumber.Focal;
     public double StartValue
@@ -43,7 +44,7 @@ public class Number:
             {
                 EnsureLandmarks();
             }
-            return -Domain.RawTickValue(Focal.StartTick);
+            return -RawTickValue(Focal.StartTick);
         }
     }
     public double EndValue
@@ -54,7 +55,7 @@ public class Number:
             {
                 EnsureLandmarks();
             }
-            return Domain.RawTickValue(Focal.EndTick);
+            return RawTickValue(Focal.EndTick);
         }
     }
     // allow start and end landmarks to adjust the focals when reference changes.
@@ -120,8 +121,8 @@ public class Number:
         }
         else
         {
-            var startTick = Domain.TickValueInverted(startValue);
-            var endTick = Domain.TickValueAligned(endValue);
+            var startTick = TickValueInverted(startValue);
+            var endTick = TickValueAligned(endValue);
             if (startTick != Focal.StartTick || endTick != Focal.EndTick)
             {
                 Focal.StartTick = startTick;
@@ -140,7 +141,7 @@ public class Number:
         }
         else
         {
-            var tick = Domain.TickValueInverted(startValue);
+            var tick = TickValueInverted(startValue);
             if (tick != Focal.StartTick)
             {
                 Focal.StartTick = tick;
@@ -158,7 +159,7 @@ public class Number:
         }
         else
         {
-            var tick = Domain.TickValueAligned(endValue);
+            var tick = TickValueAligned(endValue);
             if (tick != Focal.EndTick)
             {
                 Focal.EndTick = tick;
@@ -177,23 +178,23 @@ public class Number:
         {
             if (StartLandmark.NeedsUpdate)
             {
-                Focal.StartTick = Domain.TickValueInverted(StartLandmark.Value);
+                Focal.StartTick = TickValueInverted(StartLandmark.Value);
                 //StartLandmark.NeedsUpdate = false;
             }
             if (EndLandmark.NeedsUpdate)
             {
-                Focal.EndTick = Domain.TickValueAligned(EndLandmark.Value);
+                Focal.EndTick = TickValueAligned(EndLandmark.Value);
                 //EndLandmark.NeedsUpdate = false;
             }
         }
     }
     public double AsBasisTValue(double t) => (EndValue - StartValue) * t + StartValue; // number is basis, so 0 is startValue, 1 is endValue.
-    public PRange GetRange() => Domain.GetRange(this);
+    public PRange GetRange() => GetRange(this);
     #endregion
     #region Truths
-    public bool IsZero => Domain.IsZero(this);
-    public bool IsOne => Domain.IsOne(this);
-    public bool IsNegativeDirection => Focal.Direction * Domain.Direction == -1;
+    public bool IsZero => StartTick == BasisFocal.StartTick && EndTick == BasisFocal.StartTick;
+    public bool IsOne => StartTick == BasisFocal.StartTick && EndTick == BasisFocal.EndTick;
+    public bool IsNegativeDirection => Focal.Direction * BasisDirection == -1;
     public bool IsZeroStart => StartValue == 0;
     public bool IsPoint => StartTick == EndTick;
     public bool IsSmallerThanBasis => Math.Abs(StartValue) < 1 && Math.Abs(EndValue) < 1;
@@ -206,12 +207,13 @@ public class Number:
     #endregion
     #region Properties
     public Polarity Polarity => BasisFocal.Polarity;
-    public int Direction => BasisFocal.Direction;
+    public int BasisDirection => BasisFocal.Direction;
 
     public long TickLength => Focal.Length;
     public long AbsTickLength => Focal.AbsLength;
     public long BasisLength => BasisFocal.Length;
     public long AbsBasisLength => BasisFocal.AbsLength;
+    public bool BasisIsReciprocal => Math.Abs(TickSize) > BasisFocal.AbsLength && BasisFocal.AbsLength != 0;
     public Number Length => new Number(Domain, new(0, Focal.Length));
     public Number StartPortion => new Number(Domain, new(0, Focal.StartTick));
     public Number EndPortion => new Number(Domain, new(0, Focal.EndTick));
@@ -246,7 +248,7 @@ public class Number:
         var (rightStart, rightEnd) = right.SignedTicksFromZero();
         var iVal = leftStart * rightEnd + leftEnd * rightStart;
         var rVal = leftEnd * rightEnd - leftStart * rightStart;
-        var len = left.Domain.AbsBasisLength;
+        var len = left.AbsBasisLength;
         var bf = left.BasisFocal;
         left.Focal.StartTick = bf.StartTick - (iVal / len) * bf.Direction;
         left.Focal.EndTick = bf.StartTick + (rVal / len) * bf.Direction;
@@ -260,7 +262,7 @@ public class Number:
 
         long iVal;
         long rVal;
-        var absLen = left.Domain.AbsBasisLength;
+        var absLen = left.AbsBasisLength;
         if (Math.Abs(rightStart) < Math.Abs(rightEnd))
         {
             double num = rightStart / (double)rightEnd;
@@ -288,7 +290,7 @@ public class Number:
         var v = value.GetRange();
         var p = power.GetRange();
         var presult = PRange.Pow(v, p);
-        var result = presult.ToNumber(value.Domain);
+        var result = presult.ToNumber(value);
         value.Focal.StartTick = result.StartTick;
         value.Focal.EndTick = result.EndTick;
         return value;
@@ -368,7 +370,6 @@ public class Number:
     public static Number Pow(Number value, Number power)  => POW(value.Clone(), power);
     #endregion
     #region Polarity
-    public int BasisDirection => Domain.Direction;
     public bool IsAligned => Polarity == Polarity.Aligned;
     public bool IsInverted => Polarity == Polarity.Inverted;
     public bool HasPolarity => Polarity.HasPolarity();
@@ -535,22 +536,104 @@ public class Number:
     }
 
     private long TicksFromZero(long tick) => tick - BasisFocal.StartTick;
-    private long TicksFromZeroDirected(long tick) => (tick - BasisFocal.StartTick) * Direction;
+    private long TicksFromZeroDirected(long tick) => (tick - BasisFocal.StartTick) * BasisDirection;
     private (long, long) RawTicksFromZero() => (TicksFromZero(StartTick), TicksFromZero(EndTick));
     private (long, long) SignedTicksFromZero() => (-TicksFromZeroDirected(StartTick), TicksFromZeroDirected(EndTick));
     #endregion
     #region Conversions
+    public long TickValueAligned(double value)
+    {
+        var result = (long)(BasisFocal.StartTick + (value * BasisFocal.Length));
+        // todo: Clamp to limits, account for basis direction.
+        return result;
+    }
+    public long TickValueInverted(double value)
+    {
+        var result = (long)(BasisFocal.StartTick - (value * BasisFocal.Length));
+        // todo: Clamp to limits, account for basis direction.
+        return result;
+    }
+    public Focal FocalFromDecimalRaw(double startValue, double endValue) =>
+    new Focal(TickValueAligned(startValue), TickValueAligned(endValue));
+    public Focal FocalFromDecimalSigned(double startValue, double endValue) =>
+        new Focal(TickValueInverted(startValue), TickValueAligned(endValue));
+
+    public (double, double) RawValues(Number num)
+    {
+        var absLen = (double)num.BasisFocal.AbsLength;
+        if (absLen == 0)
+        {
+            return (0, 0);
+        }
+        else
+        {
+            return( TicksFromZeroDirected(num.StartTick) / (double)num.BasisFocal.AbsLength,
+                    TicksFromZeroDirected(num.EndTick) / (double)num.BasisFocal.AbsLength);
+        }
+    }
+    public (double, double) SignedValues(Number num)
+    {
+        var absLen = (double)num.BasisFocal.AbsLength;
+        if (absLen == 0)
+        {
+            return (0, 0);
+        }
+        else
+        {
+            return (-TicksFromZeroDirected(num.StartTick) / (double)num.BasisFocal.AbsLength,
+                     TicksFromZeroDirected(num.EndTick) / (double)num.BasisFocal.AbsLength);
+        }
+    }
+    public PRange GetRange(Number num)
+    {
+        var (start, end) = SignedValues(num);
+        if (BasisIsReciprocal)
+        {
+            start = Math.Round(start) * num.BasisFocal.AbsLength;
+            end = Math.Round(end) * num.BasisFocal.AbsLength;
+        }
+        return new PRange(start, end, num.Polarity);
+    }
+    public double RawTickValue(long tick) => TicksFromZeroDirected(tick) / (double)BasisFocal.AbsLength;
+
+
+    public double AlignedValueAtT(Number num, double t)
+    {
+        double result;
+        if (t == 0)
+        {
+            result = RawTickValue(num.StartTick);
+        }
+        else if (t == 1)
+        {
+            result = RawTickValue(num.EndTick);
+        }
+        else
+        {
+            var start = RawTickValue(num.StartTick);
+            var end = RawTickValue(num.EndTick);
+            result = (end - start) * t + start;
+        }
+        return result;
+    }
 
     public Number MapToDomain(Number value)
     {
         Number result = value;
         if (value.BasisNumber != BasisNumber)
         {
-            var ratio = AbsBasisLength / (double)value.AbsBasisLength;
-            var (valueStart, valueEnd) = value.RawTicksFromZero();
-            var start = (long)(valueStart * ratio);
-            var end = (long)(valueEnd * ratio);
-            result = new(BasisNumber, new (BasisFocal.StartTick + start, BasisFocal.StartTick + end));
+            if (value.AbsBasisLength != 0)
+            {
+                var ratio = AbsBasisLength / (double)value.AbsBasisLength;
+                var (valueStart, valueEnd) = value.RawTicksFromZero();
+                var start = (long)(valueStart * ratio);
+                var end = (long)(valueEnd * ratio);
+                result = new(BasisNumber, new(BasisFocal.StartTick + start, BasisFocal.StartTick + end));
+            }
+            else
+            {
+                result = new(BasisNumber, value.Focal.Clone());
+            }
         }
         return result;
     }
@@ -585,14 +668,15 @@ public class Number:
                 (
                 Polarity == value.Polarity &&
                 Focal.Equals(this.Focal, value.Focal) &&
-                BasisNumber == value.BasisNumber
+                BasisNumber.Focal == value.BasisNumber.Focal && // want to avoid giant recursion on equality tests, as there is a basisNumber heirarchy
+                TickSize == value.TickSize
                 );
     }
     public override int GetHashCode()
     {
         unchecked
         {
-            var hashCode = BasisNumber.GetHashCode() * 13 + Focal.GetHashCode() * 17 ^ ((int)Polarity + 27) * 397;// + (IsValid ? 77 : 33);
+            var hashCode = BasisNumber.GetHashCode() * 13 + Focal.GetHashCode() * 17 ^ ((int)Polarity + 27) * 397 + (int)TickSize * 31;// + (IsValid ? 77 : 33);
             return hashCode;
         }
     }
