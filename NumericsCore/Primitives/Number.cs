@@ -60,6 +60,8 @@ public class Number:
     // allow start and end landmarks to adjust the focals when reference changes.
     private IValueRef? StartLandmark;
     private IValueRef? EndLandmark;
+    public long StartTick => Focal.StartTick;
+    public long EndTick => Focal.EndTick;
 
     private Number? _inverse;
     public Number Inverse
@@ -204,11 +206,12 @@ public class Number:
     #endregion
     #region Properties
     public Polarity Polarity => BasisFocal.Polarity;
-    public long StartTick => Focal.StartTick;
-    public long EndTick => Focal.EndTick;
+    public int Direction => BasisFocal.Direction;
 
     public long TickLength => Focal.Length;
     public long AbsTickLength => Focal.AbsLength;
+    public long BasisLength => BasisFocal.Length;
+    public long AbsBasisLength => BasisFocal.AbsLength;
     public Number Length => new Number(Domain, new(0, Focal.Length));
     public Number StartPortion => new Number(Domain, new(0, Focal.StartTick));
     public Number EndPortion => new Number(Domain, new(0, Focal.EndTick));
@@ -218,9 +221,9 @@ public class Number:
 
     public static Func<Number, Number, Number> ADD = (left, rightIn) =>
     {
-        var right = left.Domain.MapToDomain(rightIn);
-        var (leftStart, leftEnd) = left.Domain.RawTicksFromZero(left);
-        var (rightStart, rightEnd) = left.Domain.RawTicksFromZero(right);
+        var right = left.MapToDomain(rightIn);
+        var (leftStart, leftEnd) = left.RawTicksFromZero();
+        var (rightStart, rightEnd) = right.RawTicksFromZero();
         var bf = left.BasisFocal;
         left.Focal.StartTick = bf.StartTick + (leftStart + rightStart);
         left.Focal.EndTick = bf.StartTick + (leftEnd + rightEnd);
@@ -228,9 +231,9 @@ public class Number:
     };
     public static Func<Number, Number, Number> SUBTRACT = (left, rightIn) =>
     {
-        var right = left.Domain.MapToDomain(rightIn);
-        var (leftStart, leftEnd) = left.Domain.RawTicksFromZero(left);
-        var (rightStart, rightEnd) = left.Domain.RawTicksFromZero(right);
+        var right = left.MapToDomain(rightIn);
+        var (leftStart, leftEnd) = left.RawTicksFromZero();
+        var (rightStart, rightEnd) = right.RawTicksFromZero();
         var bf = left.BasisFocal;
         left.Focal.StartTick = bf.StartTick + (leftStart - rightStart);
         left.Focal.EndTick = bf.StartTick + (leftEnd - rightEnd);
@@ -238,9 +241,9 @@ public class Number:
     };
     public static Func<Number, Number, Number> MULTIPLY = (left, rightIn) =>
     {
-        var right = left.Domain.MapToDomain(rightIn);
-        var (leftStart, leftEnd) = left.Domain.SignedTicksFromZero(left);
-        var (rightStart, rightEnd) = right.Domain.SignedTicksFromZero(right);
+        var right = left.MapToDomain(rightIn);
+        var (leftStart, leftEnd) = left.SignedTicksFromZero();
+        var (rightStart, rightEnd) = right.SignedTicksFromZero();
         var iVal = leftStart * rightEnd + leftEnd * rightStart;
         var rVal = leftEnd * rightEnd - leftStart * rightStart;
         var len = left.Domain.AbsBasisLength;
@@ -251,9 +254,9 @@ public class Number:
     };
     public static Func<Number, Number, Number> DIVIDE = (left, rightIn) =>
     {
-        var right = left.Domain.MapToDomain(rightIn);
-        var (leftStart, leftEnd) = left.Domain.SignedTicksFromZero(left);
-        var (rightStart, rightEnd) = right.Domain.SignedTicksFromZero(right);
+        var right = left.MapToDomain(rightIn);
+        var (leftStart, leftEnd) = left.SignedTicksFromZero();
+        var (rightStart, rightEnd) = right.SignedTicksFromZero();
 
         long iVal;
         long rVal;
@@ -277,14 +280,9 @@ public class Number:
     };
     public static Func<Number, Number, Number> POW => (Number value, Number power) =>
     {
-        if (power.IsZero)
+        if (power.IsZero || value.IsZero)
         {
-            return value.Domain.One;
-        }
-
-        if (value.IsZero)
-        {
-            return value.Domain.One;
+            return value.One;
         }
         // todo: this is temp. Correct polarity, use binomial, account for resolution
         var v = value.GetRange();
@@ -336,7 +334,6 @@ public class Number:
     public static Number operator +(Number value) => PLUS(value);
     public Number PlusPlus() => PLUS_PLUS(this);
     public static Number operator ++(Number value) => PLUS_PLUS(value);
-    public Number AdditiveIdentity => Domain.AdditiveIdentity;
 
     #endregion
     #region Subtract
@@ -358,7 +355,6 @@ public class Number:
     public static Number operator *(Number left, Number right)  => MULTIPLY(left.Clone(), right);
     public static Number Multiply(Number left, Number right) => MULTIPLY(left.Clone(), right);
     static Number IMultiplyOperators<Number, Number, Number>.operator *(Number left, Number right) => MULTIPLY(left.Clone(), right);
-    public Number MultiplicativeIdentity => Domain.MultiplicativeIdentity;
 
     #endregion
     #region Divide
@@ -377,17 +373,7 @@ public class Number:
     public bool IsInverted => Polarity == Polarity.Inverted;
     public bool HasPolarity => Polarity.HasPolarity();
     public virtual bool IsPolarityEqual(Number num) => Polarity == num.Polarity;
-    public Number Negate() => Domain.Negate(this);
-    public Number Invert() => Domain.Invert(this);
-    public Number InvertNegate()=> Domain.InvertNegate(this);
 
-    #endregion
-    #region Transforms
-    public Number Reverse() => Domain.Reverse(this);
-    public Number ReverseNegate() => Domain.ReverseNegate(this);
-    public static Number operator ~(Number value) => value.MirrorStart(); // conjugate on i is the 2D mirror operation (flip vertically)
-    public Number MirrorStart() => Domain.MirrorStart(this);// inverted Conjugate, mirror operation
-    public Number MirrorEnd() => Domain.MirrorEnd(this);
     #endregion
     #region Comparisons Bools
     public static bool operator >(Number left, Number right) =>
@@ -508,6 +494,68 @@ public class Number:
         return result;
     }
     #endregion
+
+    #region Identities
+    public Number AdditiveIdentity => new Number(BasisNumber, new Focal(BasisFocal.StartTick, BasisFocal.StartTick));
+    public Number MultiplicativeIdentity => new Number(BasisNumber, BasisFocal);
+    public Number Zero => new(BasisNumber, new Focal(BasisFocal.StartTick, BasisFocal.StartTick));
+    public Number One => new(BasisNumber, BasisFocal.Clone());
+    public Number MinusOne => new(BasisNumber, BasisFocal.CloneToBasisInverse());
+    public Number One_i => new(BasisNumber, BasisFocal.CloneToBasisInverse().Invert());
+    public Number MinusOne_i => new(BasisNumber, BasisFocal.InvertClone());
+    #endregion
+    #region Transforms
+    public static Number operator ~(Number value) => value.MirrorStart();
+    public Number Negate()
+    {
+        var (startTicks, endTicks) = RawTicksFromZero();
+        return new (BasisNumber, new(-startTicks, -endTicks));
+    }
+    public Number Reverse()
+    {
+        var (startTicks, endTicks) = RawTicksFromZero();
+        return new(BasisNumber, new(endTicks, startTicks));
+    }
+    public Number ReverseNegate()
+    {
+        var (startTicks, endTicks) = RawTicksFromZero();
+        return new(BasisNumber, new(-endTicks, -startTicks));
+    }
+    public Number Invert() => new(BasisNumber, Focal.InvertClone());
+    public Number InvertNegate() => new(BasisNumber, Focal.InvertClone().Negate());
+    public Number MirrorStart() // inverted Conjugate
+    {
+        var (startTicks, endTicks) = RawTicksFromZero();
+        return new(BasisNumber, new(-startTicks, endTicks));
+    }
+    public Number MirrorEnd() // aligned conjugate
+    {
+        var (startTicks, endTicks) = RawTicksFromZero();
+        return new(BasisNumber, new(startTicks, -endTicks));
+    }
+
+    private long TicksFromZero(long tick) => tick - BasisFocal.StartTick;
+    private long TicksFromZeroDirected(long tick) => (tick - BasisFocal.StartTick) * Direction;
+    private (long, long) RawTicksFromZero() => (TicksFromZero(StartTick), TicksFromZero(EndTick));
+    private (long, long) SignedTicksFromZero() => (-TicksFromZeroDirected(StartTick), TicksFromZeroDirected(EndTick));
+    #endregion
+    #region Conversions
+
+    public Number MapToDomain(Number value)
+    {
+        Number result = value;
+        if (value.BasisNumber != BasisNumber)
+        {
+            var ratio = AbsBasisLength / (double)value.AbsBasisLength;
+            var (valueStart, valueEnd) = value.RawTicksFromZero();
+            var start = (long)(valueStart * ratio);
+            var end = (long)(valueEnd * ratio);
+            result = new(BasisNumber, new (BasisFocal.StartTick + start, BasisFocal.StartTick + end));
+        }
+        return result;
+    }
+    #endregion
+
     #region Equality
     public Number Clone() => new Number(BasisNumber, Focal.Clone());
     public static bool operator ==(Number? a, Number? b)

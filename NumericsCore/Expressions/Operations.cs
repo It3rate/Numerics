@@ -19,7 +19,7 @@ namespace NumericsCore.Expressions
     public class ResetOperation : OperationBase
     {
         public ResetOperation() { }
-        public override Number Calculate(Number input) => input.Domain.Zero;
+        public override Number Calculate(Number input) => input.Zero;
     }
 
     public class InvertOperation : OperationBase

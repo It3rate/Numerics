@@ -60,23 +60,6 @@ public class Domain : IEquatable<Domain>
             return _inverse;        
         }
     }
-    public Number MapToDomain(Number value)
-    {
-        Number result = value;
-        if(value.Domain != this)
-        {
-            var ratio = AbsBasisLength / (double)value.Domain.AbsBasisLength;
-            var (valueStart, valueEnd) = value.Domain.RawTicksFromZero(value);
-            var start = (long)(valueStart * ratio);
-            var end = (long)(valueEnd * ratio);
-            result = CreateNumberRaw(start, end);
-            //var start = value.StartValue; // need to change focals, otherwise the signs will change on inverting
-            //var end = value.EndValue;
-            //var focal = FocalFromDecimalRaw(start, end);
-            //result = new(this, focal);
-        }
-        return result;
-    }
     public static Domain CommonDomain(Domain left, Domain right)
     {
         var result = left;
@@ -88,6 +71,13 @@ public class Domain : IEquatable<Domain>
         }
         return result;
     }
+    public Number CreateNumberRaw(long startTicks, long endTicks, Focal? basis = null)
+    {
+        basis = basis ?? DefaultBasisFocal;
+        return new Number(DefaultBasisNumber, new Focal(
+            basis.StartTick + startTicks,
+            basis.StartTick + endTicks));
+    }
     //public double DecimalValue(long tick)
     //{
     //    var clamped =
@@ -98,69 +88,11 @@ public class Domain : IEquatable<Domain>
     //    return result;
     //}
     #endregion
-    #region ToMove
-    // todo: Move these all to Number
-    public Number Negate(Number num)
-    {
-        var (startTicks, endTicks) = RawTicksFromZero(num);
-        return CreateNumberRaw(-startTicks, -endTicks);
-    }
-    public Number Reverse(Number num)
-    {
-        var (startTicks, endTicks) = RawTicksFromZero(num);
-        return CreateNumberRaw(endTicks, startTicks);
-    }
-    public Number ReverseNegate(Number num)
-    {
-        var (startTicks, endTicks) = RawTicksFromZero(num);
-        return CreateNumberRaw(-endTicks, -startTicks);
-    }
-    public Number Invert(Number num) => new(DefaultBasisNumber, num.Focal.InvertClone());
-    public Number InvertNegate(Number num) => new(DefaultBasisNumber, num.Focal.InvertClone().Negate());
-    public Number MirrorStart(Number num) // inverted Conjugate
-    {
-        var (startTicks, endTicks) = RawTicksFromZero(num);
-        return CreateNumberRaw(-startTicks, endTicks, num.BasisFocal);
-    }
-    public Number MirrorEnd(Number num) // aligned conjugate
-    {
-        var (startTicks, endTicks) = RawTicksFromZero(num);
-        return CreateNumberRaw(startTicks, -endTicks, num.BasisFocal);
-    }
-    #endregion
-    #region To Move
-    public Number CreateNumberRaw(long startTicks,long endTicks, Focal? basis = null)
-    {
-        basis = basis ?? DefaultBasisFocal;
-        return new Number(DefaultBasisNumber, new Focal(
-            basis.StartTick + startTicks,
-            basis.StartTick + endTicks));
-    }
-    public Number CreateNumberSigned(long startTicks, long endTicks, Focal? basis = null)
-    {
-        basis = basis ?? DefaultBasisFocal;
-        return new Number(DefaultBasisNumber, new Focal(
-            basis.StartTick - startTicks * Direction,
-            basis.StartTick + endTicks * Direction));
-    }
-    public Number CreateNumberFromTs(double startT, double endT, Focal? basis = null)
-    {
-        basis = basis ?? DefaultBasisFocal;
-        return new(DefaultBasisNumber, basis.FocalFromTs(-startT, endT));
-    }
-    public Number AdditiveIdentity => new Number(DefaultBasisNumber, new Focal(DefaultBasisFocal.StartTick, DefaultBasisFocal.StartTick));
-    public Number MultiplicativeIdentity => new Number(DefaultBasisNumber, DefaultBasisFocal);
-    public Number Zero => new(DefaultBasisNumber, new Focal(DefaultBasisFocal.StartTick, DefaultBasisFocal.StartTick));
-    public Number One => new(DefaultBasisNumber, DefaultBasisFocal.Clone());
-    public Number MinusOne => new(DefaultBasisNumber, DefaultBasisFocal.CloneToBasisInverse());
-    public Number One_i => new(DefaultBasisNumber, DefaultBasisFocal.CloneToBasisInverse().Invert());
-    public Number MinusOne_i => new(DefaultBasisNumber, DefaultBasisFocal.InvertClone());
-    #endregion
     #region Conversions
-    public long TicksFromZero(long tick) => tick - DefaultBasisFocal.StartTick;
+    //public long TicksFromZero(long tick) => tick - DefaultBasisFocal.StartTick;
     public long TicksFromZeroDirected(long tick) => (tick - DefaultBasisFocal.StartTick) * Direction;
-    public (long, long) RawTicksFromZero(Number num) => (TicksFromZero(num.StartTick), TicksFromZero(num.EndTick));
-    public (long, long) SignedTicksFromZero(Number num) => (-TicksFromZeroDirected(num.StartTick), TicksFromZeroDirected(num.EndTick));
+    //public (long, long) RawTicksFromZero(Number num) => (TicksFromZero(num.StartTick), TicksFromZero(num.EndTick));
+    //public (long, long) SignedTicksFromZero(Number num) => (-TicksFromZeroDirected(num.StartTick), TicksFromZeroDirected(num.EndTick));
     public long TickValueAligned(double value)
     {
         var result = (long)(DefaultBasisFocal.StartTick + (value * DefaultBasisFocal.Length));
@@ -174,7 +106,7 @@ public class Domain : IEquatable<Domain>
         return result;
     }
     public Focal FocalFromDecimalRaw(double startValue, double endValue) =>
-        new Focal(TickValueAligned(startValue), TickValueAligned(endValue));
+    new Focal(TickValueAligned(startValue), TickValueAligned(endValue));
     public Focal FocalFromDecimalSigned(double startValue, double endValue) =>
         new Focal(TickValueInverted(startValue), TickValueAligned(endValue));
 
@@ -196,7 +128,7 @@ public class Domain : IEquatable<Domain>
     }
     public double RawTickValue(long tick) => TicksFromZeroDirected(tick) / (double)DefaultBasisFocal.AbsLength;
 
-        
+
     public double AlignedValueAtT(Number num, double t)
     {
         double result;

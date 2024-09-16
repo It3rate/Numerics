@@ -59,7 +59,7 @@ public class PolarityTests
         Assert.IsFalse(number.IsInverted);
         Assert.IsTrue(number.HasPolarity);
 
-        number = _invertedDomain.MapToDomain(number);
+        number = _invertedDomain.DefaultBasisNumber.MapToDomain(number);
         Assert.AreEqual(Polarity.Inverted, number.Polarity);
         Assert.IsFalse(number.IsAligned);
         Assert.IsTrue(number.IsInverted);
@@ -72,10 +72,10 @@ public class PolarityTests
         //Assert.IsFalse(number.HasPolarity);
 
         var zeroDomain = new Domain(_trait, new Focal(10, 10), _limits); // zero len basis
-        number = zeroDomain.MapToDomain(number);
+        number = zeroDomain.DefaultBasisNumber.MapToDomain(number);
         Assert.AreEqual(Polarity.None, number.Polarity);
         var invZeroDomain = zeroDomain.Inverse;
-        number = invZeroDomain.MapToDomain(number);
+        number = invZeroDomain.DefaultBasisNumber.MapToDomain(number);
         Assert.AreEqual(Polarity.None, number.Polarity);
         Assert.IsFalse(number.HasPolarity);
     }
@@ -117,7 +117,7 @@ public class PolarityTests
         Assert.AreEqual(6000, value.Focal.EndTick);
         Assert.AreEqual(6, value.EndValue, _delta);
 
-        number200 = _fromZeroDomainInvert.MapToDomain(number200);
+        number200 = _fromZeroDomainInvert.DefaultBasisNumber.MapToDomain(number200);
         value = number200 * number300; // -2 * -3 = 6
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0, value.Focal.StartTick);
@@ -125,14 +125,14 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(6, value.EndValue, _delta);
 
-        number300 = _fromZeroDomainInvert.MapToDomain(number300);
+        number300 = _fromZeroDomainInvert.DefaultBasisNumber.MapToDomain(number300);
         value = number200 * number300; // -2 * -3 = 6
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0, value.Focal.StartTick);
         Assert.AreEqual(-6000, value.Focal.EndTick);
         Assert.AreEqual(6, value.EndValue, _delta);
 
-        number200 = _fromZeroDomain.MapToDomain(number200);
+        number200 = _fromZeroDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 * number300; // 2 * 3 = 6
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(0, value.Focal.StartTick);
@@ -157,19 +157,19 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(6, value.EndValue, _delta);
 
-        number200 = _invertedDomain.MapToDomain(number200);
+        number200 = _invertedDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 * number300; // (2 * 3) = 6
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(6, value.EndValue, _delta);
 
-        number300 = _invertedDomain.MapToDomain(number300);
+        number300 = _invertedDomain.DefaultBasisNumber.MapToDomain(number300);
         value = number200 * number300; // (2 * 3) = 6 [-16000:8000]
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(6, value.EndValue, _delta);
 
-        number200 = alignedDomain.MapToDomain(number200);
+        number200 = alignedDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 * number300; // (-2 * -3) = 6i
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(0, value.StartValue, _delta);
@@ -195,20 +195,20 @@ public class PolarityTests
         var n2 = new Number(id.DefaultBasisNumber, new(-36000, -2000));//(-9i+0.5)
         var n3 = new Number(id.DefaultBasisNumber, new(-34000, -12000));//(-8.5i + 3)
 
-        number200 = _invertedDomain.MapToDomain(number200);
+        number200 = _invertedDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 * number300; // (-2i + 1.5) * (-2i + 3) = (-9i - 0.5)
         Assert.AreEqual(Polarity.Inverted, value.Polarity); //
         Assert.AreEqual(-9, value.StartValue, _delta);
         Assert.AreEqual(0.5, value.EndValue, _delta);
 
 
-        number300 = _invertedDomain.MapToDomain(number300);
+        number300 = _invertedDomain.DefaultBasisNumber.MapToDomain(number300);
         value = number200 * number300; //  (-2i + 1.5) * (-2i + 3) = (-9i - 0.5)
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(-9, value.StartValue, _delta);
         Assert.AreEqual(0.5, value.EndValue, _delta);
 
-        number200 = alignedDomain.MapToDomain(number200);
+        number200 = alignedDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 * number300; //  (2i - 1.5) * (2i - 3) = (-9i - 0.5)
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(-9, value.StartValue, _delta);
@@ -227,7 +227,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.25, value.EndValue, _delta);
 
-        number200 = _fromZeroDomainInvert.MapToDomain(number200);
+        number200 = _fromZeroDomainInvert.DefaultBasisNumber.MapToDomain(number200);
         value = number200 / number300;// -2i / -8 = 0.25i
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0, value.Focal.StartTick);
@@ -235,7 +235,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.25, value.EndValue, _delta);
 
-        number300 = _fromZeroDomainInvert.MapToDomain(number300);
+        number300 = _fromZeroDomainInvert.DefaultBasisNumber.MapToDomain(number300);
         value = number200 / number300; // -2 / -8 = 0.25
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0, value.Focal.StartTick);
@@ -243,7 +243,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.25, value.EndValue, _delta);
 
-        number200 = _fromZeroDomain.MapToDomain(number200);
+        number200 = _fromZeroDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 / number300; // 2 / 8 = 0.25i
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(0, value.Focal.StartTick);
@@ -264,7 +264,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.25, value.EndValue, _delta);
 
-        number200 = _invertedDomain.MapToDomain(number200);
+        number200 = _invertedDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 / number300; // -2 / -8 = 0.25
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(1200, value.Focal.StartTick);
@@ -272,7 +272,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.25, value.EndValue, _delta);
 
-        number300 = _invertedDomain.MapToDomain(number300);
+        number300 = _invertedDomain.DefaultBasisNumber.MapToDomain(number300);
         value = number200 / number300; // -2 / -8 = 0.25
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(1200, value.Focal.StartTick);
@@ -280,7 +280,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.25, value.EndValue, _delta);
 
-        number200 = _offsetDomain.MapToDomain(number200);
+        number200 = _offsetDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 / number300; // 2 / 8 = 0.25
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(200, value.Focal.StartTick);
@@ -302,7 +302,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.25, value.EndValue, _delta);
 
-        number200 = _invertedDomain.MapToDomain(number200);
+        number200 = _invertedDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 / number300; // 2 / 8
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(1200, value.Focal.StartTick);
@@ -310,7 +310,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.25, value.EndValue, _delta);
 
-        number300 = _invertedDomain.MapToDomain(number300);
+        number300 = _invertedDomain.DefaultBasisNumber.MapToDomain(number300);
         value = number200 / number300; // 2 / 8 = 0.25
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(1200, value.Focal.StartTick);
@@ -318,7 +318,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.25, value.EndValue, _delta);
 
-        number200 = alignedDomain.MapToDomain(number200);
+        number200 = alignedDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 / number300; // -2 / -8 = -0.25i
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(1200, value.Focal.StartTick);
@@ -340,19 +340,19 @@ public class PolarityTests
         Assert.AreEqual(0.092, value.StartValue, _delta);
         Assert.AreEqual(1.057, value.EndValue, _delta);
 
-        number200 = _invertedDomain.MapToDomain(number200);
+        number200 = _invertedDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 / number300; // (1.33i - 1) / (1.33i - 0.83) = (0.092i + 1.057)
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0.092, value.StartValue, _delta);
         Assert.AreEqual(1.057, value.EndValue, _delta);
 
-        number300 = _invertedDomain.MapToDomain(number300);
+        number300 = _invertedDomain.DefaultBasisNumber.MapToDomain(number300);
         value = number200 / number300; // (1.33i - 1) / (1.33i - 0.83) = (0.0920i + 1.0574)
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0.092, value.StartValue, _delta);
         Assert.AreEqual(1.057, value.EndValue, _delta);
 
-        number200 = _offsetDomain.MapToDomain(number200);
+        number200 = _offsetDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 / number300;// (1.33i - 1) / (1.33i - 0.83) = (0.0920i + 1.0574)
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(0.092, value.StartValue, _delta);
@@ -364,7 +364,7 @@ public class PolarityTests
         var number200 = new Number(_fromZeroDomainBasis, new(100, 200));
         var number300 = new Number(_fromZeroDomainBasis, new(100, 300));
 
-        number200 = _fromZeroDomainInvert.MapToDomain(number200);
+        number200 = _fromZeroDomainInvert.DefaultBasisNumber.MapToDomain(number200);
         var value = number200 + number300;// (0.1i - 0.2) + (0.1i - 0.3) = (0.2i - 0.5)
         Assert.AreEqual(0.2, value.StartValue, _delta);
         Assert.AreEqual(-0.5, value.EndValue, _delta);
@@ -379,7 +379,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.5, value.EndValue, _delta);
 
-        number200 = _fromZeroDomainInvert.MapToDomain(number200);
+        number200 = _fromZeroDomainInvert.DefaultBasisNumber.MapToDomain(number200);
         value = number200 + number300; // (-0.2) + (-0.3) = (-.5)
 
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
@@ -388,7 +388,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(-0.5, value.EndValue, _delta);
 
-        number300 = _fromZeroDomainInvert.MapToDomain(number300);
+        number300 = _fromZeroDomainInvert.DefaultBasisNumber.MapToDomain(number300);
         value = number200 + number300; //  (-0.2i) + (-0.3i) = (-0.5i)
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0, value.Focal.StartTick);
@@ -396,7 +396,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(-0.5, value.EndValue, _delta);
 
-        number200 = _fromZeroDomain.MapToDomain(number200);
+        number200 = _fromZeroDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 + number300; //  (0.2) + (0.3) = -0.5)
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(0, value.Focal.StartTick);
@@ -410,7 +410,7 @@ public class PolarityTests
         var number200 = new Number(_fromZeroDomainBasis, new(100, 200));
         var number300 = new Number(_fromZeroDomainBasis, new(100, 300));
 
-        number200 = _fromZeroDomainInvert.MapToDomain(number200);
+        number200 = _fromZeroDomainInvert.DefaultBasisNumber.MapToDomain(number200);
         var value = number200 - number300;// (0.1i - 0.2) - (0.1i - 0.3) = (0i + 0.1)
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.1, value.EndValue, _delta);
@@ -425,7 +425,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(-0.1, value.EndValue, _delta);
 
-        number200 = _fromZeroDomainInvert.MapToDomain(number200);
+        number200 = _fromZeroDomainInvert.DefaultBasisNumber.MapToDomain(number200);
         value = number200 - number300; // (-0.2) - (-0.3) = (0.1)
 
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
@@ -434,7 +434,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.1, value.EndValue, _delta);
 
-        number300 = _fromZeroDomainInvert.MapToDomain(number300);
+        number300 = _fromZeroDomainInvert.DefaultBasisNumber.MapToDomain(number300);
         value = number200 - number300; //  (-0.2i) - (-0.3i) = (0.1i)
         Assert.AreEqual(Polarity.Inverted, value.Polarity);
         Assert.AreEqual(0, value.Focal.StartTick);
@@ -442,7 +442,7 @@ public class PolarityTests
         Assert.AreEqual(0, value.StartValue, _delta);
         Assert.AreEqual(0.1, value.EndValue, _delta);
 
-        number200 = _fromZeroDomain.MapToDomain(number200);
+        number200 = _fromZeroDomain.DefaultBasisNumber.MapToDomain(number200);
         value = number200 - number300; //  (0.2) - (0.3) = (-0.1)
         Assert.AreEqual(Polarity.Aligned, value.Polarity);
         Assert.AreEqual(0, value.Focal.StartTick);
