@@ -48,7 +48,7 @@ namespace NumericsCore.Expressions
         public double Value => Reference.AsBasisTValue(T);// check for 0 and 1 as these are going to be common, and could cause polyline calculation cascade.
         public bool NeedsUpdate { get; set; } = true;// timestamp changes to Number (reference), and check this timestamp. Allows holding old values. Have option of locking value and not updating.
 
-        public Number PartialNumber() => new Number(Reference.Domain, Reference.Domain.FocalFromDecimalRaw(0, Value));
+        public Number PartialNumber() => new Number(Reference, Reference.Domain.FocalFromDecimalRaw(0, Value));
 
     }
     /// <summary>

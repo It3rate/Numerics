@@ -29,17 +29,17 @@ public class LandmarkTests
     [TestMethod]
     public void LandmarkCreateTests()
     {
-        var num = new Number(_domain, new Focal(0, 1000));
+        var num = new Number(_domain.DefaultBasisNumber, new Focal(0, 1000));
         var lms = new Landmark(num, 0.5);
         Assert.AreEqual(5, lms.Value);
         var lme = new Landmark(num, 1.5);
         Assert.AreEqual(15, lme.Value);
 
-        var lmNum = new Number(_domain, lms, lme);
+        var lmNum = new Number(_domain.DefaultBasisNumber, lms, lme);
         Assert.AreEqual(5, lmNum.StartValue);
         Assert.AreEqual(15, lmNum.EndValue);
 
-        var right = new Number(_domain, new Focal(-300, 600));
+        var right = new Number(_domain.DefaultBasisNumber, new Focal(-300, 600));
         num.SetStartValue(8);
         Assert.AreEqual(9, lmNum.StartValue);
         num.SetEndValue(20);
@@ -59,8 +59,8 @@ public class LandmarkTests
     [TestMethod]
     public void NumberSetTests()
     {
-        var num = new Number(_domain, new Focal(-600, 1000));
-        var right = new Number(_domain, new Focal(-300, 600));
+        var num = new Number(_domain.DefaultBasisNumber, new Focal(-600, 1000));
+        var right = new Number(_domain.DefaultBasisNumber, new Focal(-300, 600));
 
         Assert.AreEqual(6, num.StartValue);
         Assert.AreEqual(10, num.EndValue);

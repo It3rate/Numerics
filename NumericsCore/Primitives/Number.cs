@@ -29,8 +29,12 @@ public class Number:
     //IMinMaxValue<Number>
 
 {
-    public Domain Domain { get; }
+    private Focal? _basis;
+
+    public Number BasisNumber { get; }
     public Focal Focal { get; }
+    public Domain Domain => _tlDomain ?? BasisNumber.Domain;
+    public Focal BasisFocal => BasisNumber.Focal;
     public double StartValue
     {
         get
@@ -57,19 +61,45 @@ public class Number:
     private IValueRef? StartLandmark;
     private IValueRef? EndLandmark;
 
-    public Number(Domain domain, Focal focal)
+    private Number? _inverse;
+    public Number Inverse
     {
-        Domain = domain;
+        get
+        {
+            if(_inverse == null)
+            {
+                _inverse = new Number(BasisNumber, Focal.BasisInverse);
+            }
+            return _inverse!;
+        }
+    }
+
+    public Number(Number basisNumber, Focal focal)
+    {
+        BasisNumber = basisNumber;
         Focal = focal;
         _history.Add(new(_curMS, StartValue, EndValue));
     }
-    public Number(Domain domain, IValueRef startLandmark, IValueRef endLandmark)
+    public Number(Number basisNumber, IValueRef startLandmark, IValueRef endLandmark)
     {
-        Domain = domain;
+        BasisNumber = basisNumber;
         StartLandmark = startLandmark;
         EndLandmark = endLandmark;
         Focal = new Focal(0, 0);
         EnsureLandmarks();
+    }
+
+    private Domain? _tlDomain;
+    private Number(Domain domain, Focal basisFocal) 
+    {
+        _tlDomain = domain;
+        Focal = basisFocal;
+        BasisNumber = this;
+    }
+    public static Number CreateDomainNumber(Domain domain, Focal focal)
+    {
+        var basisNumber = new Number(domain, focal);
+        return basisNumber;
     }
 
     #region Mutations
@@ -173,7 +203,7 @@ public class Number:
 
     #endregion
     #region Properties
-    public Polarity Polarity => Domain.Polarity;
+    public Polarity Polarity => BasisFocal.Polarity;
     public long StartTick => Focal.StartTick;
     public long EndTick => Focal.EndTick;
 
@@ -191,7 +221,7 @@ public class Number:
         var right = left.Domain.MapToDomain(rightIn);
         var (leftStart, leftEnd) = left.Domain.RawTicksFromZero(left);
         var (rightStart, rightEnd) = left.Domain.RawTicksFromZero(right);
-        var bf = left.Domain.BasisFocal;
+        var bf = left.BasisFocal;
         left.Focal.StartTick = bf.StartTick + (leftStart + rightStart);
         left.Focal.EndTick = bf.StartTick + (leftEnd + rightEnd);
         return left;
@@ -201,7 +231,7 @@ public class Number:
         var right = left.Domain.MapToDomain(rightIn);
         var (leftStart, leftEnd) = left.Domain.RawTicksFromZero(left);
         var (rightStart, rightEnd) = left.Domain.RawTicksFromZero(right);
-        var bf = left.Domain.BasisFocal;
+        var bf = left.BasisFocal;
         left.Focal.StartTick = bf.StartTick + (leftStart - rightStart);
         left.Focal.EndTick = bf.StartTick + (leftEnd - rightEnd);
         return left;
@@ -214,7 +244,7 @@ public class Number:
         var iVal = leftStart * rightEnd + leftEnd * rightStart;
         var rVal = leftEnd * rightEnd - leftStart * rightStart;
         var len = left.Domain.AbsBasisLength;
-        var bf = left.Domain.BasisFocal;
+        var bf = left.BasisFocal;
         left.Focal.StartTick = bf.StartTick - (iVal / len) * bf.Direction;
         left.Focal.EndTick = bf.StartTick + (rVal / len) * bf.Direction;
         return left;
@@ -240,7 +270,7 @@ public class Number:
             iVal = (long)((-leftEnd + leftStart * num1) / (rightStart + rightEnd * num1) * absLen);
             rVal = (long)((leftStart + leftEnd * num1) / (rightStart + rightEnd * num1) * absLen);
         }
-        var bf = left.Domain.BasisFocal;
+        var bf = left.BasisFocal;
         left.Focal.StartTick = bf.StartTick - iVal * bf.Direction;
         left.Focal.EndTick = bf.StartTick + rVal * bf.Direction;
         return left;
@@ -280,13 +310,13 @@ public class Number:
 
     public static Func<Number, Number> PLUS_PLUS = (left) =>
     {
-        left.Focal.Add(left.Domain.BasisNumber.Focal);
+        left.Focal.Add(left.Domain.DefaultBasisNumber.Focal);
         return left;
     };
 
     public static Func<Number, Number> MINUS_MINUS = (left) =>
     {
-        left.Focal.Subtract(left.Domain.BasisNumber.Focal);
+        left.Focal.Subtract(left.Domain.DefaultBasisNumber.Focal);
         return left;
     };
     public static Func<Number, Number> PLUS = (left) => { return left; };
@@ -315,7 +345,7 @@ public class Number:
     public static Number Subtract(Number left, Number right) => SUBTRACT(left.Clone(), right);
     static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => SUBTRACT(left.Clone(), right);
 
-    public Number Decrement() => new(Domain, Focal - Domain.BasisNumber.Focal);
+    public Number Decrement() => new(Domain, Focal - Domain.DefaultBasisNumber.Focal);
     public Number DecrementEndTick() => new(Domain, new Focal(StartTick, EndTick - BasisDirection));
 
     public Number Minus() => MINUS(this);
@@ -479,7 +509,7 @@ public class Number:
     }
     #endregion
     #region Equality
-    public Number Clone() => new Number(Domain, Focal.Clone());
+    public Number Clone() => new Number(BasisNumber, Focal.Clone());
     public static bool operator ==(Number? a, Number? b)
     {
         if (a is null && b is null)
@@ -506,14 +536,15 @@ public class Number:
         return ReferenceEquals(this, value) ||
                 (
                 Polarity == value.Polarity &&
-                Focal.Equals(this.Focal, value.Focal)
+                Focal.Equals(this.Focal, value.Focal) &&
+                BasisNumber == value.BasisNumber
                 );
     }
     public override int GetHashCode()
     {
         unchecked
         {
-            var hashCode = Focal.GetHashCode() * 17 ^ ((int)Polarity + 27) * 397;// + (IsValid ? 77 : 33);
+            var hashCode = BasisNumber.GetHashCode() * 13 + Focal.GetHashCode() * 17 ^ ((int)Polarity + 27) * 397;// + (IsValid ? 77 : 33);
             return hashCode;
         }
     }

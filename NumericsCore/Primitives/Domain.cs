@@ -17,33 +17,33 @@ namespace Numerics.Primitives;
 public class Domain : IEquatable<Domain>
 {
     public Trait? Trait { get; }
-    public Focal BasisFocal { get; }
-    private Focal LimitsFocal { get; }
+    public Number DefaultBasisNumber { get; }
+    public Focal DefaultBasisFocal => DefaultBasisNumber.Focal;
+    private Focal DefaultLimitsFocal { get; }
     private Domain(Focal basisFocal, Focal limitsFocal) : this(Trait.WorkingTrait, basisFocal, limitsFocal) { }
     public Domain(Trait? trait, Focal basisFocal, Focal limitsFocal)
     {
         Trait = trait;
-        BasisFocal = basisFocal;
-        LimitsFocal = limitsFocal;
+        DefaultLimitsFocal = limitsFocal;
+        DefaultBasisNumber = Number.CreateDomainNumber(this, basisFocal);
     }
 
     #region Properties
-    public Polarity Polarity => 
-        BasisFocal.Direction > 0 ? Polarity.Aligned :
-        BasisFocal.Direction < 0 ? Polarity.Inverted : Polarity.None;
+    //public Polarity Polarity => 
+    //    DefaultBasisFocal.Direction > 0 ? Polarity.Aligned :
+    //    DefaultBasisFocal.Direction < 0 ? Polarity.Inverted : Polarity.None;
 
-    public Number BasisNumber => new(this, BasisFocal);
-    public Number LimitsNumber => new(this, LimitsFocal);
+    public Number DefaultLimitsNumber => new(DefaultBasisNumber, DefaultLimitsFocal);
     public long TickSize { get; protected set; } = 1;
-    public long BasisLength => BasisFocal.Length;
-    public long AbsBasisLength => BasisFocal.AbsLength;
-    public int Direction => BasisFocal.Direction;
-    public bool IsInverted => BasisFocal.Direction == -1;
-    public long AbsLimitsSize => LimitsFocal.AbsLength;
-    public bool BasisIsReciprocal => Math.Abs(TickSize) > BasisFocal.AbsLength;
-    public double TickToBasisRatio => TickSize / BasisFocal.NonZeroTickLength;
-    public bool IsZero(Number num) => num.StartTick == BasisFocal.StartTick && num.EndTick == BasisFocal.StartTick;
-    public bool IsOne(Number num) => num.StartTick == BasisFocal.StartTick && num.EndTick == BasisFocal.EndTick;
+    public long BasisLength => DefaultBasisFocal.Length;
+    public long AbsBasisLength => DefaultBasisFocal.AbsLength;
+    public int Direction => DefaultBasisFocal.Direction;
+    public bool IsInverted => DefaultBasisFocal.Direction == -1;
+    public long AbsLimitsSize => DefaultLimitsFocal.AbsLength;
+    public bool BasisIsReciprocal => Math.Abs(TickSize) > DefaultBasisFocal.AbsLength;
+    public double TickToBasisRatio => TickSize / DefaultBasisFocal.NonZeroTickLength;
+    public bool IsZero(Number num) => num.StartTick == DefaultBasisFocal.StartTick && num.EndTick == DefaultBasisFocal.StartTick;
+    public bool IsOne(Number num) => num.StartTick == DefaultBasisFocal.StartTick && num.EndTick == DefaultBasisFocal.EndTick;
     // IsTickLessThanBasis, IsBasisInMinmax, IsTiling, IsClamping, IsInvertable, IsNegateable, IsPoly, HasTrait
     #endregion
     #region Transformations
@@ -54,7 +54,7 @@ public class Domain : IEquatable<Domain>
         {
             if ((_inverse == null))
             {
-                _inverse = new Domain(Trait, BasisFocal.FlipAroundFirstClone(), LimitsFocal.InvertClone());
+                _inverse = new Domain(Trait, DefaultBasisFocal.BasisInverse, DefaultLimitsFocal.InvertClone());
                 _inverse._inverse = this;
             }
             return _inverse;        
@@ -82,8 +82,8 @@ public class Domain : IEquatable<Domain>
         var result = left;
         if (left != right)
         {
-            var maxBasis = left.AbsBasisLength >= right.AbsBasisLength ? left.BasisFocal : right.BasisFocal;
-            var maxLimits = left.AbsLimitsSize >= right.AbsLimitsSize ? left.LimitsFocal : right.LimitsFocal;
+            var maxBasis = left.AbsBasisLength >= right.AbsBasisLength ? left.DefaultBasisFocal : right.DefaultBasisFocal;
+            var maxLimits = left.AbsLimitsSize >= right.AbsLimitsSize ? left.DefaultLimitsFocal : right.DefaultLimitsFocal;
             result = new Domain(maxBasis, maxLimits);
         }
         return result;
@@ -97,7 +97,9 @@ public class Domain : IEquatable<Domain>
     //    var result = offset / (double)BasisFocal.NonZeroTickLength;
     //    return result;
     //}
-
+    #endregion
+    #region ToMove
+    // todo: Move these all to Number
     public Number Negate(Number num)
     {
         var (startTicks, endTicks) = RawTicksFromZero(num);
@@ -113,56 +115,61 @@ public class Domain : IEquatable<Domain>
         var (startTicks, endTicks) = RawTicksFromZero(num);
         return CreateNumberRaw(-endTicks, -startTicks);
     }
-    public Number Invert(Number num) => new(num.Domain.Inverse, num.Focal);
-    public Number InvertNegate(Number num) => new(num.Domain.Inverse, num.Focal.NegateClone());
+    public Number Invert(Number num) => new(DefaultBasisNumber, num.Focal.InvertClone());
+    public Number InvertNegate(Number num) => new(DefaultBasisNumber, num.Focal.InvertClone().Negate());
     public Number MirrorStart(Number num) // inverted Conjugate
     {
         var (startTicks, endTicks) = RawTicksFromZero(num);
-        return CreateNumberRaw(-startTicks, endTicks);
+        return CreateNumberRaw(-startTicks, endTicks, num.BasisFocal);
     }
     public Number MirrorEnd(Number num) // aligned conjugate
     {
         var (startTicks, endTicks) = RawTicksFromZero(num);
-        return CreateNumberRaw(startTicks, -endTicks);
+        return CreateNumberRaw(startTicks, -endTicks, num.BasisFocal);
     }
     #endregion
-    #region Number Creation
-    public Number CreateNumberRaw(long startTicks,long endTicks)
+    #region To Move
+    public Number CreateNumberRaw(long startTicks,long endTicks, Focal? basis = null)
     {
-        return new Number(this, new Focal(
-            BasisFocal.StartTick + startTicks,
-            BasisFocal.StartTick + endTicks));
+        basis = basis ?? DefaultBasisFocal;
+        return new Number(DefaultBasisNumber, new Focal(
+            basis.StartTick + startTicks,
+            basis.StartTick + endTicks));
     }
-    public Number CreateNumberSigned(long startTicks, long endTicks)
+    public Number CreateNumberSigned(long startTicks, long endTicks, Focal? basis = null)
     {
-        return new Number(this, new Focal(
-            BasisFocal.StartTick - startTicks * Direction,
-            BasisFocal.StartTick + endTicks * Direction));
+        basis = basis ?? DefaultBasisFocal;
+        return new Number(DefaultBasisNumber, new Focal(
+            basis.StartTick - startTicks * Direction,
+            basis.StartTick + endTicks * Direction));
     }
-    public Number CreateNumberFromTs(double startT, double endT) =>
-        new(this, BasisFocal.FocalFromTs(-startT, endT));
-    public Number AdditiveIdentity => new Number(this, new Focal(BasisFocal.StartTick, BasisFocal.StartTick));
-    public Number MultiplicativeIdentity => new Number(this, BasisFocal);
-    public Number Zero => new(this, new Focal(BasisFocal.StartTick, BasisFocal.StartTick));
-    public Number One => new(this, BasisFocal.Clone());
-    public Number MinusOne => new(this, BasisFocal.FlipAroundFirstClone());
-    public Number One_i => new(this, BasisFocal.FlipAroundFirstClone().InvertClone());
-    public Number MinusOne_i => new(this, BasisFocal.InvertClone());
+    public Number CreateNumberFromTs(double startT, double endT, Focal? basis = null)
+    {
+        basis = basis ?? DefaultBasisFocal;
+        return new(DefaultBasisNumber, basis.FocalFromTs(-startT, endT));
+    }
+    public Number AdditiveIdentity => new Number(DefaultBasisNumber, new Focal(DefaultBasisFocal.StartTick, DefaultBasisFocal.StartTick));
+    public Number MultiplicativeIdentity => new Number(DefaultBasisNumber, DefaultBasisFocal);
+    public Number Zero => new(DefaultBasisNumber, new Focal(DefaultBasisFocal.StartTick, DefaultBasisFocal.StartTick));
+    public Number One => new(DefaultBasisNumber, DefaultBasisFocal.Clone());
+    public Number MinusOne => new(DefaultBasisNumber, DefaultBasisFocal.CloneToBasisInverse());
+    public Number One_i => new(DefaultBasisNumber, DefaultBasisFocal.CloneToBasisInverse().Invert());
+    public Number MinusOne_i => new(DefaultBasisNumber, DefaultBasisFocal.InvertClone());
     #endregion
     #region Conversions
-    public long TicksFromZero(long tick) => tick - BasisFocal.StartTick;
-    public long TicksFromZeroDirected(long tick) => (tick - BasisFocal.StartTick) * Direction;
+    public long TicksFromZero(long tick) => tick - DefaultBasisFocal.StartTick;
+    public long TicksFromZeroDirected(long tick) => (tick - DefaultBasisFocal.StartTick) * Direction;
     public (long, long) RawTicksFromZero(Number num) => (TicksFromZero(num.StartTick), TicksFromZero(num.EndTick));
     public (long, long) SignedTicksFromZero(Number num) => (-TicksFromZeroDirected(num.StartTick), TicksFromZeroDirected(num.EndTick));
     public long TickValueAligned(double value)
     {
-        var result = (long)(BasisFocal.StartTick + (value * BasisFocal.Length));
+        var result = (long)(DefaultBasisFocal.StartTick + (value * DefaultBasisFocal.Length));
         // todo: Clamp to limits, account for basis direction.
         return result;
     }
     public long TickValueInverted(double value)
     {
-        var result = (long)(BasisFocal.StartTick - (value * BasisFocal.Length));
+        var result = (long)(DefaultBasisFocal.StartTick - (value * DefaultBasisFocal.Length));
         // todo: Clamp to limits, account for basis direction.
         return result;
     }
@@ -172,22 +179,22 @@ public class Domain : IEquatable<Domain>
         new Focal(TickValueInverted(startValue), TickValueAligned(endValue));
 
     public (double, double) RawValues(Number num) => (
-        TicksFromZeroDirected(num.StartTick) / (double)BasisFocal.AbsLength,
-        TicksFromZeroDirected(num.EndTick) / (double)BasisFocal.AbsLength);
+        TicksFromZeroDirected(num.StartTick) / (double)num.BasisFocal.AbsLength,
+        TicksFromZeroDirected(num.EndTick) / (double)num.BasisFocal.AbsLength);
     public (double, double) SignedValues(Number num) => (
-        -TicksFromZeroDirected(num.StartTick) / (double)BasisFocal.AbsLength,
-        TicksFromZeroDirected(num.EndTick) / (double)BasisFocal.AbsLength);
+        -TicksFromZeroDirected(num.StartTick) / (double)num.BasisFocal.AbsLength,
+        TicksFromZeroDirected(num.EndTick) / (double)num.BasisFocal.AbsLength);
     public PRange GetRange(Number num)
     {
         var (start, end) = SignedValues(num);
         if (BasisIsReciprocal)
         {
-            start = Math.Round(start) * BasisFocal.AbsLength;
-            end = Math.Round(end) * BasisFocal.AbsLength;
+            start = Math.Round(start) * num.BasisFocal.AbsLength;
+            end = Math.Round(end) * num.BasisFocal.AbsLength;
         }
         return new PRange(start, end, num.Polarity);
     }
-    public double RawTickValue(long tick) => TicksFromZeroDirected(tick) / (double)BasisFocal.AbsLength;
+    public double RawTickValue(long tick) => TicksFromZeroDirected(tick) / (double)DefaultBasisFocal.AbsLength;
 
         
     public double AlignedValueAtT(Number num, double t)
@@ -212,7 +219,7 @@ public class Domain : IEquatable<Domain>
     #endregion
 
     #region Equality
-    public Domain Clone() => new Domain(Trait, BasisFocal.Clone(), LimitsFocal.Clone());
+    public Domain Clone() => new Domain(Trait, DefaultBasisFocal.Clone(), DefaultLimitsFocal.Clone());
     public override bool Equals(object? obj)
     {
         return Equals(obj as Domain);
@@ -223,8 +230,8 @@ public class Domain : IEquatable<Domain>
         if (other is null) return false;
         if (ReferenceEquals(this, other)) return true;
         return Trait == other.Trait &&
-               EqualityComparer<Focal>.Default.Equals(BasisFocal, other.BasisFocal) &&
-               EqualityComparer<Focal>.Default.Equals(LimitsFocal, other.LimitsFocal);
+               EqualityComparer<Focal>.Default.Equals(DefaultBasisFocal, other.DefaultBasisFocal) &&
+               EqualityComparer<Focal>.Default.Equals(DefaultLimitsFocal, other.DefaultLimitsFocal);
     }
     public static bool operator ==(Domain? left, Domain? right)
     {
@@ -241,8 +248,8 @@ public class Domain : IEquatable<Domain>
         {
             int hash = 17;
             hash = hash * 23 + (Trait?.GetHashCode() ?? 0);
-            hash = hash * 23 + BasisFocal.GetHashCode();
-            hash = hash * 23 + LimitsFocal.GetHashCode();
+            hash = hash * 23 + DefaultBasisFocal.GetHashCode();
+            hash = hash * 23 + DefaultLimitsFocal.GetHashCode();
             return hash;
         }
     }

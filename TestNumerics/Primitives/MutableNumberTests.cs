@@ -27,8 +27,8 @@ public class MutableNumberTests
     [TestMethod]
     public void MutableOperations()
     {
-        var result = new Number(_domain, new Focal(0, 20));
-        var num3 = new Number(_domain, new Focal(0, 30));
+        var result = new Number(_domain.DefaultBasisNumber, new Focal(0, 20));
+        var num3 = new Number(_domain.DefaultBasisNumber, new Focal(0, 30));
 
         result.Add(num3);
         Assert.AreEqual(0, result.StartValue);

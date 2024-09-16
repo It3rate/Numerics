@@ -17,6 +17,7 @@ public class AtomicExpressionTests
         private Focal _basisFocal = null!;
         private Focal _limits = null!;
         private Domain _domain = null!;
+        private Number _basisNum = null!;
         private Number _num2_8 = null!;
         private Number _num3_6 = null!;
         private Number[] _numList = null!;
@@ -29,8 +30,9 @@ public class AtomicExpressionTests
             _basisFocal = new Focal(0, 100);
             _limits = new Focal(-10000, 10000);
             _domain = new Domain(_trait, _basisFocal, _limits);
-            _num2_8 = new Number(_domain, new(-200, 800)); //   (2i + 8)
-            _num3_6 = new Number(_domain, new(-300, 600)); //   (3i + 6)
+            _basisNum = _domain.DefaultBasisNumber;
+            _num2_8 = new Number(_basisNum, new(-200, 800)); //   (2i + 8)
+            _num3_6 = new Number(_basisNum, new(-300, 600)); //   (3i + 6)
             _numList = new Number[] { _num2_8, _num3_6 };
         }
 

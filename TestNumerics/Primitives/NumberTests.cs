@@ -30,7 +30,7 @@ public class NumberTests
     public void Constructor_ValidValues_SetsPropertiesCorrectly()
     {
         var focal = new Focal(2, 8);
-        var number = new Number(_domain, focal);
+        var number = new Number(_domain.DefaultBasisNumber, focal);
         var invDomain = _domain.Inverse;
 
         Assert.AreEqual(_domain, number.Domain);
@@ -38,7 +38,7 @@ public class NumberTests
         Assert.AreEqual(Polarity.Aligned, number.Polarity);
 
         focal = new Focal(2, 8);
-        number = new Number(invDomain, focal);
+        number = new Number(invDomain.DefaultBasisNumber, focal);
 
         Assert.AreEqual(invDomain, number.Domain);
         Assert.AreEqual(_basisFocal, number.Focal);
@@ -48,21 +48,21 @@ public class NumberTests
     public void TickLength_ValidValues_CalculatesCorrectly()
     {
         var focal = new Focal(2, 8);
-        var number = new Number(_domain, focal);
+        var number = new Number(_domain.DefaultBasisNumber, focal);
         Assert.AreEqual(6, number.TickLength);
         focal = new Focal(8, 2);
-        number = new Number(_domain, focal);
+        number = new Number(_domain.DefaultBasisNumber, focal);
         Assert.AreEqual(-6, number.TickLength);
     }
     [TestMethod]
     public void AbsTickLength_ValidValues_CalculatesCorrectly()
     {
         var focal = new Focal(8, 2);
-        var number = new Number(_domain, focal);
+        var number = new Number(_domain.DefaultBasisNumber, focal);
         var absTickLength = number.AbsTickLength;
         Assert.AreEqual(6, absTickLength);
         focal = new Focal(8, 2);
-        number = new Number(_domain, focal);
+        number = new Number(_domain.DefaultBasisNumber, focal);
         Assert.AreEqual(6, number.AbsTickLength);
     }
     [TestMethod]
@@ -70,8 +70,8 @@ public class NumberTests
     {
         var focal1 = new Focal(2, 6);
         var focal2 = new Focal(3, 7);
-        var number1 = new Number(_domain, focal1);
-        var number2 = new Number(_domain, focal2);
+        var number1 = new Number(_domain.DefaultBasisNumber, focal1);
+        var number2 = new Number(_domain.DefaultBasisNumber, focal2);
         var result = number1 + number2;
 
         Assert.AreEqual(3, result.StartTick);
@@ -91,8 +91,8 @@ public class NumberTests
 
         var focal1 = new Focal(200, 600);
         var focal2 = new Focal(300, 700);
-        var number1 = new Number(_domain, focal1);
-        var number2 = new Number(_domain, focal2);
+        var number1 = new Number(_domain.DefaultBasisNumber, focal1);
+        var number2 = new Number(_domain.DefaultBasisNumber, focal2);
         var result = number1 - number2;
         Assert.AreEqual(100, result.StartTick);
         Assert.AreEqual(100, result.EndTick);
@@ -112,16 +112,16 @@ public class NumberTests
 
         var focal1 = new Focal(0, 4000);
         var focal2 = new Focal(0, 2000);
-        var number1 = new Number(_domain, focal1);
-        var number2 = new Number(_domain, focal2);
+        var number1 = new Number(_domain.DefaultBasisNumber, focal1);
+        var number2 = new Number(_domain.DefaultBasisNumber, focal2);
         var result = number1 * number2;
         Assert.AreEqual(0.00, result.StartValue, _delta);
         Assert.AreEqual(8.00, result.EndValue, _delta);
 
         focal1 = new Focal(2000, 4000);
         focal2 = new Focal(0, 2000);
-        number1 = new Number(_domain, focal1);
-        number2 = new Number(_domain, focal2);
+        number1 = new Number(_domain.DefaultBasisNumber, focal1);
+        number2 = new Number(_domain.DefaultBasisNumber, focal2);
         result = number1 * number2;
         Assert.AreEqual(-4.00, result.StartValue, _delta);
         Assert.AreEqual(8.00, result.EndValue, _delta);
@@ -137,8 +137,8 @@ public class NumberTests
 
         focal1 = new Focal(200, 600);
         focal2 = new Focal(300, 700);
-        number1 = new Number(_domain, focal1);
-        number2 = new Number(_domain, focal2);
+        number1 = new Number(_domain.DefaultBasisNumber, focal1);
+        number2 = new Number(_domain.DefaultBasisNumber, focal2);
         result = number1 * number2;
         Assert.AreEqual(266, result.StartTick);
         Assert.AreEqual(533, result.EndTick);
@@ -158,16 +158,16 @@ public class NumberTests
 
         var focal1 = new Focal(0, 4000);
         var focal2 = new Focal(0, 400);
-        var number1 = new Number(_domain, focal1);
-        var number2 = new Number(_domain, focal2);
+        var number1 = new Number(_domain.DefaultBasisNumber, focal1);
+        var number2 = new Number(_domain.DefaultBasisNumber, focal2);
         var result = number1 / number2; // 4 / 0.4 = 10
         Assert.AreEqual(0.00, result.StartValue, _delta);
         Assert.AreEqual(10.00, result.EndValue, _delta);
 
         focal1 = new Focal(2000, 4000);
         focal2 = new Focal(0, 400);
-        number1 = new Number(_domain, focal1);
-        number2 = new Number(_domain, focal2);
+        number1 = new Number(_domain.DefaultBasisNumber, focal1);
+        number2 = new Number(_domain.DefaultBasisNumber, focal2);
         result = number1 / number2; // (-2i + 4) / (0.4) = (-5i + 10)
         Assert.AreEqual(-5.00, result.StartValue, _delta);
         Assert.AreEqual(10.00, result.EndValue, _delta);
@@ -176,8 +176,8 @@ public class NumberTests
         _domain = new Domain(_trait, _basisFocal, _limits);
         focal1 = new Focal(3000, 5000);
         focal2 = new Focal(1000, 1400);
-        number1 = new Number(_domain, focal1);
-        number2 = new Number(_domain, focal2);
+        number1 = new Number(_domain.DefaultBasisNumber, focal1);
+        number2 = new Number(_domain.DefaultBasisNumber, focal2);
         result = number1 / number2;
         Assert.AreEqual(-5.00, result.StartValue, _delta);
         Assert.AreEqual(10.00, result.EndValue, _delta);
@@ -187,8 +187,8 @@ public class NumberTests
 
         focal1 = new Focal(600, 4200);
         focal2 = new Focal(300, 700);
-        number1 = new Number(_domain, focal1);
-        number2 = new Number(_domain, focal2);
+        number1 = new Number(_domain.DefaultBasisNumber, focal1);
+        number2 = new Number(_domain.DefaultBasisNumber, focal2);
         result = number1 / number2; // (-0.67i + 6.67) / (-0.17i + 0.83) = (0.8050i + 7.8713) // [-283, 4923] 
 
         var pr1 = PRange.FromNumber(number1);
@@ -218,8 +218,8 @@ public class NumberTests
 
         var focal1 = new Focal(6000, 42000);
         var focal2 = new Focal(3000, 7000);
-        var number1 = new Number(_domain, focal1);
-        var number2 = new Number(_domain, focal2);
+        var number1 = new Number(_domain.DefaultBasisNumber, focal1);
+        var number2 = new Number(_domain.DefaultBasisNumber, focal2);
         var result = number1 / number2; // (-1i - 8) / (-1.75i + 0.75) = (-4.0690i - 1.1724)
 
         var pr1 = PRange.FromNumber(number1);
@@ -235,7 +235,7 @@ public class NumberTests
     public void DecimalValue_ValidTick_CalculatesCorrectly()
     {
         var focal = new Focal(2, 8);
-        var number = new Number(_domain, focal);
+        var number = new Number(_domain.DefaultBasisNumber, focal);
         Assert.AreEqual(0, number.StartValue, _delta);
         Assert.AreEqual(1, number.EndValue, _delta);
     }
@@ -255,7 +255,7 @@ public class NumberTests
     public void Clone_ValidNumber_CreatesNewInstance()
     {
         var focal = new Focal(2, 8);
-        var number = new Number(_domain, focal);
+        var number = new Number(_domain.DefaultBasisNumber, focal);
         var clone = number.Clone();
         Assert.AreNotSame(number, clone);
         Assert.AreEqual(number.Domain, clone.Domain);

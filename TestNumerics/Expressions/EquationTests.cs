@@ -30,10 +30,10 @@ public class EquationTests
         _basisFocal = new Focal(0, 100);
         _limits = new Focal(-10000, 10000);
         _domain = new Domain(_trait, _basisFocal, _limits);
-        _num2_8 = new Number(_domain, new(-200, 800)); //   (2i + 8)
-        _num3_6 = new Number(_domain, new(-300, 600)); //   (3i + 6)
-        _num1_m7 = new Number(_domain, new(-100, -700)); // (i -7)
-        _num_m3_m6 = new Number(_domain, new(300, -600));// (-3i -6)
+        _num2_8 = new Number(_domain.DefaultBasisNumber, new(-200, 800)); //   (2i + 8)
+        _num3_6 = new Number(_domain.DefaultBasisNumber, new(-300, 600)); //   (3i + 6)
+        _num1_m7 = new Number(_domain.DefaultBasisNumber, new(-100, -700)); // (i -7)
+        _num_m3_m6 = new Number(_domain.DefaultBasisNumber, new(300, -600));// (-3i -6)
         _numList = new Number[] { _num2_8, _num3_6, _num1_m7, _num_m3_m6 };
     }
 
@@ -52,11 +52,11 @@ public class EquationTests
     [TestMethod]
     public void InvertTest()
     {
-        var offset = new Number(_domain, new(0, 0));
-        var path = new Number(_domain, new(0, 300));
+        var offset = new Number(_domain.DefaultBasisNumber, new(0, 0));
+        var path = new Number(_domain.DefaultBasisNumber, new(0, 300));
         var lm1 = new Landmark(path, 0.2);
         var lm2 = new Landmark(path, 0.8);
-        var lmn = new Number(_domain, lm1, lm2);
+        var lmn = new Number(_domain.DefaultBasisNumber, lm1, lm2);
         var seedList = new List<Number> { offset};
 
         var equation = new Expression(seedList, 10, NumericsCore.Interfaces.TileMode.Ignore, true);
@@ -69,7 +69,7 @@ public class EquationTests
     [TestMethod]
     public void PowTest()
     {
-        var seedList = new List<Number> { new Number(_domain, new(0, 300)) };
+        var seedList = new List<Number> { new Number(_domain.DefaultBasisNumber, new(0, 300)) };
         var equation = new Expression(seedList, 10, NumericsCore.Interfaces.TileMode.Ignore, true);
         var step1 = new AtomicExpression(0, new MultiplyOperation(), 1);
         equation.AddAtomicExpression(step1);
@@ -86,7 +86,7 @@ public class EquationTests
     [TestMethod]
     public void FibbonaciTest()
     {
-        var seedList = new List<Number> { new Number(_domain, new(0, 100)), new Number(_domain, new Focal(0, 100)) };
+        var seedList = new List<Number> { new Number(_domain.DefaultBasisNumber, new(0, 100)), new Number(_domain.DefaultBasisNumber, new Focal(0, 100)) };
         var equation = new Expression(seedList, 10, NumericsCore.Interfaces.TileMode.Ignore, true);
         var step1 = new AtomicExpression(-2, new AddOperation(), 1);
         equation.AddAtomicExpression(step1);
@@ -103,7 +103,7 @@ public class EquationTests
     public void FibbonaciTest2()
     {
         // using the aligned and inverted sides of a number (total length is new endpoint, alternate polarity)
-        var seedList = new List<Number> { new Number(_domain, new(-100, 100)) };
+        var seedList = new List<Number> { new Number(_domain.DefaultBasisNumber, new(-100, 100)) };
         var equation = new Expression(seedList, 10, NumericsCore.Interfaces.TileMode.Ignore, true);
         var step1 = new AtomicExpression(-1, new AddOperation(), 1);
         var step2 = new AtomicExpression(new InvertNegateOperation(), 1); // use stack?
@@ -122,7 +122,7 @@ public class EquationTests
     {
         // attractor is encoded as center point with amount to change passing object velocities (always towards its center)
         // orbiter is encoded as an object moving a length velocity each step, which is variable.
-        var seedList = new List<Number> { new Number(_domain, new(50, 50)), new Number(_domain, new Focal(1000, -1000)) };
+        var seedList = new List<Number> { new Number(_domain.DefaultBasisNumber, new(50, 50)), new Number(_domain.DefaultBasisNumber, new Focal(1000, -1000)) };
         // curpoint is endpoint, previous point is startpoint.
         // Add aligned or inverted to length depending on side the endpoint is on.
         // append this to endpoint, and put startpoint at previous endpoint.

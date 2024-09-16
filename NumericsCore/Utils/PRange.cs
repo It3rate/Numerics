@@ -238,7 +238,7 @@ public struct PRange
     public Focal ToFocal() => new((long)Start, (long)End);
     public static PRange FromFocal(Focal value) => new(value.StartTick, value.EndTick);
     public Number ToNumber(Domain domain) => new(
-        domain, 
+        domain.DefaultBasisNumber, 
         domain.FocalFromDecimalSigned(Start, End));
     #endregion
 
