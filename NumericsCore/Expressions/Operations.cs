@@ -92,28 +92,28 @@ namespace NumericsCore.Expressions
     {
         public AddOperation() { }
         public AddOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => input + rightSide;
+        protected override Number Calculate(Number input, Number rightSide) => input.Add(rightSide);
     }
 
     public class SubtractOperation : BinaryOperationsBase
     {
         public SubtractOperation() { }
         public SubtractOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => input - rightSide;
+        protected override Number Calculate(Number input, Number rightSide) => input.Subtract(rightSide);
     }
 
     public class MultiplyOperation : BinaryOperationsBase
     {
         public MultiplyOperation() { }
         public MultiplyOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => input * rightSide;
+        protected override Number Calculate(Number input, Number rightSide) => input.Multiply(rightSide);
     }
 
     public class DivideOperation : BinaryOperationsBase
     {
         public DivideOperation() { }
         public DivideOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => input / rightSide;
+        protected override Number Calculate(Number input, Number rightSide) => input.Divide(rightSide);
     }
 
     public class PowOperation : BinaryOperationsBase

@@ -56,6 +56,10 @@ namespace NumericsCore.Expressions
             }
             return result;
         }
+        public Number CalculateInverse(Number input)
+        {
+            throw new NotImplementedException();
+        }
         //public Number Calculate(Number left, Number right)
         //{
         //    var result = left;
@@ -66,7 +70,7 @@ namespace NumericsCore.Expressions
         //    }
         //    return result;
         //}
-         public Number CalculateAtT(Number input, double t)
+        public Number CalculateAtT(Number input, double t)
         {
             throw new NotImplementedException();
         }

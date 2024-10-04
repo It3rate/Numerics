@@ -14,7 +14,7 @@ using NumericsCore.Utils;
 namespace Numerics.Primitives;
 
 
-public class Number:
+public class Number :
     Numeric<Number>,
     IValue,
     IAdditionOperators<Number, Number, Number>,
@@ -26,7 +26,7 @@ public class Number:
     IUnaryNegationOperators<Number, Number>,
     IUnaryPlusOperators<Number, Number>,
     IPolarityOperators<Number, Number, Number>
-    //IMinMaxValue<Number>
+//IMinMaxValue<Number>
 
 {
     private Focal? _basis;
@@ -69,7 +69,7 @@ public class Number:
     {
         get
         {
-            if(_inverse == null)
+            if (_inverse == null)
             {
                 _inverse = new Number(BasisNumber, Focal.BasisInverse);
             }
@@ -93,7 +93,7 @@ public class Number:
     }
 
     private Domain? _tlDomain;
-    private Number(Domain domain, Focal basisFocal) 
+    private Number(Domain domain, Focal basisFocal)
     {
         _tlDomain = domain;
         Focal = basisFocal;
@@ -174,7 +174,7 @@ public class Number:
     //public void DecrementEndTick() => Focal.EndTick -= BasisDirection;
     private void EnsureLandmarks()
     {
-        if(StartLandmark != null && EndLandmark != null) // both must be set
+        if (StartLandmark != null && EndLandmark != null) // both must be set
         {
             if (StartLandmark.NeedsUpdate)
             {
@@ -199,7 +199,7 @@ public class Number:
     public bool IsPoint => StartTick == EndTick;
     public bool IsSmallerThanBasis => Math.Abs(StartValue) < 1 && Math.Abs(EndValue) < 1;
     public bool IsBasisPermutation => // 1, -1, i, -i
-        (StartValue == 0 && Math.Abs(EndValue) == 1) || 
+        (StartValue == 0 && Math.Abs(EndValue) == 1) ||
         (EndValue == 0 && Math.Abs(StartValue) == 1);
     public bool IsFractional => StartValue != (int)StartValue || EndValue != (int)EndValue;
     // IsNormalized, IsOverflow, IsUnderflow IsGrowable, IsMin, HasMask, IsArray, IsMultiDim, IsCalculated, IsRandom
@@ -331,7 +331,7 @@ public class Number:
     static Number IAdditionOperators<Number, Number, Number>.operator +(Number left, Number right) => ADD(left.Clone(), right);
 
     public Number Increment() => PLUS_PLUS(this);
-    public Number IncrementEndTick() { Focal.Add(0, BasisDirection); return this; }
+    public Number IncrementEndTick() { Focal.EndTick += BasisDirection; return this; }
     public Number Plus() => PLUS(this);
     public static Number operator +(Number value) => PLUS(value);
     public Number PlusPlus() => PLUS_PLUS(this);
@@ -344,8 +344,8 @@ public class Number:
     public static Number Subtract(Number left, Number right) => SUBTRACT(left.Clone(), right);
     static Number ISubtractionOperators<Number, Number, Number>.operator -(Number left, Number right) => SUBTRACT(left.Clone(), right);
 
-    public Number Decrement() => new(Domain, Focal - Domain.DefaultBasisNumber.Focal);
-    public Number DecrementEndTick() => new(Domain, new Focal(StartTick, EndTick - BasisDirection));
+    public Number Decrement() => MINUS_MINUS(this);
+    public Number DecrementEndTick() { Focal.EndTick -= BasisDirection; return this; }
 
     public Number Minus() => MINUS(this);
     public static Number operator -(Number value) => MINUS(value);
