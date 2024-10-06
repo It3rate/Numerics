@@ -54,18 +54,36 @@ public class OperationTests
         result = setOperation.Calculate(result);
         Assert.AreEqual(7, result.StartValue);
         Assert.AreEqual(22, result.EndValue);
-    }
+	}
 
-    [TestMethod]
+	[TestMethod]
+	public void AddInvTests()
+	{
+		var setOperation = new AddOperation(_num2_8);
+		var result = setOperation.CalculateInverse(_num3_6);
+		Assert.AreEqual(5, result.StartValue);
+		Assert.AreEqual(14, result.EndValue);
+	}
+
+	[TestMethod]
     public void SubtractTests()
     {
         var setOperation = new SubtractOperation(_num2_8);
         var result = setOperation.Calculate(_num3_6);
         Assert.AreEqual(1, result.StartValue);
         Assert.AreEqual(-2, result.EndValue);
-        result = setOperation.Calculate(result);
+		result = setOperation.Calculate(result);
+		Assert.AreEqual(-1, result.StartValue);
+		Assert.AreEqual(-10, result.EndValue);
+	}
+
+    [TestMethod]
+    public void SubtractInvTests()
+    {
+        var setOperation = new SubtractOperation(_num2_8);
+        var result = setOperation.CalculateInverse(_num3_6);
         Assert.AreEqual(-1, result.StartValue);
-        Assert.AreEqual(-10, result.EndValue);
+        Assert.AreEqual(2, result.EndValue);
     }
 
     [TestMethod]
@@ -78,8 +96,17 @@ public class OperationTests
         result = setOperation.Calculate(result);
         Assert.AreEqual(372, result.StartValue);
         Assert.AreEqual(264, result.EndValue);
-    }
-    [TestMethod]
+	}
+
+	[TestMethod]
+	public void MultiplyInvTests()
+	{
+		var setOperation = new MultiplyOperation(_num2_8);
+		var result = setOperation.CalculateInverse(_num3_6);
+		Assert.AreEqual(36, result.StartValue);
+		Assert.AreEqual(42, result.EndValue);
+	}
+	[TestMethod]
     public void DivideTests()
     {
         var setOperation = new DivideOperation(_num2_8);
@@ -89,8 +116,17 @@ public class OperationTests
         result = setOperation.Calculate(result);
         Assert.AreEqual(0, result.StartValue, _delta);
         Assert.AreEqual(0.09, result.EndValue, _delta);
-    }
-    [TestMethod]
+	}
+
+	[TestMethod]
+	public void DivideInvTests()
+	{
+		var setOperation = new DivideOperation(_num2_8);
+		var result = setOperation.CalculateInverse(_num3_6);
+		Assert.AreEqual(-0.26, result.StartValue, _delta);
+		Assert.AreEqual(1.2, result.EndValue, _delta);
+	}
+	[TestMethod]
     public void PowTests()
     {
         var setOperation = new PowOperation(_num2_8);

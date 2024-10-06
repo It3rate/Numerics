@@ -13,5 +13,6 @@ public class Trait
     }
     public virtual Trait Clone() => new Trait(Name);
 
-    public static readonly Trait WorkingTrait = new Trait("__working");
+	public static readonly Trait WorkingTrait = new Trait("__working");
+	public static readonly Trait ScalarTrait = new Trait("__scalar");
 }

@@ -51,6 +51,8 @@ public class Domain : IEquatable<Domain>
     }
     #endregion
 
+    public static readonly Domain SCALAR_DOMAIN = new Domain(Trait.ScalarTrait, Focal.One, Focal.MaxFocal);
+
     #region Equality
     public Domain Clone() => new Domain(Trait, DefaultBasisFocal.Clone(), DefaultLimitsFocal.Clone());
     public override bool Equals(object? obj)

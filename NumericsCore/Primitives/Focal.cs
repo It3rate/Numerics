@@ -559,6 +559,9 @@ public class Focal :
             return hashCode;
         }
     }
-    #endregion
-    public override string ToString() => $"[{StartTick} : {EndTick}]";
+	#endregion
+
+	public static readonly Focal OneFocal = new Focal(0, 1);
+	public static readonly Focal MaxFocal = new Focal(long.MinValue, long.MaxValue);
+	public override string ToString() => $"[{StartTick} : {EndTick}]";
 }

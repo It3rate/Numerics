@@ -367,10 +367,12 @@ public class Number :
     #region Pow
     public Number Pow(Number power) => POW(this, power);
     public static Number operator ^(Number value, Number power) => POW(value.Clone(), power);
-    public static Number Pow(Number value, Number power)  => POW(value.Clone(), power);
-    #endregion
-    #region Polarity
-    public bool IsAligned => Polarity == Polarity.Aligned;
+	public static Number Pow(Number value, Number power) => POW(value.Clone(), power);
+	public Number Squared() => this * this;
+	public Number Sqrt() => throw new NotImplementedException();
+	#endregion
+	#region Polarity
+	public bool IsAligned => Polarity == Polarity.Aligned;
     public bool IsInverted => Polarity == Polarity.Inverted;
     public bool HasPolarity => Polarity.HasPolarity();
     public virtual bool IsPolarityEqual(Number num) => Polarity == num.Polarity;
@@ -504,9 +506,11 @@ public class Number :
     public Number MinusOne => new(BasisNumber, BasisFocal.CloneToBasisInverse());
     public Number One_i => new(BasisNumber, BasisFocal.CloneToBasisInverse().Invert());
     public Number MinusOne_i => new(BasisNumber, BasisFocal.InvertClone());
-    #endregion
-    #region Transforms
-    public static Number operator ~(Number value) => value.MirrorStart();
+	public Number Half => new(BasisNumber, new Focal(BasisFocal.StartTick, BasisFocal.EndTick / 2));
+	public Number Two => new(BasisNumber, new Focal(BasisFocal.StartTick, BasisFocal.EndTick * 2));
+	#endregion
+	#region Transforms
+	public static Number operator ~(Number value) => value.MirrorStart();
     public Number Negate()
     {
         var (startTicks, endTicks) = RawTicksFromZero();
@@ -680,9 +684,10 @@ public class Number :
             return hashCode;
         }
     }
-    #endregion
+	#endregion
 
-    public override string ToString()
+	public static readonly Number SCALAR_ZERO = new Number(Domain.SCALAR_DOMAIN, Focal.Zero);
+	public override string ToString()
     {
         string result;
         var val = GetRange();
