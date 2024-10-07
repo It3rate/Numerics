@@ -63,6 +63,12 @@ public class Focal :
             _basisInverse?.SetAsBasisInverseOf(this);
         }
     }
+    public void SetWith(long startTick, long endTick)
+    {
+        _positions[0] = startTick;
+		_positions[_positions.Length - 1] = endTick;
+		_basisInverse?.SetAsBasisInverseOf(this);
+    }
 
     public Polarity Polarity =>
         Direction > 0 ? Polarity.Aligned :

@@ -110,7 +110,12 @@ public class Number :
     private List<ValueAtTime> _history = new System.Collections.Generic.List<ValueAtTime>();
     public ValueAtTime? CurrentHistoricalValue() => _history.Count > 0 ? _history[_history.Count - 1] : null;
     public ValueAtTime? PreviousHistoricalValue() => _history.Count > 1 ? _history[_history.Count - 2] : null;
-    public bool SetValues(double startValue, double endValue)
+	public void SetWith(Number value)
+	{
+        // todo: account for domains, resolution etc.
+        Focal.SetWith(value.Focal.StartTick, value.Focal.EndTick);
+	}
+	public bool SetValues(double startValue, double endValue)
     {
         // allow changes by optionally recording old values and timestamping. This allows history to be preserved for trend analysis, and rewind. Need not be perfect (forgetting allowed)
         // maybe count accesses as well as changes if that helps understanding. Or access with an expected value to create defaults and understand differences.

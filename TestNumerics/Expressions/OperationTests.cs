@@ -17,8 +17,9 @@ public class OperationTests
     private Domain _domain = null!;
     private Number _basisNum = null!;
     private Number _num2_8 = null!;
-    private Number _num3_6 = null!;
-    private static double _delta = 0.001;
+	private Number _num3_6 = null!;
+	private Number _num100_200 = null!;
+	private static double _delta = 0.001;
 
     [TestInitialize]
     public void Init()
@@ -29,8 +30,9 @@ public class OperationTests
         _domain = new Domain(_trait, _basisFocal, _limits);
         _basisNum = _domain.DefaultBasisNumber;
         _num2_8 = new Number(_basisNum, new(-200, 800));
-        _num3_6 = new Number(_basisNum, new(-300, 600));
-    }
+		_num3_6 = new Number(_basisNum, new(-300, 600));
+		_num100_200 = new Number(_basisNum, new(-10000, 20000));
+}
 
     [TestMethod]
     public void SetTests()
@@ -134,4 +136,18 @@ public class OperationTests
         Assert.AreEqual(1530434.37, result.StartValue, _delta);
         Assert.AreEqual(538167.4, result.EndValue, _delta);
     }
+
+
+
+	[TestMethod]
+	public void RepeatSubtractTests()
+	{
+		var setOperation = new SubtractOperation(_num2_8);
+		setOperation.CalculateInPlace(_num100_200);
+		Assert.AreEqual(98, _num100_200.StartValue);
+		Assert.AreEqual(192, _num100_200.EndValue);
+		setOperation.CalculateInPlace(_num100_200);
+		Assert.AreEqual(96, _num100_200.StartValue);
+        Assert.AreEqual(184, _num100_200.EndValue);
+	}
 }

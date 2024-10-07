@@ -15,6 +15,8 @@ namespace NumericsCore.Expressions
 		}
 		public abstract Number Calculate(Number input);
 		public abstract Number CalculateInverse(Number input);
+        public Number CalculateInPlace(Number input) { input.SetWith(Calculate(input)); return input; }
+		public virtual Number CalculateInverseInPlace(Number input) { input.SetWith(CalculateInverse(input)); return input; }
 	}
 
     public class ResetOperation : OperationBase
