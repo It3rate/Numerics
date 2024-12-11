@@ -8,10 +8,12 @@ namespace NumericsCore.Interfaces
 {
     public enum TileMode
     {
-        Ignore, // continue past segment
+        OneShot, // only run once no matter what
+        Continue, // continue past segment
         Clamp,  // use endpoint value
         Bounce, // reverse
-        Invert, // change polarity and reverse
         Loop,   // back to start
+        InvertLoop, // change polarity and back to start
+        InvertBounce, // change polarity and reverse
     }
 }

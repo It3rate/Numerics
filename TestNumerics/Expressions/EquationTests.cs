@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Numerics.Primitives;
 using NumericsCore.Expressions;
+using NumericsCore.Interfaces;
 
 namespace TestNumerics.Operations;
 
@@ -59,7 +60,7 @@ public class EquationTests
         var lmn = new Number(_domain.DefaultBasisNumber, lm1, lm2);
         var seedList = new List<Number> { offset};
 
-        var equation = new Expression(seedList, 10, NumericsCore.Interfaces.TileMode.Ignore, true);
+        var equation = new Expression(seedList, 10, TileMode.Continue, true);
         var step1 = new AtomicExpression(0, new AddOperation(), 1);
         var step2 = new AtomicExpression(new InvertOperation(), 1);
         equation.AddAtomicExpression(step1, step2);
@@ -70,7 +71,7 @@ public class EquationTests
     public void PowTest()
     {
         var seedList = new List<Number> { new Number(_domain.DefaultBasisNumber, new(0, 300)) };
-        var equation = new Expression(seedList, 10, NumericsCore.Interfaces.TileMode.Ignore, true);
+        var equation = new Expression(seedList, 10, TileMode.Continue, true);
         var step1 = new AtomicExpression(0, new MultiplyOperation(), 1);
         equation.AddAtomicExpression(step1);
         equation.SetInput(seedList[0]);
@@ -87,7 +88,7 @@ public class EquationTests
     public void FibbonaciTest()
     {
         var seedList = new List<Number> { new Number(_domain.DefaultBasisNumber, new(0, 100)), new Number(_domain.DefaultBasisNumber, new Focal(0, 100)) };
-        var equation = new Expression(seedList, 10, NumericsCore.Interfaces.TileMode.Ignore, true);
+        var equation = new Expression(seedList, 10, TileMode.Continue, true);
         var step1 = new AtomicExpression(-2, new AddOperation(), 1);
         equation.AddAtomicExpression(step1);
         equation.SetInput(seedList[1]);
@@ -104,7 +105,7 @@ public class EquationTests
     {
         // using the aligned and inverted sides of a number (total length is new endpoint, alternate polarity)
         var seedList = new List<Number> { new Number(_domain.DefaultBasisNumber, new(-100, 100)) };
-        var equation = new Expression(seedList, 10, NumericsCore.Interfaces.TileMode.Ignore, true);
+        var equation = new Expression(seedList, 10, TileMode.Continue, true);
         var step1 = new AtomicExpression(-1, new AddOperation(), 1);
         var step2 = new AtomicExpression(new InvertNegateOperation(), 1); // use stack?
         //equation.AddAtomicExpression(step1);

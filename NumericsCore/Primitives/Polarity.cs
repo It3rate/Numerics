@@ -35,7 +35,7 @@ public interface IPolarityOperators<TSelf, TOther, TResult>
 {
     static abstract TResult operator ~(TSelf value);
     TResult Invert();
-    TResult InvertNegate();
+    TResult InvertAndMirror();
 }
 
 //public interface IBitwiseOperators<TSelf, TOther, TResult> where TSelf : IBitwiseOperators<TSelf, TOther, TResult>?

@@ -10,6 +10,7 @@ using NumericsCore.Primitives;
 using NumericsCore.Sequencer;
 using NumericsCore.Expressions;
 using NumericsCore.Utils;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Numerics.Primitives;
 
@@ -29,13 +30,14 @@ public class Number :
 //IMinMaxValue<Number>
 
 {
-    private Focal? _basis;
-
     public Number BasisNumber { get; }
     public Focal Focal { get; }
     public long TickSize { get; protected set; } = 1;
     public Domain Domain => _tlDomain ?? BasisNumber.Domain;
     public Focal BasisFocal => BasisNumber.Focal;
+    public bool IsStartMirrored { get; set; } = false;
+    public bool IsEndMirrored { get; set; } = false;
+
     public double StartValue
     {
         get
@@ -71,7 +73,9 @@ public class Number :
         {
             if (_inverse == null)
             {
-                _inverse = new Number(BasisNumber, Focal.BasisInverse);
+                var basis = new Number(Domain, BasisFocal.CloneToBasisInverse());
+                _inverse = new Number(basis, Focal);
+                _inverse._inverse = this;
             }
             return _inverse!;
         }
@@ -88,7 +92,7 @@ public class Number :
         BasisNumber = basisNumber;
         StartLandmark = startLandmark;
         EndLandmark = endLandmark;
-        Focal = new Focal(0, 0);
+        Focal = new Focal(0, 0); // init
         EnsureLandmarks();
     }
 
@@ -99,11 +103,7 @@ public class Number :
         Focal = basisFocal;
         BasisNumber = this;
     }
-    public static Number CreateDomainNumber(Domain domain, Focal focal)
-    {
-        var basisNumber = new Number(domain, focal);
-        return basisNumber;
-    }
+    public static Number CreateDomainNumber(Domain domain, Focal focal) =>  new Number(domain, focal);
 
     #region Mutations
     private long _curMS => Runner.Instance.CurrentMS;
@@ -112,7 +112,8 @@ public class Number :
     public ValueAtTime? PreviousHistoricalValue() => _history.Count > 1 ? _history[_history.Count - 2] : null;
     public bool SetValues(double startValue, double endValue)
     {
-        // allow changes by optionally recording old values and timestamping. This allows history to be preserved for trend analysis, and rewind. Need not be perfect (forgetting allowed)
+        // allow changes by optionally recording old values and timestamping.
+        // This allows history to be preserved for trend analysis, and rewind. Need not be perfect (forgetting allowed)
         // maybe count accesses as well as changes if that helps understanding. Or access with an expected value to create defaults and understand differences.
         var result = true;
         if (StartLandmark != null || EndLandmark != null)
@@ -191,6 +192,17 @@ public class Number :
     public double AsBasisTValue(double t) => (EndValue - StartValue) * t + StartValue; // number is basis, so 0 is startValue, 1 is endValue.
     public PRange GetRange() => GetRange(this);
     #endregion
+    #region ValuesOfInterest
+
+    public Landmark[] PointsOfIntrest() => new [] { new Landmark(this, 0), new Landmark(this, 1), new Landmark(this, StartValue), new Landmark(this, EndValue) };
+    public long[] LengthsOfIntrest() => new long[] {
+        BasisFocal.Length,
+        Math.Abs(StartTick - BasisFocal.StartTick) * BasisFocal.NonZeroDirection,
+        Math.Abs(EndTick - BasisFocal.StartTick) * BasisFocal.NonZeroDirection,
+        Focal.Length };
+    public long[] AreasOfIntrest() => Array.ConvertAll(LengthsOfIntrest(), x => x * x);
+    #endregion
+
     #region Truths
     public bool IsZero => StartTick == BasisFocal.StartTick && EndTick == BasisFocal.StartTick;
     public bool IsOne => StartTick == BasisFocal.StartTick && EndTick == BasisFocal.EndTick;
@@ -221,7 +233,9 @@ public class Number :
 
     #region Funcs
 
-    public static Func<Number, Number, Number> ADD = (left, rightIn) =>
+    private static Func<Number, Number> CLONE = (left) =>left.Clone();
+
+    private static Func<Number, Number, Number> ADD = (left, rightIn) =>
     {
         var right = left.MapToDomain(rightIn);
         var (leftStart, leftEnd) = left.RawTicksFromZero();
@@ -231,7 +245,7 @@ public class Number :
         left.Focal.EndTick = bf.StartTick + (leftEnd + rightEnd);
         return left;
     };
-    public static Func<Number, Number, Number> SUBTRACT = (left, rightIn) =>
+    private static Func<Number, Number, Number> SUBTRACT = (left, rightIn) =>
     {
         var right = left.MapToDomain(rightIn);
         var (leftStart, leftEnd) = left.RawTicksFromZero();
@@ -241,7 +255,7 @@ public class Number :
         left.Focal.EndTick = bf.StartTick + (leftEnd - rightEnd);
         return left;
     };
-    public static Func<Number, Number, Number> MULTIPLY = (left, rightIn) =>
+    private static Func<Number, Number, Number> MULTIPLY = (left, rightIn) =>
     {
         var right = left.MapToDomain(rightIn);
         var (leftStart, leftEnd) = left.SignedTicksFromZero();
@@ -254,7 +268,7 @@ public class Number :
         left.Focal.EndTick = bf.StartTick + (rVal / len) * bf.Direction;
         return left;
     };
-    public static Func<Number, Number, Number> DIVIDE = (left, rightIn) =>
+    private static Func<Number, Number, Number> DIVIDE = (left, rightIn) =>
     {
         var right = left.MapToDomain(rightIn);
         var (leftStart, leftEnd) = left.SignedTicksFromZero();
@@ -280,20 +294,23 @@ public class Number :
         left.Focal.EndTick = bf.StartTick + rVal * bf.Direction;
         return left;
     };
-    public static Func<Number, Number, Number> POW => (Number value, Number power) =>
+    private static Func<Number, Number, Number> POW => (Number left, Number power) =>
     {
-        if (power.IsZero || value.IsZero)
+        if (power.IsZero || left.IsZero)
         {
-            return value.One;
+            left.Focal.SetAs(left.BasisFocal); // one
         }
-        // todo: this is temp. Correct polarity, use binomial, account for resolution
-        var v = value.GetRange();
-        var p = power.GetRange();
-        var presult = PRange.Pow(v, p);
-        var result = presult.ToNumber(value);
-        value.Focal.StartTick = result.StartTick;
-        value.Focal.EndTick = result.EndTick;
-        return value;
+        else
+        {
+            // todo: this is temp. Correct polarity, use binomial, account for resolution
+            var v = left.GetRange();
+            var p = power.GetRange();
+            var presult = PRange.Pow(v, p);
+            var result = presult.ToNumber(left);
+            left.Focal.StartTick = result.StartTick;
+            left.Focal.EndTick = result.EndTick;
+        }
+        return left;
         //double valueReal = value.m_real;
         //double valueImaginary = value.m_imaginary;
         //double powerReal = power.m_real;
@@ -308,19 +325,19 @@ public class Number :
         //return new Number(t * Math.Cos(newRho), t * Math.Sin(newRho));
     };
 
-    public static Func<Number, Number> PLUS_PLUS = (left) =>
+    private static Func<Number, Number> PLUS_PLUS = (left) =>
     {
         left.Focal.Add(left.Domain.DefaultBasisNumber.Focal);
         return left;
     };
 
-    public static Func<Number, Number> MINUS_MINUS = (left) =>
+    private static Func<Number, Number> MINUS_MINUS = (left) =>
     {
         left.Focal.Subtract(left.Domain.DefaultBasisNumber.Focal);
         return left;
     };
-    public static Func<Number, Number> PLUS = (left) => { return left; };
-    public static Func<Number, Number> MINUS = (left) => { left.Focal.Negate(); return left; };
+    private static Func<Number, Number> PLUS = (left) => left;
+    private static Func<Number, Number> MINUS = (left) => { left.Focal.Negate(); return left; };
     //public static Func<Number, Number> INVERT = (left) => { var temp = left.StartTick; left.StartTick = left.EndTick; left.EndTick = temp; return left; };
     #endregion
 
@@ -502,38 +519,68 @@ public class Number :
     public Number Zero => new(BasisNumber, new Focal(BasisFocal.StartTick, BasisFocal.StartTick));
     public Number One => new(BasisNumber, BasisFocal.Clone());
     public Number MinusOne => new(BasisNumber, BasisFocal.CloneToBasisInverse());
-    public Number One_i => new(BasisNumber, BasisFocal.CloneToBasisInverse().Invert());
-    public Number MinusOne_i => new(BasisNumber, BasisFocal.InvertClone());
+    public Number One_i => new(BasisNumber, BasisFocal.CloneToBasisInverse().Swap());
+    public Number MinusOne_i => new(BasisNumber, BasisFocal.SwapClone());
     #endregion
     #region Transforms
     public static Number operator ~(Number value) => value.MirrorStart();
-    public Number Negate()
-    {
-        var (startTicks, endTicks) = RawTicksFromZero();
-        return new (BasisNumber, new(-startTicks, -endTicks));
-    }
-    public Number Reverse()
+
+    public Number SwapPoints() // swap points
     {
         var (startTicks, endTicks) = RawTicksFromZero();
         return new(BasisNumber, new(endTicks, startTicks));
     }
-    public Number ReverseNegate()
+
+    public Number Negate() // negate all
     {
         var (startTicks, endTicks) = RawTicksFromZero();
-        return new(BasisNumber, new(-endTicks, -startTicks));
+        return new (BasisNumber, new(-startTicks, -endTicks));
     }
-    public Number Invert() => new(BasisNumber, Focal.InvertClone());
-    public Number InvertNegate() => new(BasisNumber, Focal.InvertClone().Negate());
-    public Number MirrorStart() // inverted Conjugate
+    public Number NegateStart() // inverted Conjugate
     {
         var (startTicks, endTicks) = RawTicksFromZero();
         return new(BasisNumber, new(-startTicks, endTicks));
     }
-    public Number MirrorEnd() // aligned conjugate
+    public Number NegateEnd() // aligned conjugate
     {
         var (startTicks, endTicks) = RawTicksFromZero();
         return new(BasisNumber, new(startTicks, -endTicks));
     }
+
+    public Number Mirror() // mirror all
+    {
+        var result = Clone();
+        result.IsStartMirrored = !result.IsStartMirrored;
+        result.IsEndMirrored = !result.IsEndMirrored;
+        return result;
+    }
+    public Number MirrorStart() // Conjugate
+    {
+        var result = Clone();
+        result.IsStartMirrored = !result.IsStartMirrored;
+        return result;
+    }
+    public Number MirrorEnd() // inverted  conjugate
+    {
+        var result = Clone();
+        result.IsEndMirrored = !result.IsEndMirrored;
+        return result;
+    }
+
+    public Number SwapAndMirror() => SwapPoints().Mirror();
+    public Number SwapAndMirrorStart() => SwapPoints().MirrorStart();
+    public Number SwapAndMirrorEnd() => SwapPoints().MirrorEnd();
+
+    public Number SwapAndNegate() => SwapPoints().Negate();
+    public Number SwapAndNegateStart() => SwapPoints().NegateStart();
+    public Number SwapAndNegateEnd() => SwapPoints().NegateEnd();
+
+
+    public Number Invert() => Inverse.Clone();
+    public Number InvertAndSwap() => Inverse.Clone().SwapPoints();
+    public Number InvertAndMirror() => Inverse.Clone().Mirror();
+    public Number InvertAndMirrorStart() => Inverse.Clone().MirrorStart();
+    public Number InvertAndMirrorEnd() => Inverse.Clone().MirrorEnd();
 
     private long TicksFromZero(long tick) => tick - BasisFocal.StartTick;
     private long TicksFromZeroDirected(long tick) => (tick - BasisFocal.StartTick) * BasisDirection;

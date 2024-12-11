@@ -13,7 +13,7 @@ namespace NumericsCore.Expressions
 {
     public class AtomicExpression : IExpression
     {
-        public TileMode TileMode { get; } = TileMode.Invert;
+        public TileMode TileMode { get; } = TileMode.Continue;
         public long Duration { get; } = 1;
         public int RightIndex { get; } // use previous value expression?
         public OperationBase Operation { get; }

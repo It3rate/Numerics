@@ -24,14 +24,14 @@ public class BinaryExpression : Expression
 /// </summary>
 public class Expression : IExpression
 {
-    public TileMode TileMode { get; } = TileMode.Invert;
+    public TileMode TileMode { get; } = TileMode.OneShot;
     public long Duration { get; } = 1; // can either be based on length, or hard coded. In either case is multiplied by some basis (speed of time, allowing slowing or reversing effect)
     public Number? CurrentResult { get; private set; }
     // akin to samplers, can be fixed data, looked up, random, or computed
     public List<Number> Results { get; } = new List<Number>();
     private List<IExpression> ExpressionChain { get; } = new List<IExpression> { }; // equations can be part of equations
     public int CurrentIndex { get; private set; } = 0; // current index will be a number. Eg if equation is *3, then -7i+9 is the value of that over the duration of 7->9.
-    public bool IsComplete => TileMode != TileMode.Ignore && CurrentIndex >= ExpressionChain.Count;
+    public bool IsComplete => TileMode != TileMode.Continue && CurrentIndex >= ExpressionChain.Count;
     public bool PreserveResults { get; private set; } = false;
 
     public Expression()
@@ -114,13 +114,13 @@ public interface IScheduleable { }
 // these go in the sequencer. It holds a list of expressions with durations, which can split, choose, and merge. The primitive is add/remove expressions, not expressions themselves.
 public class SplitExpression : IScheduleable
 {
-    public TileMode TileMode => TileMode.Ignore;
+    public TileMode TileMode => TileMode.Continue;
     public long Duration => 0;
     // add, remove, merge, split etc These form the letter shape type paths.
 }
 public class MergeExpression : IScheduleable
 {
-    public TileMode TileMode => TileMode.Ignore;
+    public TileMode TileMode => TileMode.Continue;
     public long Duration => 0;
 }
 

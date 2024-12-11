@@ -91,10 +91,12 @@ public class Focal :
     {
     }
     private void CreateBasisInverse() { _basisInverse = CloneToBasisInverse(); _basisInverse._basisInverse = this; }
+    public void SetAs(Focal source) { StartTick = source.StartTick; EndTick = source.EndTick; }
     public void SetAsBasisInverseOf(Focal source) { StartTick = source.StartTick; EndTick = source.InvertedLastPosition; }
     public Focal CloneToBasisInverse() => new Focal(StartTick, InvertedLastPosition);
 
 
+    #region Internal Operations
     public long NonZeroTickLength => Length == 0 ? 1 : Length;
     public long Length => AbsLength * NonZeroDirection;
     public long AbsLength => Math.Abs(EndTick - StartTick); // can't have zero length (that would be null/no focus, and this is a focal)
@@ -108,6 +110,14 @@ public class Focal :
     public bool IsPositiveDirection => Direction > 0;
     public bool IsNegativeDirection => Direction < 0;
     public bool IsPoint => StartTick == EndTick;
+
+
+    public double Ratio_d() => EndTick / (double)StartTick;
+    public long[] PointsOfIntrest() => new long[] { StartTick, EndTick };
+    public long HalfLength => (long)(Length / 2);
+    public long DoubleLength => (long)(Length * 2);
+
+    #endregion
 
     #region Funcs
     public static Func<Focal, Focal, Focal> ADD = (left, right) => { left.StartTick += right.StartTick; left.EndTick += right.EndTick; return left; };
@@ -148,7 +158,7 @@ public class Focal :
     public static Func<Focal, Focal> MINUS_MINUS = (left) => { left.StartTick -= 1; left.EndTick -= 1; return left; };
     public static Func<Focal, Focal> PLUS = (left) => { return left; };
     public static Func<Focal, Focal> MINUS = (left) => { left.StartTick = -left.StartTick; left.EndTick = -left.EndTick; return left; };
-    public static Func<Focal, Focal> INVERT = (left) => { var temp = left.StartTick; left.StartTick = left.EndTick; left.EndTick = temp; return left; };
+    public static Func<Focal, Focal> SWAP = (left) => { var temp = left.StartTick; left.StartTick = left.EndTick; left.EndTick = temp; return left; };
     #endregion
 
     #region Add
@@ -202,15 +212,15 @@ public class Focal :
     public Focal NegateClone() => -this;
     public Focal Negate() => MINUS(this);
 
-    public Focal Invert() => INVERT(this);
-    public Focal InvertClone() => INVERT(Clone());
-    public static Focal operator ~(Focal value) => INVERT(value.Clone());
+    public Focal Swap() => SWAP(this);
+    public Focal SwapClone() => SWAP(Clone());
+    public static Focal operator ~(Focal value) => SWAP(value.Clone());
     public void InvertAsBasis() { EndTick = InvertedLastPosition; }
 
-    public Focal MakePositiveDirection() { if (Direction < 0) { Invert(); } return this; }
-    public Focal MakeNegativeDirection() { if (Direction >= 0) { Invert(); } return this; }
-    public Focal PositiveDirectionClone() => Direction >= 0 ? Clone() : InvertClone();
-    public Focal NegativeDirectionClone() => Direction < 0 ? Clone() : InvertClone();
+    public Focal MakePositiveDirection() { if (Direction < 0) { Swap(); } return this; }
+    public Focal MakeNegativeDirection() { if (Direction >= 0) { Swap(); } return this; }
+    public Focal PositiveDirectionClone() => Direction >= 0 ? Clone() : SwapClone();
+    public Focal NegativeDirectionClone() => Direction < 0 ? Clone() : SwapClone();
     #endregion
     #region Limits
     public static Focal FocalAtLimits => new Focal(long.MinValue, long.MaxValue);
@@ -239,7 +249,7 @@ public class Focal :
         if (ov.Length != 0)
         {
             result = ov;
-            if (!p.IsPositiveDirection) { ov.InvertClone(); }
+            if (!p.IsPositiveDirection) { ov.SwapClone(); }
         }
         return result;
     }

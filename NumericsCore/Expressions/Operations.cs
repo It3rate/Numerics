@@ -30,7 +30,7 @@ namespace NumericsCore.Expressions
     public class InvertNegateOperation : OperationBase
     {
         public InvertNegateOperation() { }
-        public override Number Calculate(Number input) => input.InvertNegate();
+        public override Number Calculate(Number input) => input.InvertAndMirror();
     }
     public class LengthOperation : OperationBase
     {
@@ -92,35 +92,35 @@ namespace NumericsCore.Expressions
     {
         public AddOperation() { }
         public AddOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => input.Add(rightSide);
+        protected override Number Calculate(Number input, Number rightSide) => Number.Add(input, rightSide);
     }
 
     public class SubtractOperation : BinaryOperationsBase
     {
         public SubtractOperation() { }
         public SubtractOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => input.Subtract(rightSide);
+        protected override Number Calculate(Number input, Number rightSide) => Number.Subtract(input, rightSide);
     }
 
     public class MultiplyOperation : BinaryOperationsBase
     {
         public MultiplyOperation() { }
         public MultiplyOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => input.Multiply(rightSide);
+        protected override Number Calculate(Number input, Number rightSide) => Number.Multiply(input, rightSide);
     }
 
     public class DivideOperation : BinaryOperationsBase
     {
         public DivideOperation() { }
         public DivideOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => input.Divide(rightSide);
+        protected override Number Calculate(Number input, Number rightSide) => Number.Divide(input, rightSide);
     }
 
     public class PowOperation : BinaryOperationsBase
     {
         public PowOperation() { }
         public PowOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => input.Pow(rightSide);
+        protected override Number Calculate(Number input, Number rightSide) => Number.Pow(input, rightSide);
     }
     public class CompareOperation : BinaryOperationsBase
     {

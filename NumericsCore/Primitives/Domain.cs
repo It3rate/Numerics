@@ -43,7 +43,7 @@ public class Domain : IEquatable<Domain>
         {
             if ((_inverse == null))
             {
-                _inverse = new Domain(Trait, DefaultBasisFocal.BasisInverse, DefaultLimitsFocal.InvertClone());
+                _inverse = new Domain(Trait, DefaultBasisFocal.BasisInverse, DefaultLimitsFocal.SwapClone());
                 _inverse._inverse = this;
             }
             return _inverse;        
