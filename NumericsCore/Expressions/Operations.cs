@@ -86,7 +86,8 @@ namespace NumericsCore.Expressions
         {
             _rightSide = rightSide;
         }
-	}
+
+    }
 
     public class SetOperation : BinaryOperationsBase
     {
@@ -99,7 +100,7 @@ namespace NumericsCore.Expressions
     {
         public AddOperation() { }
         public AddOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => Number.Add(input, rightSide);
+        public override Number Calculate(Number input) => Number.Add(input, _rightSide);
         public override Number CalculateInverse(Number input) => Number.Add(_rightSide, input);
     }
 
@@ -107,7 +108,7 @@ namespace NumericsCore.Expressions
     {
         public SubtractOperation() { }
         public SubtractOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => Number.Subtract(input, rightSide);
+        public override Number Calculate(Number input) => Number.Subtract(input, _rightSide);
         public override Number CalculateInverse(Number input) => Number.Subtract(_rightSide, input);
     }
 
@@ -115,7 +116,7 @@ namespace NumericsCore.Expressions
     {
         public MultiplyOperation() { }
         public MultiplyOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => Number.Multiply(input, rightSide);
+        public override Number Calculate(Number input) => Number.Multiply(input, _rightSide);
         public override Number CalculateInverse(Number input) => Number.Multiply(_rightSide, input);
     }
 
@@ -123,7 +124,7 @@ namespace NumericsCore.Expressions
     {
         public DivideOperation() { }
         public DivideOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => Number.Divide(input, rightSide);
+        public override Number Calculate(Number input) => Number.Divide(input, _rightSide);
         public override Number CalculateInverse(Number input) => Number.Divide(_rightSide, input);
     }
 
@@ -131,7 +132,7 @@ namespace NumericsCore.Expressions
     {
         public PowOperation() { }
         public PowOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => Number.Pow(input, rightSide);
+        public override Number Calculate(Number input) => Number.Pow(input, _rightSide);
         public override Number CalculateInverse(Number input) => throw new NotImplementedException();
     }
     public class CompareOperation : BinaryOperationsBase
