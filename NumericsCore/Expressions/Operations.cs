@@ -12,62 +12,71 @@ namespace NumericsCore.Expressions
     {
         public OperationBase()
         {
-        }
-        public abstract Number Calculate(Number input);
-    }
+		}
+		public abstract Number Calculate(Number input);
+		public abstract Number CalculateInverse(Number input);
+        public Number CalculateInPlace(Number input) { input.SetWith(Calculate(input)); return input; }
+		public virtual Number CalculateInverseInPlace(Number input) { input.SetWith(CalculateInverse(input)); return input; }
+	}
 
     public class ResetOperation : OperationBase
     {
         public ResetOperation() { }
-        public override Number Calculate(Number input) => input.Zero;
-    }
+		public override Number Calculate(Number input) => input.Zero;
+		public override Number CalculateInverse(Number input) => input;
+	}
 
     public class InvertOperation : OperationBase
     {
         public InvertOperation() { }
         public override Number Calculate(Number input) => input.Invert();
+		public override Number CalculateInverse(Number input) => input;
     }
     public class InvertNegateOperation : OperationBase
     {
         public InvertNegateOperation() { }
         public override Number Calculate(Number input) => input.InvertAndMirror();
+        public override Number CalculateInverse(Number input) => input;
     }
     public class LengthOperation : OperationBase
     {
         public LengthOperation() { }
         public override Number Calculate(Number input) => input.Length;
-    }
+		public override Number CalculateInverse(Number input) => input.Length.Inverse; // need to work out these all
+	}
     public class IncrementOperation : OperationBase
     {
         public IncrementOperation() { }
         public override Number Calculate(Number input) => ++input; // input.Increment();
-    }
+        public override Number CalculateInverse(Number input) => --input;
+	}
     public class DecrementOperation : OperationBase
     {
         public DecrementOperation() { }
         public override Number Calculate(Number input) => --input; //input.Decrement();
-    }
+		public override Number CalculateInverse(Number input) => ++input;
+	}
     public class IncrementEndTickOperation : OperationBase
     {
         public IncrementEndTickOperation() { }
         public override Number Calculate(Number input) => input.IncrementEndTick();
-    }
+		public override Number CalculateInverse(Number input) => input.DecrementEndTick();
+	}
     public class DecrementEndTickOperation : OperationBase
     {
         public DecrementEndTickOperation() { }
         public override Number Calculate(Number input) => input.DecrementEndTick();
-    }
+		public override Number CalculateInverse(Number input) => input.IncrementEndTick();
+	}
     #endregion
-
-
-
 
     #region Binary
     public abstract class BinaryOperationsBase : OperationBase
     {
-        protected Number? _rightSide;
+        protected Number _rightSide;
         public BinaryOperationsBase()
         {
+            _rightSide = Number.SCALAR_ZERO;
         }
         public BinaryOperationsBase(Number rightSide)
         {
@@ -77,22 +86,21 @@ namespace NumericsCore.Expressions
         {
             _rightSide = rightSide;
         }
-
-        public override Number Calculate(Number input) => _rightSide == null ? input : Calculate(input, _rightSide);
-        protected abstract Number Calculate(Number input, Number rightSide);
-    }
+	}
 
     public class SetOperation : BinaryOperationsBase
     {
         public SetOperation() { }
         public SetOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => rightSide; // set fixed value regardless of input
-    }
+		public override Number Calculate(Number input) => _rightSide.Clone(); // set fixed value regardless of input
+		public override Number CalculateInverse(Number input) => input;
+	}
     public class AddOperation : BinaryOperationsBase
     {
         public AddOperation() { }
         public AddOperation(Number rightSide) : base(rightSide) { }
         protected override Number Calculate(Number input, Number rightSide) => Number.Add(input, rightSide);
+        public override Number CalculateInverse(Number input) => Number.Add(_rightSide, input);
     }
 
     public class SubtractOperation : BinaryOperationsBase
@@ -100,6 +108,7 @@ namespace NumericsCore.Expressions
         public SubtractOperation() { }
         public SubtractOperation(Number rightSide) : base(rightSide) { }
         protected override Number Calculate(Number input, Number rightSide) => Number.Subtract(input, rightSide);
+        public override Number CalculateInverse(Number input) => Number.Subtract(_rightSide, input);
     }
 
     public class MultiplyOperation : BinaryOperationsBase
@@ -107,6 +116,7 @@ namespace NumericsCore.Expressions
         public MultiplyOperation() { }
         public MultiplyOperation(Number rightSide) : base(rightSide) { }
         protected override Number Calculate(Number input, Number rightSide) => Number.Multiply(input, rightSide);
+        public override Number CalculateInverse(Number input) => Number.Multiply(_rightSide, input);
     }
 
     public class DivideOperation : BinaryOperationsBase
@@ -114,6 +124,7 @@ namespace NumericsCore.Expressions
         public DivideOperation() { }
         public DivideOperation(Number rightSide) : base(rightSide) { }
         protected override Number Calculate(Number input, Number rightSide) => Number.Divide(input, rightSide);
+        public override Number CalculateInverse(Number input) => Number.Divide(_rightSide, input);
     }
 
     public class PowOperation : BinaryOperationsBase
@@ -121,13 +132,15 @@ namespace NumericsCore.Expressions
         public PowOperation() { }
         public PowOperation(Number rightSide) : base(rightSide) { }
         protected override Number Calculate(Number input, Number rightSide) => Number.Pow(input, rightSide);
+        public override Number CalculateInverse(Number input) => throw new NotImplementedException();
     }
     public class CompareOperation : BinaryOperationsBase
     {
         public CompareOperation() { }
         public CompareOperation(Number rightSide) : base(rightSide) { }
-        protected override Number Calculate(Number input, Number rightSide) => input;//todo: comparisons
-    }
+		public override Number Calculate(Number input) => input;//todo: comparisons
+		public override Number CalculateInverse(Number input) => throw new NotImplementedException();
+	}
     #endregion
 
     #region Ternary
@@ -146,7 +159,8 @@ namespace NumericsCore.Expressions
         public override Number Calculate(Number input)
         {
             throw new NotImplementedException();
-        }
-    }
+		}
+		public override Number CalculateInverse(Number input) => throw new NotImplementedException();
+	}
     #endregion
 }

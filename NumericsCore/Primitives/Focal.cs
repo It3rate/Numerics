@@ -63,6 +63,12 @@ public class Focal :
             _basisInverse?.SetAsBasisInverseOf(this);
         }
     }
+    public void SetWith(long startTick, long endTick)
+    {
+        _positions[0] = startTick;
+		_positions[_positions.Length - 1] = endTick;
+		_basisInverse?.SetAsBasisInverseOf(this);
+    }
 
     public Polarity Polarity =>
         Direction > 0 ? Polarity.Aligned :
@@ -569,6 +575,9 @@ public class Focal :
             return hashCode;
         }
     }
-    #endregion
-    public override string ToString() => $"[{StartTick} : {EndTick}]";
+	#endregion
+
+	public static readonly Focal OneFocal = new Focal(0, 1);
+	public static readonly Focal MaxFocal = new Focal(long.MinValue, long.MaxValue);
+	public override string ToString() => $"[{StartTick} : {EndTick}]";
 }

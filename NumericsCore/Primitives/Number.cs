@@ -110,7 +110,12 @@ public class Number :
     private List<ValueAtTime> _history = new System.Collections.Generic.List<ValueAtTime>();
     public ValueAtTime? CurrentHistoricalValue() => _history.Count > 0 ? _history[_history.Count - 1] : null;
     public ValueAtTime? PreviousHistoricalValue() => _history.Count > 1 ? _history[_history.Count - 2] : null;
-    public bool SetValues(double startValue, double endValue)
+	public void SetWith(Number value)
+	{
+        // todo: account for domains, resolution etc.
+        Focal.SetWith(value.Focal.StartTick, value.Focal.EndTick);
+	}
+	public bool SetValues(double startValue, double endValue)
     {
         // allow changes by optionally recording old values and timestamping.
         // This allows history to be preserved for trend analysis, and rewind. Need not be perfect (forgetting allowed)
@@ -384,10 +389,12 @@ public class Number :
     #region Pow
     public Number Pow(Number power) => POW(this, power);
     public static Number operator ^(Number value, Number power) => POW(value.Clone(), power);
-    public static Number Pow(Number value, Number power)  => POW(value.Clone(), power);
-    #endregion
-    #region Polarity
-    public bool IsAligned => Polarity == Polarity.Aligned;
+	public static Number Pow(Number value, Number power) => POW(value.Clone(), power);
+	public Number Squared() => this * this;
+	public Number Sqrt() => throw new NotImplementedException();
+	#endregion
+	#region Polarity
+	public bool IsAligned => Polarity == Polarity.Aligned;
     public bool IsInverted => Polarity == Polarity.Inverted;
     public bool HasPolarity => Polarity.HasPolarity();
     public virtual bool IsPolarityEqual(Number num) => Polarity == num.Polarity;
@@ -727,9 +734,10 @@ public class Number :
             return hashCode;
         }
     }
-    #endregion
+	#endregion
 
-    public override string ToString()
+	public static readonly Number SCALAR_ZERO = new Number(Domain.SCALAR_DOMAIN, Focal.Zero);
+	public override string ToString()
     {
         string result;
         var val = GetRange();

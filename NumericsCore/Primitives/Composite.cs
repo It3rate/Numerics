@@ -26,7 +26,7 @@ namespace NumericsCore.Primitives
 		{
 			if(value.Domain.Trait == Left.Domain.Trait)
 			{
-                var denominator = (value / Left) * Right;
+                var denominator = (value / Left) * Right; // for now just use divide
                 return (value,  denominator);
 			}
             else if (value.Domain.Trait == Right.Domain.Trait)
