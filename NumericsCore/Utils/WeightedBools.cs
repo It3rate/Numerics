@@ -11,10 +11,10 @@ namespace NumericsCore.Utils
 {
     public class WeightedBools
     {
-        public NumberSet Value3 => _value3;
-        public NumberSet Value2 => _value2;
-        public NumberSet Value1 => _value1;
-        public NumberSet Value0 => _value0;
+        public NumberSet QuadBoth => _value3; // todo: account for arrows in different directions.
+        public NumberSet QuadYOnly => _value2;
+        public NumberSet QuadXOnly => _value1;
+        public NumberSet QuadNeither => _value0;
 
         private NumberSet _value3;
         private NumberSet _value2;
@@ -146,25 +146,109 @@ namespace NumericsCore.Utils
         public static Func<Number, Number, Number> LENGTH = (left, right) => left.Length + right.Length;
         public static Func<Number, Number, Number> AREA = (left, right) => left.Length * right.Length;
 
-        public Number[] Calculate2D(Func<Number, Number, Number> function, int filter, bool activeZero = false)
+        private NumberSet[] CallOp(BoolOp op)
         {
-            var result = new List<Number>();
-            var sets = activeZero ? _sets[filter]() : _inverseSets[filter]();
-            var flags = BitField.GetBoolValues(filter, sets.Length);
+            NumberSet[] result;
+            switch (op)
+            {
+                case BoolOp.Null:
+                    result = Null();
+                    break;
+                case BoolOp.Nor:
+                    result = Nor();
+                    break;
+                case BoolOp.Inhibition:
+                    result = Inhibition();
+                    break;
+                case BoolOp.NotB:
+                    result = NotB();
+                    break;
+                case BoolOp.RevInhibition:
+                    result = RevInhibition();
+                    break;
+                case BoolOp.NotA:
+                    result = NotA();
+                    break;
+                case BoolOp.Xor:
+                    result = Xor();
+                    break;
+                case BoolOp.Nand:
+                    result = Nand();
+                    break;
+                case BoolOp.And:
+                    result = And();
+                    break;
+                case BoolOp.Xnor:
+                    result = Xnor();
+                    break;
+                case BoolOp.TransferA:
+                    result = TransferA();
+                    break;
+                case BoolOp.Implication:
+                    result = Implication();
+                    break;
+                case BoolOp.TransferB:
+                    result = TransferB();
+                    break;
+                case BoolOp.RevImplication:
+                    result = RevImplication();
+                    break;
+                case BoolOp.Or:
+                    result = Or();
+                    break;
+                case BoolOp.Identity:
+                default:
+                    result = Identity();
+                    break;
+            }
+            return result;
+        }
+        public Number? Calculate2D(BoolOp filter, Func<Number, Number, Number> areaFn, Func<Number, Number, Number> concatFn, bool useInverted = false)
+        {
+            Number? result = null;
+            var sets = useInverted ? _inverseSets[(int)filter]() : _sets[(int)filter]();
+            var flags = BitField.GetBoolValues((int)filter, sets.Length);
             for (int i = 0; i < sets.Length; i++)
             {
-                if(flags[i] != activeZero)
+                if(flags[i] != useInverted)
                 {
-                    result.Add(function(sets[i][0], sets[i][1]));
+                    var val = areaFn(sets[i][0], sets[i][1]);
+                    if(result == null)
+                    {
+                        result = val;
+                    }
+                    else
+                    {
+                        result = concatFn(result, val);
+                    }
                 }
             }
-
-            return result.ToArray();
+            return result;
         }
         public Number Calculate1D(Func<Number, Number> function, int filter, bool invert)
         {
             throw new NotImplementedException();
         }
+    }
+
+    public enum BoolOp
+    {
+        Null = 0x00, 
+        Nor = 0x01,
+        Inhibition = 0x02,
+        NotB = 0x03,
+        RevInhibition = 0x04,
+        NotA = 0x05,
+        Xor = 0x06,
+        Nand = 0x07,
+        And = 0x08,
+        Xnor = 0x09,
+        TransferA = 0x0A,
+        Implication = 0x0B,
+        TransferB = 0x0C,
+        RevImplication = 0x0D,
+        Or = 0x0E,
+        Identity = 0x0F,
     }
 
     [Flags]
