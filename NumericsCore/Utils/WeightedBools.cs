@@ -6,48 +6,16 @@ using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Threading.Tasks;
 using Numerics.Primitives;
-using static System.Net.WebRequestMethods;
 
 namespace NumericsCore.Utils
 {
-    public class BitField
+    public class WeightedBools
     {
-        private const int MAX_BITS = 8;
-        private long _value;
-        public long Value() => _value;
+        public NumberSet Value3 => _value3;
+        public NumberSet Value2 => _value2;
+        public NumberSet Value1 => _value1;
+        public NumberSet Value0 => _value0;
 
-        public bool GetBit(int bitPosition) => (_value & (1 << bitPosition)) != 0;
-        public void SetBit(int bitPosition) => _value |= (1 << bitPosition);
-        public void ClearBit(int bitPosition) =>  _value &= ~(1 << bitPosition);
-        public bool[] GetBoolValues() => BitField.GetBoolValues(_value, MAX_BITS);
-        public static bool[] GetBoolValues(long value, int maxBits = 4)
-        {
-            bool[] bits = new bool[maxBits];
-
-            for (int i = 0; i < maxBits; i++)
-            {
-                bits[i] = (value & (1 << i)) != 0;
-            }
-            return bits;
-        }
-    }
-    public class NumberSet
-    {
-        Number[] _values;
-        public NumberSet(params Number[] values)
-        {
-            _values = values;
-        }
-        public Number this[int index] => _values[index];
-
-        public NumberSet Inverse()
-        {
-            var vals = _values.Select(n => n.Inverse).ToArray();
-            return new NumberSet(vals);
-        }
-    }
-    public class ValuedBools
-    {
         private NumberSet _value3;
         private NumberSet _value2;
         private NumberSet _value1;
@@ -61,7 +29,7 @@ namespace NumericsCore.Utils
         private readonly Func<NumberSet[]>[] _sets;
         private readonly Func<NumberSet[]>[] _inverseSets;
 
-        public ValuedBools(Number[] value3, Number[] value2, Number[] value1, Number[] value0)
+        public WeightedBools(Number[] value3, Number[] value2, Number[] value1, Number[] value0)
         {
             _value3 = new NumberSet(value3);
             _value2 = new NumberSet(value2);
@@ -88,26 +56,26 @@ namespace NumericsCore.Utils
                 NotB, Inhibition, Nor, Null
             };
         }
-        public static ValuedBools CreateByPoints(Number A, Number B)
+        public static WeightedBools CreateByPoints(Number A, Number B)
         {
             var aPts = A.PointsOfIntrest();
             var bPts = B.PointsOfIntrest();
 
-            var ffa = new Number(A.BasisNumber, aPts[0], aPts[2]);
-            var ffb = new Number(B.BasisNumber, bPts[0], bPts[2]);
+            var ffa = new Number(A.BasisNumber, aPts[2], aPts[0]);
+            var ffb = new Number(B.BasisNumber, bPts[2], bPts[0]);
 
             var fta = new Number(A.BasisNumber, aPts[2], aPts[3]);
-            var ftb = new Number(B.BasisNumber, bPts[0], bPts[2]);
+            var ftb = new Number(B.BasisNumber, bPts[2], bPts[0]);
 
-            var tfa = new Number(A.BasisNumber, aPts[0], aPts[2]);
+            var tfa = new Number(A.BasisNumber, aPts[2], aPts[0]);
             var tfb = new Number(B.BasisNumber, bPts[2], bPts[3]);
 
             var tta = new Number(A.BasisNumber, aPts[2], aPts[3]);
             var ttb = new Number(B.BasisNumber, bPts[2], bPts[3]);
 
-            return new ValuedBools([ffa, ffb], [fta, ftb], [tfa, tfb], [tta, ttb]);
+            return new WeightedBools([ffa, ffb], [fta, ftb], [tfa, tfb], [tta, ttb]);
         }
-        public static ValuedBools CreateByPositions(Number A, Number B)
+        public static WeightedBools CreateByPositions(Number A, Number B)
         {
             var aPts = A.PointsOfIntrest();
             var bPts = B.PointsOfIntrest();
@@ -124,7 +92,7 @@ namespace NumericsCore.Utils
             var tta = new Number(A.BasisNumber, aPts[0], aPts[3]);
             var ttb = new Number(B.BasisNumber, bPts[0], bPts[3]);
 
-            return new ValuedBools([ffa, ffb], [fta, ftb], [tfa, tfb], [tta, ttb]);
+            return new WeightedBools([ffa, ffb], [fta, ftb], [tfa, tfb], [tta, ttb]);
         }
         public NumberSet[] this[int index]
         {
@@ -206,5 +174,41 @@ namespace NumericsCore.Utils
         AOnly   = 1,
         BOnly   = 2,
         Both    = 4,
+    }
+    public class BitField
+    {
+        private const int MAX_BITS = 8;
+        private long _value;
+        public long Value() => _value;
+
+        public bool GetBit(int bitPosition) => (_value & (1 << bitPosition)) != 0;
+        public void SetBit(int bitPosition) => _value |= (1 << bitPosition);
+        public void ClearBit(int bitPosition) => _value &= ~(1 << bitPosition);
+        public bool[] GetBoolValues() => BitField.GetBoolValues(_value, MAX_BITS);
+        public static bool[] GetBoolValues(long value, int maxBits = 4)
+        {
+            bool[] bits = new bool[maxBits];
+
+            for (int i = 0; i < maxBits; i++)
+            {
+                bits[i] = (value & (1 << i)) != 0;
+            }
+            return bits;
+        }
+    }
+    public class NumberSet
+    {
+        Number[] _values;
+        public NumberSet(params Number[] values)
+        {
+            _values = values;
+        }
+        public Number this[int index] => _values[index];
+
+        public NumberSet Inverse()
+        {
+            var vals = _values.Select(n => n.Inverse).ToArray();
+            return new NumberSet(vals);
+        }
     }
 }

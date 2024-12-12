@@ -36,24 +36,24 @@ public class LandmarkTests
         Assert.AreEqual(15, lme.Value);
 
         var lmNum = new Number(_domain.DefaultBasisNumber, lms, lme);
-        Assert.AreEqual(5, lmNum.StartValue);
+        Assert.AreEqual(-5, lmNum.StartValue);
         Assert.AreEqual(15, lmNum.EndValue);
 
         var right = new Number(_domain.DefaultBasisNumber, new Focal(-300, 600));
         num.SetStartValue(8);
-        Assert.AreEqual(9, lmNum.StartValue);
+        Assert.AreEqual(-1, lmNum.StartValue);
         num.SetEndValue(20);
-        Assert.AreEqual(26, lmNum.EndValue);
+        Assert.AreEqual(34, lmNum.EndValue);
         var r0 = lmNum + right;
-        Assert.AreEqual(17, r0.StartValue);
-        Assert.AreEqual(32, r0.EndValue);
+        Assert.AreEqual(-3, r0.StartValue);
+        Assert.AreEqual(40, r0.EndValue);
 
         num.SetValues(6, 8);
-        Assert.AreEqual(7, lmNum.StartValue);
-        Assert.AreEqual(9, lmNum.EndValue);
+        Assert.AreEqual(-1, lmNum.StartValue);
+        Assert.AreEqual(15, lmNum.EndValue);
         var r1 = lmNum + right;
-        Assert.AreEqual(10, r1.StartValue);
-        Assert.AreEqual(15, r1.EndValue);
+        Assert.AreEqual(2, r1.StartValue);
+        Assert.AreEqual(21, r1.EndValue);
 
     }
     [TestMethod]

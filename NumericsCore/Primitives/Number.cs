@@ -184,7 +184,7 @@ public class Number :
         {
             if (StartLandmark.NeedsUpdate)
             {
-                Focal.StartTick = TickValueInverted(StartLandmark.Value);
+                Focal.StartTick = TickValueAligned(StartLandmark.Value); // landmarks are always a position within a number, so 0 to 1 (no negative starts)
                 //StartLandmark.NeedsUpdate = false;
             }
             if (EndLandmark.NeedsUpdate)
@@ -194,12 +194,12 @@ public class Number :
             }
         }
     }
-    public double AsBasisTValue(double t) => (EndValue - StartValue) * t + StartValue; // number is basis, so 0 is startValue, 1 is endValue.
+    public double AsBasisTValue(double t) => (EndValue + StartValue) * t - StartValue; // number is basis, so 0 is startValue, 1 is endValue.
     public PRange GetRange() => GetRange(this);
     #endregion
     #region ValuesOfInterest
 
-    public Landmark[] PointsOfIntrest() => new [] { new Landmark(this, 0), new Landmark(this, 1), new Landmark(this, StartValue), new Landmark(this, EndValue) };
+    public Landmark[] PointsOfIntrest() => new [] { new Landmark(BasisNumber, 0), new Landmark(BasisNumber, 1), new Landmark(this, 0), new Landmark(this, 1) };
     public long[] LengthsOfIntrest() => new long[] {
         BasisFocal.Length,
         Math.Abs(StartTick - BasisFocal.StartTick) * BasisFocal.NonZeroDirection,
