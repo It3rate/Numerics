@@ -105,22 +105,22 @@ namespace NumericsCore.Utils
         }
 
         // None, AOnly, BOnly, Both
-        public NumberSet[] Null() => new[] { _inverse3, _inverse2, _inverse1, _inverse0 }; // 0000
-        public NumberSet[] Nor() => new[] { _inverse3, _inverse2, _inverse1, _value0 }; // 0001
-        public NumberSet[] Inhibition() => new[] { _inverse3, _inverse2, _value1, _inverse0 }; // 0010
-        public NumberSet[] NotB() => new[] { _inverse3, _inverse2, _value1, _value0 }; // 0011
-        public NumberSet[] RevInhibition() => new[] { _inverse3, _value2, _inverse1, _inverse0 }; // 0100
-        public NumberSet[] NotA() => new[] { _inverse3, _value2, _inverse1, _value0 }; // 0101
-        public NumberSet[] Xor() => new[] { _inverse3, _value2, _value1, _inverse0 }; // 0110
-        public NumberSet[] Nand() => new[] { _inverse3, _value2, _value1, _value0 }; // 0111
-        public NumberSet[] And() => new[] { _value3, _inverse2, _inverse1, _inverse0 }; // 1000
-        public NumberSet[] Xnor() => new[] { _value3, _inverse2, _inverse1, _value0 }; // 1001
-        public NumberSet[] TransferA() => new[] { _value3, _inverse2, _value1, _inverse0 }; // 1010
-        public NumberSet[] Implication() => new[] { _value3, _inverse2, _value1, _value0 }; // 1011
-        public NumberSet[] TransferB() => new[] { _value3, _value2, _inverse1, _inverse0 }; // 1100
-        public NumberSet[] RevImplication() => new[] { _value3, _value2, _inverse1, _value0 }; // 1101
-        public NumberSet[] Or() => new[] { _value3, _value2, _value1, _inverse0 }; // 1110
-        public NumberSet[] Identity() => new[] { _value3, _value2, _value1, _value0 }; // 1111
+        public NumberSet[] Null() => new[] { _inverse0, _inverse1, _inverse2, _inverse3 }; // 0000
+        public NumberSet[] Nor() => new[] { _value0, _inverse1, _inverse2, _inverse3 }; // 0001
+        public NumberSet[] Inhibition() => new[] { _inverse0, _value1, _inverse2, _inverse3 }; // 0010
+        public NumberSet[] NotB() => new[] { _value0, _value1, _inverse2, _inverse3 }; // 0011
+        public NumberSet[] RevInhibition() => new[] { _inverse0, _inverse1, _value2, _inverse3 }; // 0100
+        public NumberSet[] NotA() => new[] { _value0, _inverse1, _value2, _inverse3 }; // 0101
+        public NumberSet[] Xor() => new[] { _inverse0, _value1, _value2, _inverse3 }; // 0110
+        public NumberSet[] Nand() => new[] { _value0, _value1, _value2, _inverse3 }; // 0111
+        public NumberSet[] And() => new[] { _inverse0, _inverse1, _inverse2, _value3 }; // 1000
+        public NumberSet[] Xnor() => new[] { _value0, _inverse1, _inverse2, _value3 }; // 1001
+        public NumberSet[] TransferA() => new[] { _inverse0, _value1, _inverse2, _value3 }; // 1010
+        public NumberSet[] Implication() => new[] { _value0, _value1, _inverse2, _value3 }; // 1011
+        public NumberSet[] TransferB() => new[] { _inverse0, _inverse1, _value2, _value3 }; // 1100
+        public NumberSet[] RevImplication() => new[] { _value0, _inverse1, _value2, _value3 }; // 1101
+        public NumberSet[] Or() => new[] { _inverse0, _value1, _value2, _value3 }; // 1110
+        public NumberSet[] Identity() => new[] { _value0, _value1, _value2, _value3 }; // 1111
 
 
         public static Func<Number, Number> NO_SWAP_POINTS = (left) => left.Clone();
@@ -145,6 +145,7 @@ namespace NumericsCore.Utils
         public static Func<Number, Number, Number> MULTIPLY = (left, right) => left * right;
         public static Func<Number, Number, Number> LENGTH = (left, right) => left.Length + right.Length;
         public static Func<Number, Number, Number> AREA = (left, right) => left.Length * right.Length;
+        public static Func<Number, Number, Number> ABS_AREA = (left, right) => left.AbsLength * right.AbsLength;
 
         private NumberSet[] CallOp(BoolOp op)
         {
@@ -208,7 +209,7 @@ namespace NumericsCore.Utils
             Number? result = null;
             var sets = useInverted ? _inverseSets[(int)filter]() : _sets[(int)filter]();
             var flags = BitField.GetBoolValues((int)filter, sets.Length);
-            for (int i = 0; i < sets.Length; i++)
+            for (int i = sets.Length - 1; i >= 0 ; i--) // loop backwards, as the values map to bits, high order left
             {
                 if(flags[i] != useInverted)
                 {

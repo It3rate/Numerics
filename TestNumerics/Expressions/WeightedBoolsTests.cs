@@ -67,24 +67,24 @@ namespace TestNumerics.Expressions
             var wb = WeightedBools.CreateByPoints(_n_m2_8, _n_m3_6);
             var result = wb.Identity();
             Assert.AreEqual(-2, result[0][0].StartValue);
-            Assert.AreEqual(0, result[0][0].EndValue);
+            Assert.AreEqual(8,  result[0][0].EndValue);
             Assert.AreEqual(-3, result[0][1].StartValue);
-            Assert.AreEqual(0, result[0][1].EndValue);
+            Assert.AreEqual(6,  result[0][1].EndValue);
 
             Assert.AreEqual(-2, result[1][0].StartValue);
-            Assert.AreEqual(8, result[1][0].EndValue);
+            Assert.AreEqual(0,  result[1][0].EndValue);
             Assert.AreEqual(-3, result[1][1].StartValue);
-            Assert.AreEqual(0, result[1][1].EndValue);
+            Assert.AreEqual(6,  result[1][1].EndValue);
 
             Assert.AreEqual(-2, result[2][0].StartValue);
-            Assert.AreEqual(0, result[2][0].EndValue);
+            Assert.AreEqual(8,  result[2][0].EndValue);
             Assert.AreEqual(-3, result[2][1].StartValue);
-            Assert.AreEqual(6, result[2][1].EndValue);
+            Assert.AreEqual(0,  result[2][1].EndValue);
 
             Assert.AreEqual(-2, result[3][0].StartValue);
-            Assert.AreEqual(8, result[3][0].EndValue);
+            Assert.AreEqual(0,  result[3][0].EndValue);
             Assert.AreEqual(-3, result[3][1].StartValue);
-            Assert.AreEqual(6, result[3][1].EndValue);
+            Assert.AreEqual(0,  result[3][1].EndValue);
 
         }
 
@@ -94,43 +94,42 @@ namespace TestNumerics.Expressions
             var wb = WeightedBools.CreateByPoints(_n_m2_8, _n_m3_6);
             var result = wb.And();
 
-            Assert.IsTrue(result[0][0].IsAligned);
-            Assert.IsTrue(result[0][1].IsAligned);
-            Assert.AreEqual(-2, result[0][0].StartValue);
-            Assert.AreEqual(0, result[0][0].EndValue);
-            Assert.AreEqual(-3, result[0][1].StartValue);
-            Assert.AreEqual(0, result[0][1].EndValue);
+            Assert.IsFalse(result[0][0].IsAligned);
+            Assert.IsFalse(result[0][1].IsAligned);
+            Assert.AreEqual(2,  result[0][0].StartValue);
+            Assert.AreEqual(-8, result[0][0].EndValue);
+            Assert.AreEqual(3,  result[0][1].StartValue);
+            Assert.AreEqual(-6, result[0][1].EndValue);
 
-            Assert.IsTrue(result[1][0].IsInverted);
-            Assert.IsTrue(result[1][1].IsInverted);
+            Assert.IsFalse(result[1][0].IsAligned);
+            Assert.IsFalse(result[1][1].IsAligned);
             Assert.AreEqual(2, result[1][0].StartValue);
-            Assert.AreEqual(-8, result[1][0].EndValue);
+            Assert.AreEqual(0, result[1][0].EndValue);
             Assert.AreEqual(3, result[1][1].StartValue);
-            Assert.AreEqual(0, result[1][1].EndValue);
+            Assert.AreEqual(-6, result[1][1].EndValue);
 
-            Assert.IsTrue(result[2][0].IsInverted);
-            Assert.IsTrue(result[2][1].IsInverted);
+            Assert.IsFalse(result[2][0].IsAligned);
+            Assert.IsFalse(result[2][1].IsAligned);
             Assert.AreEqual(2, result[2][0].StartValue);
-            Assert.AreEqual(0, result[2][0].EndValue);
+            Assert.AreEqual(-8,result[2][0].EndValue);
             Assert.AreEqual(3, result[2][1].StartValue);
-            Assert.AreEqual(-6, result[2][1].EndValue);
+            Assert.AreEqual(0, result[2][1].EndValue);
 
-            Assert.IsTrue(result[3][0].IsInverted);
-            Assert.IsTrue(result[3][1].IsInverted);
-            Assert.AreEqual(2, result[3][0].StartValue);
-            Assert.AreEqual(-8, result[3][0].EndValue);
-            Assert.AreEqual(3, result[3][1].StartValue);
-            Assert.AreEqual(-6, result[3][1].EndValue);
+            Assert.IsTrue(result[3][0].IsAligned);
+            Assert.IsTrue(result[3][1].IsAligned);
+            Assert.AreEqual(-2, result[3][0].StartValue);
+            Assert.AreEqual(0,  result[3][0].EndValue);
+            Assert.AreEqual(-3, result[3][1].StartValue);
+            Assert.AreEqual(0,  result[3][1].EndValue);
 
         }
         [TestMethod]
         public void OrSumTests()
         {
             var wb = WeightedBools.CreateByPoints(_n_m2_8, _n_m3_6);
-            var result = wb.Calculate2D(BoolOp.Or, WeightedBools.MULTIPLY, WeightedBools.ADD);
+            var result = wb.Calculate2D(BoolOp.Or, WeightedBools.ABS_AREA, WeightedBools.ADD);
 
-            Assert.AreEqual(0, result.StartValue);
-            Assert.AreEqual(-54, result.EndValue);
+            Assert.AreEqual(30, result.EndValue);
 
         }
     }

@@ -73,7 +73,7 @@ public class Number :
         {
             if (_inverse == null)
             {
-                var basis = new Number(Domain, BasisFocal.CloneToBasisInverse());
+                var basis = new Number(BasisNumber, BasisFocal.CloneToBasisInverse());
                 _inverse = new Number(basis, Focal);
                 _inverse._inverse = this;
             }
@@ -97,13 +97,20 @@ public class Number :
     }
 
     private Domain? _tlDomain;
-    private Number(Domain domain, Focal basisFocal)
+    private Number(Domain domain, Focal basisFocal, bool useOnlyForDomainBasis)
     {
+        if(!useOnlyForDomainBasis)
+        {
+            throw new ArgumentException("Use this ctor to create domain basis number only.");
+        }
         _tlDomain = domain;
         Focal = basisFocal;
         BasisNumber = this;
     }
-    public static Number CreateDomainNumber(Domain domain, Focal focal) =>  new Number(domain, focal);
+    public static Number CreateDomainNumber(Domain domain, Focal basisFocal)
+    {
+        return new Number(domain, basisFocal, true);
+    }
 
     #region Mutations
     private long _curMS => Runner.Instance.CurrentMS;
@@ -231,9 +238,10 @@ public class Number :
     public long BasisLength => BasisFocal.Length;
     public long AbsBasisLength => BasisFocal.AbsLength;
     public bool BasisIsReciprocal => Math.Abs(TickSize) > BasisFocal.AbsLength && BasisFocal.AbsLength != 0;
-    public Number Length => new Number(Domain, new(0, Focal.Length));
-    public Number StartPortion => new Number(Domain, new(0, Focal.StartTick));
-    public Number EndPortion => new Number(Domain, new(0, Focal.EndTick));
+    public Number Length => new Number(BasisNumber, new(0, Focal.Length));
+    public Number AbsLength => new Number(BasisNumber, new(0, Focal.AbsLength));
+    public Number StartPortion => new Number(BasisNumber, new(0, Focal.StartTick));
+    public Number EndPortion => new Number(BasisNumber, new(0, Focal.EndTick));
     #endregion
 
     #region Funcs
@@ -434,7 +442,7 @@ public class Number :
         var focal = CompareFocals.Matching(left.Focal, right.Focal);
         if (focal != null)
         {
-            result = new Number(left.Domain, focal);
+            result = new Number(left.BasisNumber, focal);
         }
         return result;
     }
@@ -444,7 +452,7 @@ public class Number :
         var focal = CompareFocals.Containing(left.Focal, right.Focal);
         if (focal != null)
         {
-            result = new Number(left.Domain, focal);
+            result = new Number(left.BasisNumber, focal);
         }
         return result;
     }
@@ -454,7 +462,7 @@ public class Number :
         var focal = CompareFocals.ContainedBy(left.Focal, right.Focal);
         if (focal != null)
         {
-            result = new Number(left.Domain, focal);
+            result = new Number(left.BasisNumber, focal);
         }
         return result;
     }
@@ -464,7 +472,7 @@ public class Number :
         var focal = CompareFocals.GreaterThan(left.Focal, right.Focal);
         if (focal != null)
         {
-            result = new Number(left.Domain, focal);
+            result = new Number(left.BasisNumber, focal);
         }
         return result;
     }
@@ -474,7 +482,7 @@ public class Number :
         var focal = CompareFocals.GreaterThanOrEqual(left.Focal, right.Focal);
         if (focal != null)
         {
-            result = new Number(left.Domain, focal);
+            result = new Number(left.BasisNumber, focal);
         }
         return result;
     }
@@ -484,7 +492,7 @@ public class Number :
         var focal = CompareFocals.GreaterThanAndEqual(left.Focal, right.Focal);
         if (focal != null)
         {
-            result = new Number(left.Domain, focal);
+            result = new Number(left.BasisNumber, focal);
         }
         return result;
     }
@@ -494,7 +502,7 @@ public class Number :
         var focal = CompareFocals.LessThan(left.Focal, right.Focal);
         if (focal != null)
         {
-            result = new Number(left.Domain, focal);
+            result = new Number(left.BasisNumber, focal);
         }
         return result;
     }
@@ -504,7 +512,7 @@ public class Number :
         var focal = CompareFocals.LessThanOrEqual(left.Focal, right.Focal);
         if (focal != null)
         {
-            result = new Number(left.Domain, focal);
+            result = new Number(left.BasisNumber, focal);
         }
         return result;
     }
@@ -514,7 +522,7 @@ public class Number :
         var focal = CompareFocals.LessThanAndEqual(left.Focal, right.Focal);
         if(focal != null)
         {
-            result = new Number(left.Domain, focal);
+            result = new Number(left.BasisNumber, focal);
         }
         return result;
     }
@@ -736,7 +744,7 @@ public class Number :
     }
 	#endregion
 
-	public static readonly Number SCALAR_ZERO = new Number(Domain.SCALAR_DOMAIN, Focal.Zero);
+	public static readonly Number SCALAR_ZERO = new Number(Domain.SCALAR_DOMAIN_NUMBER, Focal.Zero);
 	public override string ToString()
     {
         string result;

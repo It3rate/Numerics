@@ -52,6 +52,7 @@ public class Domain : IEquatable<Domain>
     #endregion
 
     public static readonly Domain SCALAR_DOMAIN = new Domain(Trait.ScalarTrait, Focal.One, Focal.MaxFocal);
+    public static readonly Number SCALAR_DOMAIN_NUMBER = Number.CreateDomainNumber(SCALAR_DOMAIN, Focal.One);
 
     #region Equality
     public Domain Clone() => new Domain(Trait, DefaultBasisFocal.Clone(), DefaultLimitsFocal.Clone());
