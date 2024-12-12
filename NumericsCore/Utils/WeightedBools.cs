@@ -29,17 +29,17 @@ namespace NumericsCore.Utils
         private readonly Func<NumberSet[]>[] _sets;
         private readonly Func<NumberSet[]>[] _inverseSets;
 
-        public WeightedBools(Number[] value3, Number[] value2, Number[] value1, Number[] value0)
+        public WeightedBools(Number[] value0, Number[] value1, Number[] value2, Number[] value3)
         {
-            _value3 = new NumberSet(value3);
-            _value2 = new NumberSet(value2);
-            _value1 = new NumberSet(value1);
             _value0 = new NumberSet(value0);
+            _value1 = new NumberSet(value1);
+            _value2 = new NumberSet(value2);
+            _value3 = new NumberSet(value3);
 
-            _inverse3 = _value3.Inverse();
-            _inverse2 = _value2.Inverse();
-            _inverse1 = _value1.Inverse();
             _inverse0 = _value0.Inverse();
+            _inverse1 = _value1.Inverse();
+            _inverse2 = _value2.Inverse();
+            _inverse3 = _value3.Inverse();
 
             _sets = new Func<NumberSet[]>[]
             {
@@ -204,9 +204,9 @@ namespace NumericsCore.Utils
             }
             return result;
         }
-        public Number? Calculate2D(BoolOp filter, Func<Number, Number, Number> areaFn, Func<Number, Number, Number> concatFn, bool useInverted = false)
+        public Number Calculate2D(BoolOp filter, Func<Number, Number, Number> areaFn, Func<Number, Number, Number> concatFn, bool useInverted = false)
         {
-            Number? result = null;
+            Number result = Number.SCALAR_ZERO;
             var sets = useInverted ? _inverseSets[(int)filter]() : _sets[(int)filter]();
             var flags = BitField.GetBoolValues((int)filter, sets.Length);
             for (int i = sets.Length - 1; i >= 0 ; i--) // loop backwards, as the values map to bits, high order left
@@ -214,7 +214,7 @@ namespace NumericsCore.Utils
                 if(flags[i] != useInverted)
                 {
                     var val = areaFn(sets[i][0], sets[i][1]);
-                    if(result == null)
+                    if(result == Number.SCALAR_ZERO)
                     {
                         result = val;
                     }
