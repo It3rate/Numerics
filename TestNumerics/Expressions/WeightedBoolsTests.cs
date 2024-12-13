@@ -42,23 +42,23 @@ namespace TestNumerics.Expressions
         {
             var wb = WeightedBools.CreateByPoints(_n_m2_8, _n_m3_7);
 
-            Assert.AreEqual(2, wb.QuadNeither[0].StartValue);
-            Assert.AreEqual(0, wb.QuadNeither[0].EndValue);
-            Assert.AreEqual(3, wb.QuadNeither[1].StartValue);
-            Assert.AreEqual(0, wb.QuadNeither[1].EndValue);
+            Assert.AreEqual(0, wb.QuadNeither[0].StartValue);
+            Assert.AreEqual(-2, wb.QuadNeither[0].EndValue);
+            Assert.AreEqual(0, wb.QuadNeither[1].StartValue);
+            Assert.AreEqual(-3, wb.QuadNeither[1].EndValue);
 
             Assert.AreEqual(-2, wb.QuadXOnly[0].StartValue);
             Assert.AreEqual(8, wb.QuadXOnly[0].EndValue);
-            Assert.AreEqual(3, wb.QuadXOnly[1].StartValue);
-            Assert.AreEqual(0, wb.QuadXOnly[1].EndValue);
+            Assert.AreEqual(0, wb.QuadXOnly[1].StartValue);
+            Assert.AreEqual(-3, wb.QuadXOnly[1].EndValue);
 
             Assert.AreEqual(-2, wb.QuadBoth[0].StartValue);
             Assert.AreEqual(8, wb.QuadBoth[0].EndValue);
             Assert.AreEqual(-3, wb.QuadBoth[1].StartValue);
             Assert.AreEqual(7, wb.QuadBoth[1].EndValue);
 
-            Assert.AreEqual(2, wb.QuadYOnly[0].StartValue);
-            Assert.AreEqual(0, wb.QuadYOnly[0].EndValue);
+            Assert.AreEqual(0, wb.QuadYOnly[0].StartValue);
+            Assert.AreEqual(-2, wb.QuadYOnly[0].EndValue);
             Assert.AreEqual(-3, wb.QuadYOnly[1].StartValue);
             Assert.AreEqual(7, wb.QuadYOnly[1].EndValue);
         }
@@ -68,18 +68,34 @@ namespace TestNumerics.Expressions
         {
             var wb = WeightedBools.CreateByPoints(_n_m2_8, _n_m3_7);
             var result = wb.Identity();
-            Assert.AreEqual(2, result[0][0].StartValue);
-            Assert.AreEqual(0, result[0][0].EndValue);
-            Assert.AreEqual(3, result[0][1].StartValue);
-            Assert.AreEqual(0, result[0][1].EndValue);
+
+            Assert.IsFalse(result[0][0].IsZero);
+            Assert.IsFalse(result[1][1].IsZero);
+            Assert.IsFalse(result[2][0].IsZero);
+            Assert.IsFalse(result[3][1].IsZero);
+
+            Assert.AreEqual(2, result[0].UnitSigns.Length);
+            Assert.AreEqual(2, result[1].UnitSigns.Length);
+            Assert.AreEqual(2, result[2].UnitSigns.Length);
+            Assert.AreEqual(2, result[3].UnitSigns.Length);
+
+            Assert.AreEqual(SegmentDirection.Right, result[0].UnitSigns[0]);
+            Assert.AreEqual(SegmentDirection.Right, result[1].UnitSigns[0]);
+            Assert.AreEqual(SegmentDirection.Right, result[2].UnitSigns[0]);
+            Assert.AreEqual(SegmentDirection.Right, result[3].UnitSigns[0]);
+
+            Assert.AreEqual(0, result[0][0].StartValue);
+            Assert.AreEqual(-2, result[0][0].EndValue);
+            Assert.AreEqual(0, result[0][1].StartValue);
+            Assert.AreEqual(-3, result[0][1].EndValue);
 
             Assert.AreEqual(-2, result[1][0].StartValue);
             Assert.AreEqual(8, result[1][0].EndValue);
-            Assert.AreEqual(3, result[1][1].StartValue);
-            Assert.AreEqual(0, result[1][1].EndValue);
+            Assert.AreEqual(0, result[1][1].StartValue);
+            Assert.AreEqual(-3, result[1][1].EndValue);
 
-            Assert.AreEqual(2, result[2][0].StartValue);
-            Assert.AreEqual(0, result[2][0].EndValue);
+            Assert.AreEqual(0, result[2][0].StartValue);
+            Assert.AreEqual(-2, result[2][0].EndValue);
             Assert.AreEqual(-3, result[2][1].StartValue);
             Assert.AreEqual(7, result[2][1].EndValue);
 

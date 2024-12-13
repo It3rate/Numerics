@@ -66,13 +66,13 @@ namespace NumericsCore.Utils
         {
             var aPts = A.PointsOfIntrest();
             var bPts = B.PointsOfIntrest();
-            var ffa = new Number(A.BasisNumber, aPts[2], aPts[0]);
-            var ffb = new Number(B.BasisNumber, bPts[2], bPts[0]);
+            var ffa = new Number(A.BasisNumber, aPts[0], aPts[2]);
+            var ffb = new Number(B.BasisNumber, bPts[0], bPts[2]);
 
             var fta = new Number(A.BasisNumber, aPts[2], aPts[3]);
-            var ftb = new Number(B.BasisNumber, bPts[2], bPts[0]);
+            var ftb = new Number(B.BasisNumber, bPts[0], bPts[2]);
 
-            var tfa = new Number(A.BasisNumber, aPts[2], aPts[0]);
+            var tfa = new Number(A.BasisNumber, aPts[0], aPts[2]);
             var tfb = new Number(B.BasisNumber, bPts[2], bPts[3]);
 
             var tta = new Number(A.BasisNumber, aPts[2], aPts[3]);
@@ -85,6 +85,8 @@ namespace NumericsCore.Utils
         {
             var aPts = A.PointsOfIntrest();
             var bPts = B.PointsOfIntrest();
+
+            // the overlap is between segments. If it is a space rather than overlap, it is inverted but accessible. I think.
 
             var ffa = new Number(A.BasisNumber, aPts[0], aPts[2]);
             var ffb = new Number(B.BasisNumber, bPts[0], bPts[2]);
@@ -127,22 +129,27 @@ namespace NumericsCore.Utils
         public NumberSet[] RevImplication() => new[] { _value0, _zeros, _value2, _value3 }; // 1101
         public NumberSet[] Or() => new[] { _zeros, _value1, _value2, _value3 }; // 1110
         public NumberSet[] Identity() => new[] { _value0, _value1, _value2, _value3 }; // 1111
-        //public NumberSet[] Null() => new[] { _inverse0, _inverse1, _inverse2, _inverse3 }; // 0000
-        //public NumberSet[] Nor() => new[] { _value0, _inverse1, _inverse2, _inverse3 }; // 0001
-        //public NumberSet[] Inhibition() => new[] { _inverse0, _value1, _inverse2, _inverse3 }; // 0010
-        //public NumberSet[] NotB() => new[] { _value0, _value1, _inverse2, _inverse3 }; // 0011
-        //public NumberSet[] RevInhibition() => new[] { _inverse0, _inverse1, _value2, _inverse3 }; // 0100
-        //public NumberSet[] NotA() => new[] { _value0, _inverse1, _value2, _inverse3 }; // 0101
-        //public NumberSet[] Xor() => new[] { _inverse0, _value1, _value2, _inverse3 }; // 0110
-        //public NumberSet[] Nand() => new[] { _value0, _value1, _value2, _inverse3 }; // 0111
-        //public NumberSet[] And() => new[] { _inverse0, _inverse1, _inverse2, _value3 }; // 1000
-        //public NumberSet[] Xnor() => new[] { _value0, _inverse1, _inverse2, _value3 }; // 1001
-        //public NumberSet[] TransferA() => new[] { _inverse0, _value1, _inverse2, _value3 }; // 1010
-        //public NumberSet[] Implication() => new[] { _value0, _value1, _inverse2, _value3 }; // 1011
-        //public NumberSet[] TransferB() => new[] { _inverse0, _inverse1, _value2, _value3 }; // 1100
-        //public NumberSet[] RevImplication() => new[] { _value0, _inverse1, _value2, _value3 }; // 1101
-        //public NumberSet[] Or() => new[] { _inverse0, _value1, _value2, _value3 }; // 1110
-        //public NumberSet[] Identity() => new[] { _value0, _value1, _value2, _value3 }; // 1111
+
+
+
+        public NumberSet[] InvIdentity() => new[] { _inverse0, _inverse1, _inverse2, _inverse3 }; // 0000
+        public NumberSet[] InvOr() => new[] { _zeros, _inverse1, _inverse2, _inverse3 }; // 0001
+        public NumberSet[] InvRevImplication() => new[] { _inverse0, _zeros, _inverse2, _inverse3 }; // 0010
+        public NumberSet[] InvTransferB() => new[] { _zeros, _zeros, _inverse2, _inverse3 }; // 0011
+        public NumberSet[] InvImplication() => new[] { _inverse0, _inverse1, _zeros, _inverse3 }; // 0100
+        public NumberSet[] InvTransferA() => new[] { _zeros, _inverse1, _zeros, _inverse3 }; // 0101
+        public NumberSet[] InvXnor() => new[] { _inverse0, _zeros, _zeros, _inverse3 }; // 0110
+        public NumberSet[] InvAnd() => new[] { _zeros, _zeros, _zeros, _inverse3 }; // 0111
+        public NumberSet[] InvNand() => new[] { _inverse0, _inverse1, _inverse2, _zeros }; // 1000
+        public NumberSet[] InvXor() => new[] { _zeros, _inverse1, _inverse2, _zeros }; // 1001
+        public NumberSet[] InvNotA() => new[] { _inverse0, _zeros, _inverse2, _zeros }; // 1010
+        public NumberSet[] InvRevInhibition() => new[] { _zeros, _zeros, _inverse2, _zeros }; // 1011
+        public NumberSet[] InvNotB() => new[] { _inverse0, _inverse1, _zeros, _zeros }; // 1100
+        public NumberSet[] InvInhibition() => new[] { _zeros, _inverse1, _zeros, _zeros }; // 1101
+        public NumberSet[] InvNor() => new[] { _inverse0, _zeros, _zeros, _zeros }; // 1110
+        public NumberSet[] InvNull() => new[] { _zeros, _zeros, _zeros, _zeros }; // 1111
+
+
 
 
         public static Func<Number, Number> NO_SWAP_POINTS = (left) => left.Clone();
@@ -301,9 +308,9 @@ namespace NumericsCore.Utils
     public enum QuadrantKind
     {
         Neither = 0,
-        AOnly   = 1,
-        BOnly   = 2,
-        Both    = 4,
+        AOnly = 1,
+        BOnly = 2,
+        Both = 4,
     }
     public class BitField
     {
@@ -334,9 +341,20 @@ namespace NumericsCore.Utils
     public class NumberSet
     {
         Number[] _values;
+        public SegmentDirection[] UnitSigns { get; private set; }
         public NumberSet(params Number[] values)
         {
             _values = values;
+            SetUnits();
+        }
+        private void SetUnits()
+        {
+            var result = new List<SegmentDirection>();
+            foreach (Number value in _values)
+            {
+                result.Add(value.Direction);
+            }
+            UnitSigns = result.ToArray();
         }
         public Number this[int index] => _values[index];
 

@@ -38,7 +38,7 @@ public class Number :
     public Focal BasisFocal => BasisNumber.Focal;
     public bool IsStartMirrored { get; set; } = false;
     public bool IsEndMirrored { get; set; } = false;
-
+    public SegmentDirection Direction => (SegmentDirection)Focal.Direction;
     public double StartValue
     {
         get
@@ -771,4 +771,11 @@ public class Number :
         }
         return result;
     }
+}
+
+public enum SegmentDirection
+{
+    Left = -1,
+    Point = 0,
+    Right = 1,
 }
