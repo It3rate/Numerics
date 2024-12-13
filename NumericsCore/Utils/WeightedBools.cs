@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Numerics;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
@@ -26,6 +27,8 @@ namespace NumericsCore.Utils
         private NumberSet _inverse1;
         private NumberSet _inverse0;
 
+        private NumberSet _zeros;
+
         private readonly Func<NumberSet[]>[] _sets;
         private readonly Func<NumberSet[]>[] _inverseSets;
 
@@ -40,6 +43,9 @@ namespace NumericsCore.Utils
             _inverse1 = _value1.Inverse();
             _inverse2 = _value2.Inverse();
             _inverse3 = _value3.Inverse();
+
+            var zero = value0[0].Zero;
+            _zeros = new NumberSet(zero, zero);
 
             _sets = new Func<NumberSet[]>[]
             {
@@ -60,7 +66,6 @@ namespace NumericsCore.Utils
         {
             var aPts = A.PointsOfIntrest();
             var bPts = B.PointsOfIntrest();
-
             var ffa = new Number(A.BasisNumber, aPts[2], aPts[0]);
             var ffb = new Number(B.BasisNumber, bPts[2], bPts[0]);
 
@@ -73,7 +78,8 @@ namespace NumericsCore.Utils
             var tta = new Number(A.BasisNumber, aPts[2], aPts[3]);
             var ttb = new Number(B.BasisNumber, bPts[2], bPts[3]);
 
-            return new WeightedBools([ffa, ffb], [fta, ftb], [tfa, tfb], [tta, ttb]);
+            // areas should be inverted for false elements?
+            return new WeightedBools([ffa.Inverse, ffb.Inverse], [fta, ftb.Inverse], [tfa.Inverse, tfb], [tta, ttb]);
         }
         public static WeightedBools CreateByPositions(Number A, Number B)
         {
@@ -92,6 +98,7 @@ namespace NumericsCore.Utils
             var tta = new Number(A.BasisNumber, aPts[0], aPts[3]);
             var ttb = new Number(B.BasisNumber, bPts[0], bPts[3]);
 
+            // if there is a gap instead of overlap, that should be inverted (false)
             return new WeightedBools([ffa, ffb], [fta, ftb], [tfa, tfb], [tta, ttb]);
         }
         public NumberSet[] this[int index]
@@ -104,23 +111,38 @@ namespace NumericsCore.Utils
             }
         }
 
-        // None, AOnly, BOnly, Both
-        public NumberSet[] Null() => new[] { _inverse0, _inverse1, _inverse2, _inverse3 }; // 0000
-        public NumberSet[] Nor() => new[] { _value0, _inverse1, _inverse2, _inverse3 }; // 0001
-        public NumberSet[] Inhibition() => new[] { _inverse0, _value1, _inverse2, _inverse3 }; // 0010
-        public NumberSet[] NotB() => new[] { _value0, _value1, _inverse2, _inverse3 }; // 0011
-        public NumberSet[] RevInhibition() => new[] { _inverse0, _inverse1, _value2, _inverse3 }; // 0100
-        public NumberSet[] NotA() => new[] { _value0, _inverse1, _value2, _inverse3 }; // 0101
-        public NumberSet[] Xor() => new[] { _inverse0, _value1, _value2, _inverse3 }; // 0110
-        public NumberSet[] Nand() => new[] { _value0, _value1, _value2, _inverse3 }; // 0111
-        public NumberSet[] And() => new[] { _inverse0, _inverse1, _inverse2, _value3 }; // 1000
-        public NumberSet[] Xnor() => new[] { _value0, _inverse1, _inverse2, _value3 }; // 1001
-        public NumberSet[] TransferA() => new[] { _inverse0, _value1, _inverse2, _value3 }; // 1010
-        public NumberSet[] Implication() => new[] { _value0, _value1, _inverse2, _value3 }; // 1011
-        public NumberSet[] TransferB() => new[] { _inverse0, _inverse1, _value2, _value3 }; // 1100
-        public NumberSet[] RevImplication() => new[] { _value0, _inverse1, _value2, _value3 }; // 1101
-        public NumberSet[] Or() => new[] { _inverse0, _value1, _value2, _value3 }; // 1110
+        public NumberSet[] Null() => new[] { _zeros, _zeros, _zeros, _zeros }; // 0000
+        public NumberSet[] Nor() => new[] { _value0, _zeros, _zeros, _zeros }; // 0001
+        public NumberSet[] Inhibition() => new[] { _zeros, _value1, _zeros, _zeros }; // 0010
+        public NumberSet[] NotB() => new[] { _value0, _value1, _zeros, _zeros }; // 0011
+        public NumberSet[] RevInhibition() => new[] { _zeros, _zeros, _value2, _zeros }; // 0100
+        public NumberSet[] NotA() => new[] { _value0, _zeros, _value2, _zeros }; // 0101
+        public NumberSet[] Xor() => new[] { _zeros, _value1, _value2, _zeros }; // 0110
+        public NumberSet[] Nand() => new[] { _value0, _value1, _value2, _zeros }; // 0111
+        public NumberSet[] And() => new[] { _zeros, _zeros, _zeros, _value3 }; // 1000
+        public NumberSet[] Xnor() => new[] { _value0, _zeros, _zeros, _value3 }; // 1001
+        public NumberSet[] TransferA() => new[] { _zeros, _value1, _zeros, _value3 }; // 1010
+        public NumberSet[] Implication() => new[] { _value0, _value1, _zeros, _value3 }; // 1011
+        public NumberSet[] TransferB() => new[] { _zeros, _zeros, _value2, _value3 }; // 1100
+        public NumberSet[] RevImplication() => new[] { _value0, _zeros, _value2, _value3 }; // 1101
+        public NumberSet[] Or() => new[] { _zeros, _value1, _value2, _value3 }; // 1110
         public NumberSet[] Identity() => new[] { _value0, _value1, _value2, _value3 }; // 1111
+        //public NumberSet[] Null() => new[] { _inverse0, _inverse1, _inverse2, _inverse3 }; // 0000
+        //public NumberSet[] Nor() => new[] { _value0, _inverse1, _inverse2, _inverse3 }; // 0001
+        //public NumberSet[] Inhibition() => new[] { _inverse0, _value1, _inverse2, _inverse3 }; // 0010
+        //public NumberSet[] NotB() => new[] { _value0, _value1, _inverse2, _inverse3 }; // 0011
+        //public NumberSet[] RevInhibition() => new[] { _inverse0, _inverse1, _value2, _inverse3 }; // 0100
+        //public NumberSet[] NotA() => new[] { _value0, _inverse1, _value2, _inverse3 }; // 0101
+        //public NumberSet[] Xor() => new[] { _inverse0, _value1, _value2, _inverse3 }; // 0110
+        //public NumberSet[] Nand() => new[] { _value0, _value1, _value2, _inverse3 }; // 0111
+        //public NumberSet[] And() => new[] { _inverse0, _inverse1, _inverse2, _value3 }; // 1000
+        //public NumberSet[] Xnor() => new[] { _value0, _inverse1, _inverse2, _value3 }; // 1001
+        //public NumberSet[] TransferA() => new[] { _inverse0, _value1, _inverse2, _value3 }; // 1010
+        //public NumberSet[] Implication() => new[] { _value0, _value1, _inverse2, _value3 }; // 1011
+        //public NumberSet[] TransferB() => new[] { _inverse0, _inverse1, _value2, _value3 }; // 1100
+        //public NumberSet[] RevImplication() => new[] { _value0, _inverse1, _value2, _value3 }; // 1101
+        //public NumberSet[] Or() => new[] { _inverse0, _value1, _value2, _value3 }; // 1110
+        //public NumberSet[] Identity() => new[] { _value0, _value1, _value2, _value3 }; // 1111
 
 
         public static Func<Number, Number> NO_SWAP_POINTS = (left) => left.Clone();
@@ -204,14 +226,16 @@ namespace NumericsCore.Utils
             }
             return result;
         }
+        public NumberSet[] FilterSet(BoolOp filter, bool useInverted = false) => useInverted ? _inverseSets[(int)filter]() : _sets[(int)filter]();
+
         public Number Calculate2D(BoolOp filter, Func<Number, Number, Number> areaFn, Func<Number, Number, Number> concatFn, bool useInverted = false)
         {
             Number result = Number.SCALAR_ZERO;
-            var sets = useInverted ? _inverseSets[(int)filter]() : _sets[(int)filter]();
-            var flags = BitField.GetBoolValues((int)filter, sets.Length);
-            for (int i = sets.Length - 1; i >= 0 ; i--) // loop backwards, as the values map to bits, high order left
+            var sets = new FilteredNumberSets(this, filter, useInverted);
+
+            for (int i = sets.Count - 1; i >= 0 ; i--) // loop backwards, as the values map to bits, high order left
             {
-                if(flags[i] != useInverted)
+                if(sets.IsActive(i))
                 {
                     var val = areaFn(sets[i][0], sets[i][1]);
                     if(result == Number.SCALAR_ZERO)
@@ -230,6 +254,27 @@ namespace NumericsCore.Utils
         {
             throw new NotImplementedException();
         }
+    }
+
+    public class FilteredNumberSets
+    {
+        public BoolOp BoolOperation { get; }
+        public bool Inverted { get; }
+        private WeightedBools _weightedBools;
+        private NumberSet[] _sets;
+        private BitField _bitField;
+        public FilteredNumberSets(WeightedBools weightedBools, BoolOp boolOperation, bool useInverted = false)
+        {
+            _weightedBools = weightedBools;
+            BoolOperation = boolOperation;
+            Inverted = useInverted;
+
+            _bitField = new BitField((long)BoolOperation);
+            _sets = _weightedBools.FilterSet(BoolOperation, useInverted);
+        }
+        public bool IsActive(int index) => _bitField.GetBit(index);
+        public int Count => _sets.Length;
+        public NumberSet this[int index] => _sets[index];
     }
 
     public enum BoolOp
@@ -265,6 +310,11 @@ namespace NumericsCore.Utils
         private const int MAX_BITS = 8;
         private long _value;
         public long Value() => _value;
+
+        public BitField(long value)
+        {
+            _value = value;
+        }
 
         public bool GetBit(int bitPosition) => (_value & (1 << bitPosition)) != 0;
         public void SetBit(int bitPosition) => _value |= (1 << bitPosition);

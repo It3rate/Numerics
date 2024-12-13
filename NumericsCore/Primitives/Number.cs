@@ -31,6 +31,7 @@ public class Number :
 
 {
     public Number BasisNumber { get; }
+    public Number BasisNumberAligned => IsBasisInverted ? Inverse.BasisNumber : BasisNumber;
     public Focal Focal { get; }
     public long TickSize { get; protected set; } = 1;
     public Domain Domain => _tlDomain ?? BasisNumber.Domain;
@@ -222,6 +223,7 @@ public class Number :
     public bool IsZeroStart => StartValue == 0;
     public bool IsPoint => StartTick == EndTick;
     public bool IsSmallerThanBasis => Math.Abs(StartValue) < 1 && Math.Abs(EndValue) < 1;
+    public bool IsBasisInverted => BasisFocal.Polarity != Polarity.Aligned;
     public bool IsBasisPermutation => // 1, -1, i, -i
         (StartValue == 0 && Math.Abs(EndValue) == 1) ||
         (EndValue == 0 && Math.Abs(StartValue) == 1);
@@ -239,7 +241,7 @@ public class Number :
     public long AbsBasisLength => BasisFocal.AbsLength;
     public bool BasisIsReciprocal => Math.Abs(TickSize) > BasisFocal.AbsLength && BasisFocal.AbsLength != 0;
     public Number Length => new Number(BasisNumber, new(0, Focal.Length));
-    public Number AbsLength => new Number(BasisNumber, new(0, Focal.AbsLength));
+    public Number AbsLength => new Number(BasisNumberAligned, new(0, Focal.AbsLength));
     public Number StartPortion => new Number(BasisNumber, new(0, Focal.StartTick));
     public Number EndPortion => new Number(BasisNumber, new(0, Focal.EndTick));
     #endregion
