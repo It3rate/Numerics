@@ -16,15 +16,17 @@ namespace Numerics.Primitives;
 // Min size is tick size. BasisFocal is start/end point (only one focal allowed for a unit). MinMaxFocal is bounds in ticks. todo: add conversion methods etc.
 public class Domain : IEquatable<Domain>
 {
+    public string Name { get; }
     public Trait? Trait { get; } // todo: Probably merge domain and trait?
     public Number DefaultBasisNumber { get; }
     public Focal DefaultBasisFocal => DefaultBasisNumber.Focal;
     private Focal DefaultLimitsFocal { get; }
     private Domain(Focal basisFocal, Focal limitsFocal) : this(Trait.WorkingTrait, basisFocal, limitsFocal) { }
-    public Domain(Trait? trait, Focal basisFocal, Focal limitsFocal)
+    public Domain(Trait? trait, Focal basisFocal, Focal limitsFocal, string name = "")
     {
         Trait = trait;
         DefaultLimitsFocal = limitsFocal;
+        Name = name;
         DefaultBasisNumber = Number.CreateDomainNumber(this, basisFocal);
     }
 
