@@ -7,6 +7,7 @@ using Sys = System.Windows.Forms;
 using NumericsCore.Sequencer;
 using NumericsSkia.Utils;
 using MathDemo;
+using NumericsSkia.Mappers;
 
 namespace Ornamental;
 
@@ -18,7 +19,7 @@ public partial class OrnamentalForm : Form
     private readonly MouseAgent _mouseAgent;
     private Runner _runner;
     //private Workspace _workspace;
-    private OrnamentMapper _mapper;
+    private SKMapper _mapper;
 
     public OrnamentalForm()
     {
@@ -47,8 +48,6 @@ public partial class OrnamentalForm : Form
 
         _demos = new Slides();
         _mouseAgent = new MouseAgent(_renderer, _demos);
-        _mapper = new OrnamentMapper(_mouseAgent, 100,250,1000,0);
-        _mouseAgent.Mapper = _mapper;
 
         _runner = _mouseAgent.Runner;
         _ = Execute(null, 50);
@@ -69,22 +68,28 @@ public partial class OrnamentalForm : Form
         NeedsUpdate();
     }
 
+    private void SetMapper(SKMapper mapper)
+    {
+        _mapper = mapper;
+        _mouseAgent.Mapper = _mapper;
+    }
+
     public void PreviousTest()
     {
         _runner.HasUpdated = false;
-        _demos.PreviousTest(_mouseAgent);
+        SetMapper(_demos.PreviousTest(_mouseAgent));
         _runner.HasUpdated = true;
     }
     public void ReloadTest()
     {
         _runner.HasUpdated = false;
-        _demos.Reload(_mouseAgent);
+        SetMapper(_demos.Reload(_mouseAgent));
         _runner.HasUpdated = true;
     }
     public void NextTest()
     {
         _runner.HasUpdated = false;
-        _demos.NextTest(_mouseAgent);
+        SetMapper(_demos.NextTest(_mouseAgent));
         _runner.HasUpdated = true;
     }
 

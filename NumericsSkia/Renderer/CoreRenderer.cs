@@ -37,7 +37,7 @@ public class CoreRenderer
 
     private CoreRenderer()
     {
-        GeneratePens();
+        GeneratePens(ColorTheme.Dark);
     }
 
     public virtual void BeginDraw()

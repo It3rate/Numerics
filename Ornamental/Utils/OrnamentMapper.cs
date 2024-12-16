@@ -14,6 +14,7 @@ namespace Ornamental.Utils
 {
     public class OrnamentMapper : SKMapper
     {
+        public SKPath Path { get; set; }
         public OrnamentMapper(MouseAgent agent, float left, float top, float width, float height) : base(agent)
         {
             Reset(new SKPoint(left, top), new SKPoint(left + width, top + height));
@@ -22,6 +23,10 @@ namespace Ornamental.Utils
         public override void Draw()
         {
             Renderer.DrawLine(Guideline, Pens.SegPen0);
+            if(Path != null)
+            {
+                Renderer.DrawPolyline(Pens.SegPen1, Path.Points);
+            }
         }
     }
 }
