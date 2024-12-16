@@ -28,19 +28,34 @@
         /// </summary>
         private void InitializeComponent()
         {
+            corePanel = new Panel();
             SuspendLayout();
             // 
-            // CoreForm
+            // corePanel
             // 
-            AutoScaleDimensions = new SizeF(10F, 25F);
+            corePanel.Dock = DockStyle.Fill;
+            corePanel.Location = new Point(0, 0);
+            corePanel.Margin = new Padding(2);
+            corePanel.Name = "corePanel";
+            corePanel.Size = new Size(867, 554);
+            corePanel.TabIndex = 0;
+            // 
+            // OrnamentalForm
+            // 
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(64, 64, 64);
-            ClientSize = new Size(861, 537);
-            Name = "CoreForm";
+            ClientSize = new Size(867, 554);
+            Controls.Add(corePanel);
+            DoubleBuffered = true;
+            Margin = new Padding(2, 2, 2, 2);
+            Name = "OrnamentalForm";
             Text = "Ornamental";
             ResumeLayout(false);
         }
 
         #endregion
+
+        private Panel corePanel;
     }
 }

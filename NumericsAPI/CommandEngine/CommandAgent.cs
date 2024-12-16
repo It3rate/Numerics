@@ -3,7 +3,7 @@ using Numerics.CoreConcepts;
 using Numerics.CoreConcepts.Time;
 using Numerics.Primitives;
 
-namespace NumbersAPI.CommandEngine;
+namespace NumericsAPI.CommandEngine;
 public class CommandAgent : IAgent
 {
     public CommandStack Stack { get; }

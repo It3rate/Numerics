@@ -2,6 +2,8 @@
 using NumericsCore.Primitives;
 using SkiaSharp;
 using System;
+using NumericsSkia.Agent;
+using NumericsSkia.Mappers;
 
 namespace NumericsSkia.Renderer;
 public class CoreRenderer
@@ -18,11 +20,14 @@ public class CoreRenderer
             return _instance;
         }
     }
+    public MouseAgent Agent { get; set; }
+    public SKMapper CurrentMapper => Agent.Mapper;
     public bool IsActive { get; private set; } = true;
     public int Width { get; set; }
     public int Height { get; set; }
 
     public event CanvasEventHandler DrawingStart;
+    public event CanvasEventHandler Drawing;
     public event CanvasEventHandler DrawingComplete;
 
     public SKCanvas Canvas;
@@ -44,7 +49,9 @@ public class CoreRenderer
     }
     public virtual void Draw()
     {
-        // draw as needed
+        CurrentMapper?.Draw();
+        Agent?.Draw();
+        OnDrawing();
     }
     public virtual void EndDraw()
     {
@@ -60,6 +67,10 @@ public class CoreRenderer
     protected void OnDrawingBegin()
     {
         DrawingStart?.Invoke(this, new CanvasEventArgs(Canvas));
+    }
+    protected void OnDrawing()
+    {
+        Drawing?.Invoke(this, new CanvasEventArgs(Canvas));
     }
     protected void OnDrawingComplete()
     {

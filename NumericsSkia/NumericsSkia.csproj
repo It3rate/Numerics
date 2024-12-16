@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NumericsAPI\NumericsAPI.csproj" />
     <ProjectReference Include="..\NumericsCore\NumericsCore.csproj" />
   </ItemGroup>
 

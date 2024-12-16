@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Numerics.Primitives;
+﻿using Numerics.CoreConcepts.Time;
 
 namespace NumericsCore.Sequencer;
+
+using System;
 
 public delegate void TimedEventHandler(object sender, EventArgs e);
 
@@ -18,7 +15,7 @@ public interface ITimeable
 
     double StartTime { get; set; }
 
-    Number DelayDuration { get; }
+    MillisecondNumber DelayDuration { get; }
     double DelayValue { get; }
     double DurationValue { get; }
 

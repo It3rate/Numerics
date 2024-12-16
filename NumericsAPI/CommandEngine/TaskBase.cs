@@ -1,8 +1,8 @@
-﻿using NumbersAPI.Commands;
-using NumbersAPI.Motion;
+﻿using NumericsAPI.Commands;
 using Numerics.CoreConcepts.Time;
+using NumericsCore.Sequencer;
 
-namespace NumbersAPI.CommandEngine;
+namespace NumericsAPI.CommandEngine;
 public abstract class TaskBase : ITask
 {
     private static int _idCounter = 1;

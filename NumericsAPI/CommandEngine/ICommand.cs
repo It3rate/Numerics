@@ -1,8 +1,8 @@
-﻿using NumbersAPI.CommandEngine;
+﻿using NumericsAPI.CommandEngine;
 using Numerics.CoreConcepts.Time;
 using Numerics.Primitives;
 
-namespace NumbersAPI.Commands;
+namespace NumericsAPI.Commands;
 
 using System.Collections.Generic;
 

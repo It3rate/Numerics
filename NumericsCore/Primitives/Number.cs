@@ -7,10 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using NumericsCore.Interfaces;
 using NumericsCore.Primitives;
-using NumericsCore.Sequencer;
 using NumericsCore.Expressions;
 using NumericsCore.Utils;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using NumericsCore.Sequencer;
 
 namespace Numerics.Primitives;
 
@@ -86,7 +86,8 @@ public class Number :
     {
         BasisNumber = basisNumber;
         Focal = focal;
-        _history.Add(new(_curMS, StartValue, EndValue));
+        _history.Add(new(0, StartValue, EndValue));
+        //_history.Add(new(_curMS, StartValue, EndValue));
     }
     public Number(Number basisNumber, IValueRef startLandmark, IValueRef endLandmark)
     {
@@ -114,7 +115,7 @@ public class Number :
     }
 
     #region Mutations
-    private long _curMS => Runner.Instance.CurrentMS;
+    private long _curMS => Runner.CurrentMS.EndTick;
     private List<ValueAtTime> _history = new System.Collections.Generic.List<ValueAtTime>();
     public ValueAtTime? CurrentHistoricalValue() => _history.Count > 0 ? _history[_history.Count - 1] : null;
     public ValueAtTime? PreviousHistoricalValue() => _history.Count > 1 ? _history[_history.Count - 2] : null;

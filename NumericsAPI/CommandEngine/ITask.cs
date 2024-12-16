@@ -1,7 +1,7 @@
-﻿using NumbersAPI.Commands;
-using NumbersAPI.Motion;
+﻿using NumericsAPI.Commands;
+using NumericsCore.Sequencer;
 
-namespace NumbersAPI.CommandEngine;
+namespace NumericsAPI.CommandEngine;
 public interface ITask
 {
     int Id { get; }

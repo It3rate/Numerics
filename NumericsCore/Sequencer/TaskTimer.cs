@@ -1,6 +1,7 @@
 ﻿using Numerics.CoreConcepts.Time;
+using NumericsCore.Sequencer;
 
-namespace NumbersAPI.Motion;
+namespace NumericsCore.Sequencer;
 
 // todo: a task timer for animation is really just a transform.
 public class TaskTimer : ITimeable
