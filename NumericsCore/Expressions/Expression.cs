@@ -21,22 +21,40 @@ public class Expression : IExpression
     // akin to samplers, can be fixed data, looked up, random, or computed
     public List<Number> Results { get; } = new List<Number>();
     private List<IExpression> ExpressionChain { get; } = new List<IExpression> { }; // equations can be part of equations
+    public int RepeatCount = 1;
+    public int RepeatIndex = 0;
+    public bool IsRepeatsComplete => TileMode != TileMode.Continue && RepeatIndex >= RepeatCount;
+
     public int CurrentIndex { get; private set; } = 0; // current index will be a number. Eg if equation is *3, then -7i+9 is the value of that over the duration of 7->9.
-    public bool IsComplete => TileMode != TileMode.Continue && CurrentIndex >= ExpressionChain.Count;
+    public bool IsCycleComplete => CurrentIndex >= ExpressionChain.Count;
     public bool PreserveResults { get; private set; } = false;
 
+    private bool _isInverted = false;
+    private Number[] _initialNumbers;
     public Expression()
     {
     }
     public Expression(params Number[] numbers)
     {
-        AddNumbers(numbers);
+        _initialNumbers = numbers;
+        Reset();
     }
-    public Expression(IEnumerable<Number> numbers, long duration, TileMode tileMode, bool preserveResults) : this(numbers.ToArray())
+    public Expression(IEnumerable<Number> numbers, long duration, TileMode tileMode, bool preserveResults, int repeatCount = 1) : this(numbers.ToArray())
     {
         Duration = duration;
         TileMode = tileMode;
         PreserveResults = preserveResults;
+        RepeatCount = repeatCount;
+    }
+
+    public void Reset()
+    {
+        CurrentResult = Number.SCALAR_ZERO;
+        _isInverted = false;
+        CurrentIndex = 0;
+        RepeatIndex = 0;
+        Results.Clear();
+        AddNumbers(_initialNumbers);
     }
 
     public int AddNumbers(params Number[] numbers)
@@ -44,12 +62,8 @@ public class Expression : IExpression
         foreach (var number in numbers)
         {
             Results.Add(number);
+            //CurrentResult = number;
         }
-        return Results.Count - 1;
-    }
-    public int AddNumber(Number number)
-    {
-        Results.Add(number);
         return Results.Count - 1;
     }
     public int AddAtomicExpression(params AtomicExpression[] atomics)
@@ -64,19 +78,40 @@ public class Expression : IExpression
     public void SetInput(Number input)
     {
         CurrentResult = input;
-        CurrentIndex = 0;
     }
     public Number? Next()
     {
-        if (!IsComplete && CurrentResult != null) // todo: check and implement duration, bounce mode etc.
+        if (!IsRepeatsComplete && CurrentResult != null) // todo: check and implement duration, bounce mode etc.
         {
             var index = CurrentIndex >= ExpressionChain.Count ? ExpressionChain.Count - 1 : CurrentIndex;
-            CurrentResult = ExpressionChain[index].Calculate(CurrentResult);
+            var expr = ExpressionChain[index];
+            CurrentResult = _isInverted ? expr.CalculateInverse(CurrentResult) : expr.Calculate(CurrentResult);
             CurrentIndex++;
 
             if (PreserveResults && Results != null)
             {
                 Results.Add(CurrentResult);
+            }
+
+            if(IsCycleComplete)
+            {
+                RepeatIndex += 1;
+            }
+
+            if(IsRepeatsComplete)
+            {
+                switch (TileMode)
+                {
+                    case TileMode.Bounce:
+                        _isInverted = !_isInverted;
+                        CurrentIndex = 0;
+                        RepeatIndex = 0;
+                        break;
+                    case TileMode.Loop:
+                        CurrentIndex = 0;
+                        RepeatIndex = 0;
+                        break;
+                }
             }
         }
         return CurrentResult;
@@ -84,7 +119,17 @@ public class Expression : IExpression
     public Number Calculate(Number input)
     {
         SetInput(input);
-        while (!IsComplete)
+        while (!IsCycleComplete && !IsRepeatsComplete)
+        {
+            Next();
+        }
+        return CurrentResult!;
+    }
+    public Number CalculateInverse(Number input)
+    {
+        SetInput(input);
+        _isInverted = true;
+        while (!IsCycleComplete && !IsRepeatsComplete)
         {
             Next();
         }

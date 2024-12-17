@@ -38,7 +38,9 @@ namespace NumericsCore.Expressions
             Operation = operation;
             Duration = duration;
         }
-        public Number Calculate(Number input)
+        public Number Calculate(Number input) => Calculate(input, false);
+        public Number CalculateInverse(Number input) => Calculate(input, true);
+        private Number Calculate(Number input, bool inverse)
         {
             var result = input;
             if (Operation is BinaryOperationsBase binary)
@@ -47,7 +49,7 @@ namespace NumericsCore.Expressions
                 {
                     var index = RightIndex >= 0 ? RightIndex : Parent.Results.Count + RightIndex; // this needs to be relative to the current index, which is in the expression
                     binary.SetRightSide(Parent.Results[index]);
-                    result = binary.Calculate(input);
+                    result = inverse ? binary.CalculateInverse(input) : binary.Calculate(input);
                 }
             }
             else
@@ -55,10 +57,6 @@ namespace NumericsCore.Expressions
                 result = Operation.Calculate(input);
             }
             return result;
-        }
-        public Number CalculateInverse(Number input)
-        {
-            throw new NotImplementedException();
         }
         //public Number Calculate(Number left, Number right)
         //{

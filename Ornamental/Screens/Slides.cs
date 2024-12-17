@@ -53,39 +53,192 @@ public class Slides : DemoBase
             AnimationTest,
         });
     }
-
+    private List<Expression> _xList;
+    private List<Expression> _yList;
+    SKPoint _origin;
+    int _hCount = 25;
+    int _space = 70;
     private SKMapper AnimationTest()
     {
-        var wm = new OrnamentMapper(_currentMouseAgent, 100, 500, 1050, 0);
+        var wm = new OrnamentMapper(_currentMouseAgent, 100, 200, 1050, 0);
+        _origin = wm.Guideline.StartPoint;
 
         Init();
-        var result = new SKPath();
-        var sp = wm.Guideline.StartPoint;
-        result.MoveTo(sp);
 
-        var offset = new Number(_domain.DefaultBasisNumber, new(0, 0));
-        var input = new Number(_domain.DefaultBasisNumber, new(0, 6000));
-        var path = new Number(_domain.DefaultBasisNumber, new(0, 30000));
+        var offset = new Number(_domain.DefaultBasisNumber, new(0, 2000));
+        var offset2x = new Number(_domain.DefaultBasisNumber, new(0, 4000));
+
+        var path = new Number(_domain.DefaultBasisNumber, new(0, 3000));
         var lm1 = new Landmark(path, 0.2);
         var lm2 = new Landmark(path, 0.8);
         var lmn = new Number(_domain.DefaultBasisNumber, lm1, lm2);
-        var seedList = new List<Number> { offset };
 
-        var equation = new Expression(seedList, 30, TileMode.Continue, true);
-        var step1 = new AtomicExpression(0, new AddOperation(), 1);
-        var step2 = new AtomicExpression(new InvertOperation(), 1);
-        equation.AddAtomicExpression(step1, step2);
-        equation.SetInput(input);
+        AtomicExpression expr0, expr1;
+        var equation_xlong = new Expression([offset2x], 30, TileMode.Continue, true);
+        expr0 = new AtomicExpression(0, new AddOperation(), 1);
+        equation_xlong.AddAtomicExpression(expr0);//, step0_1);
 
-        for (int i = 0; i < 30; i++)
+        var equation_x0 = new Expression([offset], 30, TileMode.Bounce, true);
+        expr0 = new AtomicExpression(0, new AddOperation(), 1);
+        equation_x0.AddAtomicExpression(expr0);
+
+
+        var equation_y0 = new Expression([offset], 30, TileMode.Bounce, true, 2);
+        expr0 = new AtomicExpression(0, new AddOperation(), 1);
+        equation_y0.AddAtomicExpression(expr0);
+
+        var equation_y1 = new Expression([offset], 30, TileMode.Continue, true);
+        expr0 = new AtomicExpression(0, new SubtractOperation(), 1);
+        //expr1 = new AtomicExpression(new SwapOperation(), 1);
+        equation_y1.AddAtomicExpression(expr0);
+
+        _xList = [equation_x0, equation_xlong];
+        _yList = [equation_y0, equation_y1];
+
+        var result = NextPath();
+        for (int i = 0; i < _hCount; i++)
         {
-            var output = equation.Next();
-            result.LineTo(
-                (float)(output.StartValue + sp.X + i * 35), 
-                (float)(output.EndValue + sp.Y));
+            equation_y0.Next();
+            equation_y0.Next();
+            AddLine(result);
+
+            equation_xlong.Next();
+            AddLine(result);
         }
-        wm.Path = result;
+        wm.Paths.Add(result);
+
+        result = NextPath();
+        for (int i = 0; i < _hCount; i++)
+        {
+            equation_y0.Next();
+            equation_y0.Next();
+            equation_xlong.Next();
+            AddLine(result);
+        }
+        wm.Paths.Add(result);
+
+
+        result = NextPath();
+        for (int i = 0; i < _hCount; i++)
+        {
+            equation_x0.Next();
+            AddLine(result);
+            equation_y0.Next();
+            AddLine(result);
+
+            equation_x0.Next();
+            AddLine(result);
+            equation_y0.Next();
+            AddLine(result);
+
+            equation_xlong.Next();
+            AddLine(result);
+        }
+        wm.Paths.Add(result);
+
+        result = NextPath();
+        for (int i = 0; i < _hCount; i++)
+        {
+            equation_x0.Next();
+            AddLine(result);
+            equation_y0.Next();
+
+            equation_x0.Next();
+            equation_y0.Next();
+            AddLine(result);
+
+            equation_xlong.Next();
+            AddLine(result);
+        }
+
+        wm.Paths.Add(result);
+        result = NextPath();
+        for (int i = 0; i < _hCount; i++)
+        {
+            equation_x0.Next();
+            equation_y0.Next();
+            AddLine(result);
+
+            equation_x0.Next();
+            equation_y0.Next();
+            AddLine(result);
+
+            equation_xlong.Next();
+            AddLine(result);
+        }
+        wm.Paths.Add(result);
+            
+        result = NextPath();
+        for (int i = 0; i < _hCount; i++)
+        {
+            equation_x0.Next();
+            AddLine(result);
+            equation_y0.Next();
+            AddLine(result);
+
+            equation_x0.Next();
+            AddLine(result);
+            equation_y0.Next();
+            AddLine(result);
+
+            equation_x0.Next();
+            AddLine(result);
+            equation_y0.Next();
+            AddLine(result);
+
+            equation_xlong.Next();
+            AddLine(result);
+        }
+        wm.Paths.Add(result);
+
+        equation_x0.RepeatCount = 99;
+        result = NextPath();
+        for (int i = 0; i < _hCount/2; i++)
+        {
+            equation_x0.Next();
+            AddLine(result);
+            equation_y0.Next();
+            AddLine(result);
+
+            equation_x0.Next();
+            AddLine(result);
+            equation_y0.Next();
+            AddLine(result);
+
+            equation_xlong.Next();
+            AddLine(result);
+        }
+        wm.Paths.Add(result);
+
         return wm;
+    }
+
+    private SKPath NextPath()
+    {
+        Reset();
+        _origin.Y += _space;
+        var result = new SKPath();
+        result.MoveTo(_origin);
+        return result;
+    }
+
+    private void Reset()
+    {
+        foreach (var expr in _xList)
+        {
+            expr.Reset();
+        }
+        foreach (var expr in _yList)
+        {
+            expr.Reset();
+        }
+    }
+
+    private void AddLine(SKPath result)
+    {
+        var x = (float)(_xList.Select(x => x.CurrentResult.EndValue).Sum() + _origin.X);
+        var y = (float)(_yList.Select(y => -y.CurrentResult.EndValue).Sum() + _origin.Y);
+        result.LineTo(x, y);
     }
 
 

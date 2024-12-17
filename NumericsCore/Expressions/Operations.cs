@@ -30,7 +30,13 @@ namespace NumericsCore.Expressions
     {
         public InvertOperation() { }
         public override Number Calculate(Number input) => input.Invert();
-		public override Number CalculateInverse(Number input) => input;
+        public override Number CalculateInverse(Number input) => input;
+    }
+    public class SwapOperation : OperationBase
+    {
+        public SwapOperation() { }
+        public override Number Calculate(Number input) => input.SwapPoints();
+        public override Number CalculateInverse(Number input) => input;
     }
     public class InvertNegateOperation : OperationBase
     {
@@ -101,7 +107,7 @@ namespace NumericsCore.Expressions
         public AddOperation() { }
         public AddOperation(Number rightSide) : base(rightSide) { }
         public override Number Calculate(Number input) => Number.Add(input, _rightSide);
-        public override Number CalculateInverse(Number input) => Number.Add(_rightSide, input);
+        public override Number CalculateInverse(Number input) => Number.Subtract(input, _rightSide);// Number.Add(_rightSide, input);
     }
 
     public class SubtractOperation : BinaryOperationsBase

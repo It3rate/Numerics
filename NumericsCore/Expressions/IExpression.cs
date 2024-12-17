@@ -14,5 +14,6 @@ namespace NumericsCore.Expressions
         long Duration { get; }
         Number Calculate(Number input);
         Number CalculateAtT(Number input, double t);
+        Number CalculateInverse(Number input);
     }
 }
