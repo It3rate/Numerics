@@ -11,7 +11,7 @@ namespace NumericsCore.Expressions
 	{
 		public Number Left => Results[0];
 		public Number Right => Results[1];
-		public BinaryExpression(Number left, Number right) : base(left, right)
+		public BinaryExpression(Number left, Number right, bool isDynamic = false) : base(isDynamic, left, right)
 		{
 
 		}

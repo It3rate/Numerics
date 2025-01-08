@@ -17,19 +17,10 @@ using NumericsCore.Interfaces;
 
 public class Slides : DemoBase
 {
-    private Random rnd = new Random();
-    private SKPaint _oldTextPen;
-    private SKPaint _newTextPen;
-
     private Trait _trait = null!;
     private Focal _basisFocal = null!;
     private Focal _limits = null!;
     private Domain _domain = null!;
-    private Number _num2_8 = null!;
-    private Number _num3_6 = null!;
-    private Number _num1_m7 = null!;
-    private Number _num_m3_m6 = null!;
-    private Number[] _numList = null!;
     private static double _delta = 0.001;
 
     public void Init()
@@ -38,18 +29,14 @@ public class Slides : DemoBase
         _basisFocal = new Focal(0, 100);
         _limits = new Focal(-10000, 10000);
         _domain = new Domain(_trait, _basisFocal, _limits);
-        _num2_8 = new Number(_domain.DefaultBasisNumber, new(-200, 800)); //   (2i + 8)
-        _num3_6 = new Number(_domain.DefaultBasisNumber, new(-300, 600)); //   (3i + 6)
-        _num1_m7 = new Number(_domain.DefaultBasisNumber, new(-100, -700)); // (i -7)
-        _num_m3_m6 = new Number(_domain.DefaultBasisNumber, new(300, -600));// (-3i -6)
-        _numList = new Number[] { _num2_8, _num3_6, _num1_m7, _num_m3_m6 };
     }
 
     public Slides()
     {
-        _testIndex = 0;// 
+        _testIndex = 1;// 
         Pages.AddRange(new PageCreator[]
         {
+            AnimationTest2,
             AnimationTest,
         });
     }
@@ -57,16 +44,61 @@ public class Slides : DemoBase
     private List<Expression> _yList;
     SKPoint _origin;
     int _hCount = 25;
-    int _space = 70;
-    private SKMapper AnimationTest()
+    int _space = 80;
+
+
+    private SKMapper AnimationTest2()
     {
-        var wm = new OrnamentMapper(_currentMouseAgent, 100, 200, 1050, 0);
+        var wm = new OrnamentMapper(_currentMouseAgent, 100, 100, 1050, 0);
         _origin = wm.Guideline.StartPoint;
 
         Init();
 
-        var offset = new Number(_domain.DefaultBasisNumber, new(0, 2000));
-        var offset2x = new Number(_domain.DefaultBasisNumber, new(0, 4000));
+        var zero = new Number(_domain.DefaultBasisNumber, new(0, 0));
+        var inc = new Number(_domain.DefaultBasisNumber, new(500, 2000));
+        var offset = new Number(_domain.DefaultBasisNumber, new(4000, 3000));
+        AtomicExpression expr0, expr1;
+
+        var equation_x0 = new Expression([zero, inc, offset], 1, TileMode.Continue, false, 4);
+        expr1 = new AtomicExpression(1, new AddOperation(), 1);
+        expr0 = new AtomicExpression(expr1, new AddOperation(), 1);
+        var expr3 = new AtomicExpression(2, new AddOperation(), 1);
+        equation_x0.AddAtomicExpression(expr1, expr0, expr3);
+
+        //var equation_x1 = new Expression([zero, inc], 1, TileMode.Continue, true, 1, false);
+        //equation_x1.AddAtomicExpression(expr1);
+
+        var equation_y0 = new Expression([offset], 1, TileMode.Bounce, false, 1);
+        expr0 = new AtomicExpression(0, new AddOperation(), 1);
+        equation_y0.AddAtomicExpression(expr0);
+
+        _xList = [equation_x0];
+        _yList = [equation_y0];
+
+        var result = NextPath();
+        for (int i = 0; i < _hCount * 3; i++)
+        {
+            equation_x0.Next();
+            equation_y0.Next(); 
+            AddLine(result);
+            //offset.Add(inc);
+        }
+        wm.Paths.Add(result);
+
+        return wm;
+    }
+
+
+    private SKMapper AnimationTest()
+    {
+        var wm = new OrnamentMapper(_currentMouseAgent, 100, 100, 1050, 0);
+        _origin = wm.Guideline.StartPoint;
+
+        Init();
+
+        var inc = new Number(_domain.DefaultBasisNumber, new(0, 100));
+        var offset = new Number(_domain.DefaultBasisNumber, new(2000, 2000));
+        var offset2x = new Number(_domain.DefaultBasisNumber, new(-4000, 4000));
 
         var path = new Number(_domain.DefaultBasisNumber, new(0, 3000));
         var lm1 = new Landmark(path, 0.2);
@@ -74,26 +106,27 @@ public class Slides : DemoBase
         var lmn = new Number(_domain.DefaultBasisNumber, lm1, lm2);
 
         AtomicExpression expr0, expr1;
-        var equation_xlong = new Expression([offset2x], 30, TileMode.Continue, true);
-        expr0 = new AtomicExpression(0, new AddOperation(), 1);
-        equation_xlong.AddAtomicExpression(expr0);//, step0_1);
+        Expression equation_x0, equation_y0;
 
-        var equation_x0 = new Expression([offset], 30, TileMode.Bounce, true);
+        equation_x0 = new Expression([offset, offset], 30, TileMode.Bounce, false, 1);
         expr0 = new AtomicExpression(0, new AddOperation(), 1);
         equation_x0.AddAtomicExpression(expr0);
 
-
-        var equation_y0 = new Expression([offset], 30, TileMode.Bounce, true, 2);
+        equation_y0 = new Expression([offset, offset], 30, TileMode.Bounce, false, 2);
         expr0 = new AtomicExpression(0, new AddOperation(), 1);
         equation_y0.AddAtomicExpression(expr0);
 
-        var equation_y1 = new Expression([offset], 30, TileMode.Continue, true);
-        expr0 = new AtomicExpression(0, new SubtractOperation(), 1);
-        //expr1 = new AtomicExpression(new SwapOperation(), 1);
-        equation_y1.AddAtomicExpression(expr0);
+        var equation_xlong = new Expression([offset2x], 30, TileMode.Continue, false, 1);
+        expr0 = new AtomicExpression(0, new AddOperation(), 1);
+        equation_xlong.AddAtomicExpression(expr0);//, step0_1);
+
+        var equation_ylong = new Expression([offset2x], 30, TileMode.Continue, false, 1);
+        expr0 = new AtomicExpression(0, new AddOperation(), 1);
+        equation_ylong.AddAtomicExpression(expr0);//, step0_1);
+
 
         _xList = [equation_x0, equation_xlong];
-        _yList = [equation_y0, equation_y1];
+        _yList = [equation_y0, equation_ylong];
 
         var result = NextPath();
         for (int i = 0; i < _hCount; i++)
@@ -116,7 +149,6 @@ public class Slides : DemoBase
             AddLine(result);
         }
         wm.Paths.Add(result);
-
 
         result = NextPath();
         for (int i = 0; i < _hCount; i++)
@@ -191,9 +223,42 @@ public class Slides : DemoBase
         }
         wm.Paths.Add(result);
 
-        equation_x0.RepeatCount = 99;
         result = NextPath();
-        for (int i = 0; i < _hCount/2; i++)
+        for (int i = 0; i < _hCount; i++)
+        {
+            equation_y0.Next();
+            AddLine(result);
+            equation_xlong.Next();
+            AddLine(result);
+        }
+        wm.Paths.Add(result);
+
+
+        result = NextPath();
+        equation_x0.Next();
+        equation_x0.TileMode = TileMode.Continue;
+        for (int i = 0; i < _hCount * .63; i++)
+        {
+            equation_xlong.Next();
+            AddLine(result);
+            equation_y0.Next();
+            equation_y0.Next();
+            AddLine(result);
+            equation_xlong.Next();
+            AddLine(result);
+
+            equation_y0.Next();
+            AddLine(result);
+            equation_x0.Next();
+            AddLine(result);
+            equation_y0.Next();
+            AddLine(result);
+        }
+        wm.Paths.Add(result);
+
+
+        result = NextPath();
+        for (int i = 0; i < _hCount / 2; i++)
         {
             equation_x0.Next();
             AddLine(result);
@@ -209,6 +274,8 @@ public class Slides : DemoBase
             AddLine(result);
         }
         wm.Paths.Add(result);
+
+        result = NextPath();
 
         return wm;
     }
@@ -237,7 +304,7 @@ public class Slides : DemoBase
     private void AddLine(SKPath result)
     {
         var x = (float)(_xList.Select(x => x.CurrentResult.EndValue).Sum() + _origin.X);
-        var y = (float)(_yList.Select(y => -y.CurrentResult.EndValue).Sum() + _origin.Y);
+        var y = (float)(_yList.Select(y => -y.CurrentResult.StartValue).Sum() + _origin.Y);
         result.LineTo(x, y);
     }
 

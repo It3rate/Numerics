@@ -74,7 +74,7 @@ public class AtomicExpressionTests
         [TestMethod]
         public void BinaryStepTests()
         {
-            var expr = new Expression(_numList);
+            var expr = new Expression(false, _numList);
 
             var step = new AtomicExpression(0, new AddOperation(), 2);
             expr.AddAtomicExpression(step);

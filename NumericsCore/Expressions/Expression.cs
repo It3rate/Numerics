@@ -15,7 +15,8 @@ namespace NumericsCore.Expressions;
 /// </summary>
 public class Expression : IExpression
 {
-    public TileMode TileMode { get; } = TileMode.OneShot;
+    public TileMode TileMode { get; set; } = TileMode.OneShot;
+    public bool IsDynamic { get; set; } = false;
     public long Duration { get; } = 1; // can either be based on length, or hard coded. In either case is multiplied by some basis (speed of time, allowing slowing or reversing effect)
     public Number? CurrentResult { get; private set; }
     // akin to samplers, can be fixed data, looked up, random, or computed
@@ -34,12 +35,13 @@ public class Expression : IExpression
     public Expression()
     {
     }
-    public Expression(params Number[] numbers)
+    public Expression(bool isDynamic, params Number[] numbers)
     {
+        IsDynamic = isDynamic;
         _initialNumbers = numbers;
         Reset();
     }
-    public Expression(IEnumerable<Number> numbers, long duration, TileMode tileMode, bool preserveResults, int repeatCount = 1) : this(numbers.ToArray())
+    public Expression(IEnumerable<Number> numbers, long duration, TileMode tileMode, bool preserveResults, int repeatCount = 1, bool isDynamic = false) : this(isDynamic, numbers.ToArray())
     {
         Duration = duration;
         TileMode = tileMode;
@@ -49,7 +51,7 @@ public class Expression : IExpression
 
     public void Reset()
     {
-        CurrentResult = Number.SCALAR_ZERO;
+        CurrentResult = _initialNumbers[0].Zero;// Number.SCALAR_ZERO;
         _isInverted = false;
         CurrentIndex = 0;
         RepeatIndex = 0;
@@ -85,7 +87,15 @@ public class Expression : IExpression
         {
             var index = CurrentIndex >= ExpressionChain.Count ? ExpressionChain.Count - 1 : CurrentIndex;
             var expr = ExpressionChain[index];
-            CurrentResult = _isInverted ? expr.CalculateInverse(CurrentResult) : expr.Calculate(CurrentResult);
+            var result = _isInverted ? expr.CalculateInverse(CurrentResult) : expr.Calculate(CurrentResult);
+            if(IsDynamic)
+            {
+                CurrentResult.SetWith(result);
+            }
+            else
+            {
+                CurrentResult = result;
+            }
             CurrentIndex++;
 
             if (PreserveResults && Results != null)
@@ -96,6 +106,7 @@ public class Expression : IExpression
             if(IsCycleComplete)
             {
                 RepeatIndex += 1;
+                CurrentIndex = 0;
             }
 
             if(IsRepeatsComplete)
@@ -104,11 +115,9 @@ public class Expression : IExpression
                 {
                     case TileMode.Bounce:
                         _isInverted = !_isInverted;
-                        CurrentIndex = 0;
                         RepeatIndex = 0;
                         break;
                     case TileMode.Loop:
-                        CurrentIndex = 0;
                         RepeatIndex = 0;
                         break;
                 }

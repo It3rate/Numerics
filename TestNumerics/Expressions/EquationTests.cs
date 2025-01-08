@@ -41,7 +41,7 @@ public class EquationTests
     [TestMethod]
     public void EquationTest1()
     {
-        var equation = new Expression(_numList);
+        var equation = new Expression(false, _numList);
         var step1 = new AtomicExpression(1, new AddOperation(), 1);
         var step2 = new AtomicExpression(2, new MultiplyOperation(), 1);
         equation.AddAtomicExpression(step1, step2);
