@@ -20,7 +20,7 @@ public class CoreRenderer
             return _instance;
         }
     }
-    public MouseAgent Agent { get; set; }
+    public RenderAgent Agent { get; set; }
     public SKMapper CurrentMapper => Agent.Mapper;
     public bool IsActive { get; private set; } = true;
     public int Width { get; set; }

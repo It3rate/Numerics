@@ -8,6 +8,7 @@ using NumericsCore.Sequencer;
 using NumericsSkia.Utils;
 using MathDemo;
 using NumericsSkia.Mappers;
+using Ornamental.Agent;
 
 namespace Ornamental;
 
@@ -16,7 +17,7 @@ public partial class OrnamentalForm : Form
     private readonly IDemos _demos;
     private readonly CoreRenderer _renderer;
     private readonly SKControl _control;
-    private readonly MouseAgent _mouseAgent;
+    private readonly OrnamentAgent _renderAgent;
     private Runner _runner;
     //private Workspace _workspace;
     private SKMapper _mapper;
@@ -46,10 +47,10 @@ public partial class OrnamentalForm : Form
         KeyDown += OnKeyDown;
         KeyUp += OnKeyUp;
 
-        _demos = new Slides();
-        _mouseAgent = new MouseAgent(_renderer, _demos);
+        _demos = new SymSlides();
+        _renderAgent = new OrnamentAgent(_renderer, _demos);
 
-        _runner = _mouseAgent.Runner;
+        _runner = _renderAgent.Runner;
         _ = Execute(null, 50);
     }
     private void OnResize(object? sender, EventArgs e)
@@ -71,33 +72,33 @@ public partial class OrnamentalForm : Form
     private void SetMapper(SKMapper mapper)
     {
         _mapper = mapper;
-        _mouseAgent.Mapper = _mapper;
+        _renderAgent.Mapper = _mapper;
     }
 
     public void PreviousTest()
     {
         _runner.HasUpdated = false;
-        SetMapper(_demos.PreviousTest(_mouseAgent));
+        SetMapper(_demos.PreviousTest(_renderAgent));
         _runner.HasUpdated = true;
     }
     public void ReloadTest()
     {
         _runner.HasUpdated = false;
-        SetMapper(_demos.Reload(_mouseAgent));
+        SetMapper(_demos.Reload(_renderAgent));
         _runner.HasUpdated = true;
     }
     public void NextTest()
     {
         _runner.HasUpdated = false;
-        SetMapper(_demos.NextTest(_mouseAgent));
+        SetMapper(_demos.NextTest(_renderAgent));
         _runner.HasUpdated = true;
     }
 
-    private void OnMouseDown(object? sender, MouseEventArgs e) { if (_mouseAgent.MouseDown(e.ToMouseArgs())) { NeedsUpdate(); } }
-    private void OnMouseMove(object? sender, MouseEventArgs e) { if (_mouseAgent.MouseMove(e.ToMouseArgs())) { NeedsUpdate(); } }
-    private void OnMouseUp(object? sender, MouseEventArgs e) { if (_mouseAgent.MouseUp(e.ToMouseArgs())) { NeedsUpdate(); } }
-    private void OnMouseDoubleClick(object? sender, MouseEventArgs e) { if (_mouseAgent.MouseDoubleClick(e.ToMouseArgs())) { NeedsUpdate(); } }
-    private void OnMouseWheel(object? sender, MouseEventArgs e) { if (_mouseAgent.MouseWheel(e.ToMouseArgs())) { NeedsUpdate(); } }
+    private void OnMouseDown(object? sender, MouseEventArgs e) { if (_renderAgent.MouseDown(e.ToMouseArgs())) { NeedsUpdate(); } }
+    private void OnMouseMove(object? sender, MouseEventArgs e) { if (_renderAgent.MouseMove(e.ToMouseArgs())) { NeedsUpdate(); } }
+    private void OnMouseUp(object? sender, MouseEventArgs e) { if (_renderAgent.MouseUp(e.ToMouseArgs())) { NeedsUpdate(); } }
+    private void OnMouseDoubleClick(object? sender, MouseEventArgs e) { if (_renderAgent.MouseDoubleClick(e.ToMouseArgs())) { NeedsUpdate(); } }
+    private void OnMouseWheel(object? sender, MouseEventArgs e) { if (_renderAgent.MouseWheel(e.ToMouseArgs())) { NeedsUpdate(); } }
 
 
     private void OnPreviewKeyDown(object? sender, PreviewKeyDownEventArgs e)
@@ -115,7 +116,7 @@ public partial class OrnamentalForm : Form
     }
     private void OnKeyUp(object? sender, KeyEventArgs e) 
     { 
-        if (_mouseAgent == null)// || _mouseAgent.KeyUp(e.ToKeyArgs())) 
+        if (_renderAgent == null)// || _mouseAgent.KeyUp(e.ToKeyArgs())) 
         { 
             NeedsUpdate(); 
         } 

@@ -13,7 +13,7 @@ public abstract class SKMapper : IDrawableElement
     public int Id { get; set; }
     protected static int idCounter = 0;
 
-    public MouseAgent Agent { get; }
+    public RenderAgent Agent { get; }
     public CoreRenderer Renderer => Agent.Renderer;
     public SKCanvas Canvas => Renderer.Canvas;
     protected CorePens Pens => Renderer.Pens;
@@ -36,7 +36,7 @@ public abstract class SKMapper : IDrawableElement
     }
     public SKPoint[] EndPoints => new SKPoint[] { StartPoint, EndPoint };
 
-    protected SKMapper(MouseAgent agent, SKSegment guideline = default)
+    protected SKMapper(RenderAgent agent, SKSegment guideline = default)
     {
         Agent = agent;
         Guideline = guideline ?? new SKSegment(0, 0, 1, 1);

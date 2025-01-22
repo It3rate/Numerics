@@ -7,7 +7,7 @@ using SkiaSharp;
 public interface IDrawableElement
 {
     int Id { get; set; }
-    MouseAgent Agent { get; }
+    RenderAgent Agent { get; }
     CoreRenderer Renderer { get; }
     SKCanvas Canvas { get; }
     void Draw();

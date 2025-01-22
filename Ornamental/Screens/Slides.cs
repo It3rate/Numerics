@@ -36,8 +36,7 @@ public class Slides : DemoBase
         _testIndex = 1;// 
         Pages.AddRange(new PageCreator[]
         {
-            AnimationTest2,
-            AnimationTest,
+            OrnamentTest
         });
     }
     private List<Expression> _xList;
@@ -47,11 +46,10 @@ public class Slides : DemoBase
     int _space = 80;
 
 
-    private SKMapper AnimationTest2()
+    private SKMapper OrnamentTest()
     {
-        var wm = new OrnamentMapper(_currentMouseAgent, 100, 100, 1050, 0);
+        var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
         _origin = wm.Guideline.StartPoint;
-
         Init();
 
         var zero = new Number(_domain.DefaultBasisNumber, new(0, 0));
@@ -89,196 +87,6 @@ public class Slides : DemoBase
     }
 
 
-    private SKMapper AnimationTest()
-    {
-        var wm = new OrnamentMapper(_currentMouseAgent, 100, 100, 1050, 0);
-        _origin = wm.Guideline.StartPoint;
-
-        Init();
-
-        var inc = new Number(_domain.DefaultBasisNumber, new(0, 100));
-        var offset = new Number(_domain.DefaultBasisNumber, new(2000, 2000));
-        var offset2x = new Number(_domain.DefaultBasisNumber, new(-4000, 4000));
-
-        var path = new Number(_domain.DefaultBasisNumber, new(0, 3000));
-        var lm1 = new Landmark(path, 0.2);
-        var lm2 = new Landmark(path, 0.8);
-        var lmn = new Number(_domain.DefaultBasisNumber, lm1, lm2);
-
-        AtomicExpression expr0, expr1;
-        Expression equation_x0, equation_y0;
-
-        equation_x0 = new Expression([offset, offset], 30, TileMode.Bounce, false, 1);
-        expr0 = new AtomicExpression(0, new AddOperation(), 1);
-        equation_x0.AddAtomicExpression(expr0);
-
-        equation_y0 = new Expression([offset, offset], 30, TileMode.Bounce, false, 2);
-        expr0 = new AtomicExpression(0, new AddOperation(), 1);
-        equation_y0.AddAtomicExpression(expr0);
-
-        var equation_xlong = new Expression([offset2x], 30, TileMode.Continue, false, 1);
-        expr0 = new AtomicExpression(0, new AddOperation(), 1);
-        equation_xlong.AddAtomicExpression(expr0);//, step0_1);
-
-        var equation_ylong = new Expression([offset2x], 30, TileMode.Continue, false, 1);
-        expr0 = new AtomicExpression(0, new AddOperation(), 1);
-        equation_ylong.AddAtomicExpression(expr0);//, step0_1);
-
-
-        _xList = [equation_x0, equation_xlong];
-        _yList = [equation_y0, equation_ylong];
-
-        var result = NextPath();
-        for (int i = 0; i < _hCount; i++)
-        {
-            equation_y0.Next();
-            equation_y0.Next();
-            AddLine(result);
-
-            equation_xlong.Next();
-            AddLine(result);
-        }
-        wm.Paths.Add(result);
-
-        result = NextPath();
-        for (int i = 0; i < _hCount; i++)
-        {
-            equation_y0.Next();
-            equation_y0.Next();
-            equation_xlong.Next();
-            AddLine(result);
-        }
-        wm.Paths.Add(result);
-
-        result = NextPath();
-        for (int i = 0; i < _hCount; i++)
-        {
-            equation_x0.Next();
-            AddLine(result);
-            equation_y0.Next();
-            AddLine(result);
-
-            equation_x0.Next();
-            AddLine(result);
-            equation_y0.Next();
-            AddLine(result);
-
-            equation_xlong.Next();
-            AddLine(result);
-        }
-        wm.Paths.Add(result);
-
-        result = NextPath();
-        for (int i = 0; i < _hCount; i++)
-        {
-            equation_x0.Next();
-            AddLine(result);
-            equation_y0.Next();
-
-            equation_x0.Next();
-            equation_y0.Next();
-            AddLine(result);
-
-            equation_xlong.Next();
-            AddLine(result);
-        }
-
-        wm.Paths.Add(result);
-        result = NextPath();
-        for (int i = 0; i < _hCount; i++)
-        {
-            equation_x0.Next();
-            equation_y0.Next();
-            AddLine(result);
-
-            equation_x0.Next();
-            equation_y0.Next();
-            AddLine(result);
-
-            equation_xlong.Next();
-            AddLine(result);
-        }
-        wm.Paths.Add(result);
-            
-        result = NextPath();
-        for (int i = 0; i < _hCount; i++)
-        {
-            equation_x0.Next();
-            AddLine(result);
-            equation_y0.Next();
-            AddLine(result);
-
-            equation_x0.Next();
-            AddLine(result);
-            equation_y0.Next();
-            AddLine(result);
-
-            equation_x0.Next();
-            AddLine(result);
-            equation_y0.Next();
-            AddLine(result);
-
-            equation_xlong.Next();
-            AddLine(result);
-        }
-        wm.Paths.Add(result);
-
-        result = NextPath();
-        for (int i = 0; i < _hCount; i++)
-        {
-            equation_y0.Next();
-            AddLine(result);
-            equation_xlong.Next();
-            AddLine(result);
-        }
-        wm.Paths.Add(result);
-
-
-        result = NextPath();
-        equation_x0.Next();
-        equation_x0.TileMode = TileMode.Continue;
-        for (int i = 0; i < _hCount * .63; i++)
-        {
-            equation_xlong.Next();
-            AddLine(result);
-            equation_y0.Next();
-            equation_y0.Next();
-            AddLine(result);
-            equation_xlong.Next();
-            AddLine(result);
-
-            equation_y0.Next();
-            AddLine(result);
-            equation_x0.Next();
-            AddLine(result);
-            equation_y0.Next();
-            AddLine(result);
-        }
-        wm.Paths.Add(result);
-
-
-        result = NextPath();
-        for (int i = 0; i < _hCount / 2; i++)
-        {
-            equation_x0.Next();
-            AddLine(result);
-            equation_y0.Next();
-            AddLine(result);
-
-            equation_x0.Next();
-            AddLine(result);
-            equation_y0.Next();
-            AddLine(result);
-
-            equation_xlong.Next();
-            AddLine(result);
-        }
-        wm.Paths.Add(result);
-
-        result = NextPath();
-
-        return wm;
-    }
 
     private SKPath NextPath()
     {

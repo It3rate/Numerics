@@ -9,10 +9,11 @@ using SkiaSharp;
 using Numerics.Primitives;
 using NumericsCore.Sequencer;
 using NumericsSkia.Mappers;
+using Numerics.CoreConcepts.Time;
 
 namespace NumericsSkia.Agent;
 
-public class MouseAgent : CommandAgent, IMouseAgent
+public class RenderAgent : CommandAgent, IMouseAgent
 {
     #region Properties
 
@@ -69,7 +70,7 @@ public class MouseAgent : CommandAgent, IMouseAgent
     private Dictionary<int, PRange> SavedNumbers { get; } = new Dictionary<int, PRange>();
     #endregion
 
-    public MouseAgent(CoreRenderer renderer, IDemos demos)
+    public RenderAgent(CoreRenderer renderer, IDemos demos)
     {
         Renderer = renderer;
         Renderer.Agent = this;
@@ -81,6 +82,10 @@ public class MouseAgent : CommandAgent, IMouseAgent
         ClearMouse();
     }
 
+    public void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime)
+    {
+        base.Update(currentTime, deltaTime);
+    }
     #region Mode
     private void SetSelectable(UIMode uiMode)
     {
@@ -202,7 +207,7 @@ public class MouseAgent : CommandAgent, IMouseAgent
 
 
     #region Render
-    public void Draw()
+    public virtual void Draw()
     {
     }
     public SKPoint GetTransformedPoint(SKPoint point) => point; // will be matrix etc

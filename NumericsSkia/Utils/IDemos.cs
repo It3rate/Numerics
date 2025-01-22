@@ -7,9 +7,9 @@ public delegate SKMapper PageCreator();
 public interface IDemos
 {
     List<PageCreator> Pages { get; }
-    SKMapper NextTest(MouseAgent agent);
-    SKMapper PreviousTest(MouseAgent agent);
-    SKMapper Reload(MouseAgent agent);
+    SKMapper NextTest(RenderAgent agent);
+    SKMapper PreviousTest(RenderAgent agent);
+    SKMapper Reload(RenderAgent agent);
 
-    SKMapper LoadTest(int index, MouseAgent mouseAgent);
+    SKMapper LoadTest(int index, RenderAgent mouseAgent);
 }

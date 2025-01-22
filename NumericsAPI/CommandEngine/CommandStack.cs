@@ -4,6 +4,26 @@ using Numerics.Primitives;
 
 namespace NumericsAPI.CommandEngine;
 
+
+// commands can ref other commands. Maybe this is sibling children only? probably passed in input number refs.
+// commands can communicate, perhaps interrupt/rtos style?
+// attributes can be dynamic, depend on external state
+
+// Play in sequence, parallel, ping pong etc
+// commands can pause, continue, return, merge, separate
+// end state can be various tile styles (repeat, reverse, continue, invert, stop, conditionals etc)
+// commands can be recursive
+
+// commands have an orientation and frame of reference (that comes from parent? past? inputs of external state?)
+// commands have state, can hold state across invocations?
+// all commands can be animated over their whole lifecycle (number 7 is an animation from 0 to 7)
+
+// commands can be grouped into longer commands, or task oriented groups
+// there can be multiple command stacks for different tasks, they can access the same input and states
+
+
+// Selection (path, point), transform/append state, test for end
+
 public interface ICommandStack
 {
     CommandAgent Agent { get; }
@@ -52,6 +72,8 @@ public class CommandStack : ICommandStack
         Agent = agent;
     }
 
+    public ICommand[] CurrentCommands => _stack.ToArray();
+
     public void Do(ICommand command)
     {
         command.Stack = this;
@@ -81,7 +103,7 @@ public class CommandStack : ICommandStack
 
     public void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime)
     {
-        // remove terminated commands (live commands in the toTerminate array)
+        // remove or recycle terminated commands (live commands in the toTerminate array)
         // copy live commands
         // loop commands
         //   if anim command iscomplete, add to toDelete list, remove handlers
