@@ -48,7 +48,7 @@ public partial class OrnamentalForm : Form
         KeyUp += OnKeyUp;
 
         _demos = new SymSlides();
-        _renderAgent = new OrnamentAgent(_renderer, _demos);
+        _renderAgent = new OrnamentAgent(this, _renderer, _demos);
 
         _runner = _renderAgent.Runner;
         _ = Execute(null, 50);
@@ -122,7 +122,7 @@ public partial class OrnamentalForm : Form
         } 
     }
 
-    private void NeedsUpdate()
+    public void NeedsUpdate()
     {
         _control.Invalidate();
         _runner.NeedsUpdate();

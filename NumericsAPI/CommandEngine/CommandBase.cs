@@ -14,11 +14,13 @@ public abstract class CommandBase : ICommand
 
     public List<ITask> Tasks { get; } = new List<ITask>();
     protected int _taskIndex = 0;
+    public MillisecondNumber Duration { get; }
 
     public virtual ICommandStack Stack { get; set; }
 
-    public CommandBase()
+    public CommandBase(MillisecondNumber? duration = null)
     {
+        Duration = duration ?? MillisecondNumber.Create(DefaultDelay, DefaultDuration);
     }
     public virtual bool AppendElements()
     {
@@ -36,8 +38,8 @@ public abstract class CommandBase : ICommand
 
     public MillisecondNumber LiveTimeSpan { get; set; }
     public long DurationMS => LiveTimeSpan.EndTick;
-    public long DefaultDelay { get; set; }
-    public long DefaultDuration { get; set; }
+    public static long DefaultDelay { get; set; } = 0;
+    public static long DefaultDuration { get; set; } = 0;
 
     public virtual int RepeatCount { get; }
     public virtual int RepeatIndex { get; }
@@ -82,6 +84,7 @@ public abstract class CommandBase : ICommand
     {
         task.Agent = Agent;
         Tasks.Add(task);
+        task.Timer.Begin(Stack);
     }
     public void AddTasks(params ITask[] tasks)
     {

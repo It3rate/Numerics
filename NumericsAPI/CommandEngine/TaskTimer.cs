@@ -1,59 +1,55 @@
 ﻿using Numerics.CoreConcepts.Time;
-using NumericsCore.Sequencer;
 
-namespace NumericsCore.Sequencer;
+namespace NumericsAPI.CommandEngine;
 
 // todo: a task timer for animation is really just a transform.
-public class TaskTimer : ITimeable
+public class TaskTimer //: ITimeable
 {
     public float InterpolationT { get; set; }
     public bool IsComplete { get; protected set; } = false;
 
-    public double StartTime { get; set; }
-    private double _runningTime;
-    private double _currentTime;
-    private DateTime _pauseTime;
+    public long StartTime { get; set; }
+    private ICommandStack? _stack;
+    private long _runningTime;
+    private long _currentTime;
+    private long _pauseTimeMs;
+    private long _delayTimeMs = 0;
     private bool _isPaused;
-    private float _delayTime = 0;
-    protected bool IsReverse { get; set; } = false;
+    protected bool IsReverse { get; set; } = false; // might need for undo/scrub
 
     public MillisecondNumber DelayDuration { get; } // can 'type' numbers, this would be on a domain of 0-30 focal unit, and 0-max range, time trait.
-    public double DelayValue => DelayDuration.StartValue; // Delay is unot, duration is unit
-    public double DurationValue => DelayDuration.EndValue;
+    public long DelayMs => DelayDuration.StartTick; // Delay is unot, duration is unit
+    public long DurationMs => DelayDuration.EndTick;
 
-
-    public event TimedEventHandler StartTimedEvent;
-    public event TimedEventHandler StepTimedEvent;
-    public event TimedEventHandler EndTimedEvent;
-
-    public TaskTimer(MillisecondNumber delayDuration)
+    public TaskTimer(long delayMs, long durationMs)
     {
-        DelayDuration = delayDuration;
-        _pauseTime = DateTime.Now;
+        DelayDuration = MillisecondNumber.Create(delayMs, durationMs);
+    }
+
+    public void Begin(ICommandStack stack)
+    {
+        _stack = stack;
+        _pauseTimeMs = _stack.CurrentTime.EndTick;
     }
 
     public void Restart()
     {
-        StartTime = (float)(DateTime.Now - Runner.StartTime).TotalMilliseconds;
+        StartTime = _stack!.CurrentTime.EndTick - _stack.StartTime.StartTick;
         _currentTime = StartTime;
         _runningTime = 0;
-        _delayTime = 0;
+        _delayTimeMs = 0;
         IsComplete = false;
-        StartTimedEvent?.Invoke(this, EventArgs.Empty);
-    }
-    public void Reverse()
-    {
-        IsReverse = !IsReverse;
     }
 
-    public void StartUpdate(double ct, double deltaTime)
+    public void StartUpdate(long currentTime, long deltaTime)
     {
+        //_currentTime = currentTime;
         if (!_isPaused)
         {
-            _runningTime += deltaTime + _delayTime;
-            _delayTime = 0;
+            _runningTime += deltaTime + _delayTimeMs;
+            _delayTimeMs = 0;
             _currentTime = StartTime + _runningTime;
-            if (_currentTime > StartTime + DurationValue)
+            if (_currentTime > StartTime + DurationMs)
             {
                 IsComplete = true;
                 InterpolationT = 1f;
@@ -61,20 +57,22 @@ public class TaskTimer : ITimeable
             else
             {
                 InterpolationT = (float)(_currentTime < StartTime ? 0 :
-                    _currentTime > StartTime + DurationValue ? 1f :
-                    (_currentTime - StartTime) / DurationValue);
+                    _currentTime > StartTime + DurationMs ? 1f :
+                    (_currentTime - StartTime) / (float)DurationMs);
             }
 
             InterpolationT = IsReverse ? 1f - InterpolationT : InterpolationT;
-            StepTimedEvent?.Invoke(this, EventArgs.Empty);
         }
     }
     public void EndUpdate(double currentTime, double deltaTime)
     {
         if (IsComplete)
         {
-            EndTimedEvent?.Invoke(this, EventArgs.Empty);
         }
+    }
+    public void Reverse()
+    {
+        IsReverse = !IsReverse;
     }
 
     //public override ParametricSeries GetNormalizedPropertyAtT(PropertyId propertyId, ParametricSeries seriesT)
@@ -109,12 +107,12 @@ public class TaskTimer : ITimeable
     public void Pause()
     {
         _isPaused = true;
-        _pauseTime = DateTime.Now;
+        _pauseTimeMs = _stack!.CurrentTime.EndTick;
     }
 
     public void Resume()
     {
         _isPaused = false;
-        _delayTime = (float)(DateTime.Now - _pauseTime).TotalMilliseconds;
+        _delayTimeMs = _stack!.CurrentTime.EndTick - _pauseTimeMs;
     }
 }

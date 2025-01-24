@@ -1,5 +1,5 @@
-﻿using NumericsAPI.Commands;
-using NumericsCore.Sequencer;
+﻿using Numerics.CoreConcepts.Time;
+using NumericsAPI.Commands;
 
 namespace NumericsAPI.CommandEngine;
 public interface ITask
@@ -8,8 +8,10 @@ public interface ITask
     ICommand Command { get; }
     CommandAgent Agent { get; set; }
     TaskTimer Timer { get; }
+    float InterpolationT { get; }
     bool IsValid { get; }
     void RunTask();
+    void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime);
     void UnRunTask();
     //void OnAddedToCommand(ICommand command);
 }

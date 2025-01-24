@@ -75,16 +75,16 @@ public class RenderAgent : CommandAgent, IMouseAgent
         Renderer = renderer;
         Renderer.Agent = this;
         Runner = new Runner(this);
-        Stack.LastTime.SetWith(Runner.CurrentMS);
+        Stack.CurrentTime.SetWith(Runner.CurrentMS);
 
         Demos = demos;// new Demos(Brain, Renderer);
 
         ClearMouse();
     }
 
-    public void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime)
+    public override void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime)
     {
-        base.Update(currentTime, deltaTime);
+        Stack.Update(currentTime, deltaTime);
     }
     #region Mode
     private void SetSelectable(UIMode uiMode)

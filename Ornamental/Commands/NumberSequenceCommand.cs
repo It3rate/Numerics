@@ -14,27 +14,28 @@ using Ornamental.Commands.Tasks;
 
 namespace Ornamental.Commands
 {
-    public class CreateNumberCommand : CommandBase
+    public class NumberSequenceCommand : CommandBase
     {
         // selection
         // context
         // start task
         // updates
         // end task
-        public Domain Domain => CreateNumberTask.Domain;
-        public SymmetricNumber Number => CreateNumberTask.Number;//{ get; private set; }
-        public CreateNumberTask CreateNumberTask { get; set; }
-        public CreateNumberCommand(Domain domain, Focal topFocal, Focal bottomFocal)
+        public Domain Domain => NumberSequenceTask.Domain;
+        public SymmetricNumber Number => NumberSequenceTask.Number;
+        public SymmetricNumber InProgressNumber => NumberSequenceTask.InProgressNumber ?? NumberSequenceTask.Number;
+        public NumberSequenceTask NumberSequenceTask { get; set; }
+        public NumberSequenceCommand(Domain domain, Focal topFocal, Focal bottomFocal, MillisecondNumber? duration = null) : base(duration)
             //Trait trait, long basisStart, long basisEnd, long minMaxStart, long minMaxEnd, SKSegment guideline, SKSegment unitSegment, string name) : base(guideline)
         {
-            CreateNumberTask = new CreateNumberTask(domain, topFocal, bottomFocal);
+            NumberSequenceTask = new NumberSequenceTask(domain, topFocal, bottomFocal, Duration);
         }
 
         public override void Execute()
         {
-            if (CreateNumberTask != null)
+            if (NumberSequenceTask != null)
             {
-                Tasks.Add(CreateNumberTask);
+                Tasks.Add(NumberSequenceTask);
             }
             base.Execute();
 
@@ -44,16 +45,17 @@ namespace Ornamental.Commands
             //    DomainMapper.FlipRenderPerspective();
             //}
         }
+        public override void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime)
+        {
+            base.Update(currentTime, deltaTime);
+            NumberSequenceTask.Update(currentTime, deltaTime);
+        }
+
 
         public override void Unexecute()
         {
             base.Unexecute();
            // MouseAgent.WorkspaceMapper.RemoveDomainMapper(DomainMapper);
-        }
-
-        public override void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime)
-        {
-            base.Update(currentTime, deltaTime);
         }
 
         public override void Completed()

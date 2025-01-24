@@ -1,6 +1,5 @@
 ﻿using NumericsAPI.Commands;
 using Numerics.CoreConcepts.Time;
-using NumericsCore.Sequencer;
 
 namespace NumericsAPI.CommandEngine;
 public abstract class TaskBase : ITask
@@ -11,16 +10,24 @@ public abstract class TaskBase : ITask
     public ICommand Command { get; }
     public CommandAgent Agent { get; set; }
     public TaskTimer Timer { get; }
+    public float InterpolationT => Timer.InterpolationT;
 
     public abstract bool IsValid { get; }
     public virtual void Initialize() { }
 
-    protected TaskBase()
+    protected TaskBase(MillisecondNumber duration)
     {
         Id = _idCounter++;
-        Timer = new TaskTimer(MillisecondNumber.Create(0));
+        var delayMs = duration.StartTick;
+        var durationMs = duration.EndTick;
+        Timer = new TaskTimer(delayMs, durationMs);
     }
     public virtual void RunTask() { }
+    public virtual void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime)
+    {
+        Timer.StartUpdate(currentTime.EndTick, deltaTime.EndTick);
+        Timer.EndUpdate(currentTime.EndTick, deltaTime.EndTick);
+    }
     public virtual void UnRunTask() { }
 
 }

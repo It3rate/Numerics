@@ -13,7 +13,7 @@ public class CommandAgent : IAgent
         Stack = new CommandStack(this);
     }
 
-    public void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime)
+    public virtual void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime)
     {
         //Workspace.Update(currentTime, deltaTime);
         Stack.Update(currentTime, deltaTime);

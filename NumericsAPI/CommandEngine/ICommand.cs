@@ -24,8 +24,9 @@ public interface ICommand
     // todo: rather than time commands, all commands will be formulas that exit when their stop condition is met.
     MillisecondNumber LiveTimeSpan { get; set; }
     long DurationMS { get; }
-    long DefaultDelay { get; set; }
-    long DefaultDuration { get; set; }
+    public MillisecondNumber Duration { get; }
+    //long DefaultDelay { get; set; }
+    //long DefaultDuration { get; set; }
 
     bool AppendElements();
     bool RemoveElements();

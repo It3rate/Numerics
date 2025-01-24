@@ -35,6 +35,10 @@ public interface ICommandStack
 
     void Do(ICommand command);
     ICommand PreviousCommand();
+
+    MillisecondNumber CurrentTime { get; }
+    MillisecondNumber CurrentDelta { get; }
+    MillisecondNumber StartTime { get; }
     void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime);
 
     bool Undo();
@@ -60,16 +64,23 @@ public class CommandStack : ICommandStack
     private readonly List<ICommand> _toDelete = new List<ICommand>(); // commands that natrually end
     private readonly List<ICommand> _toTerminate = new List<ICommand>(); // commands that didn't naturally finish
 
-    public readonly MillisecondNumber LastTime = MillisecondNumber.Zero(false);
+    public MillisecondNumber CurrentTime { get;} = MillisecondNumber.Zero(false);
+    public MillisecondNumber CurrentDelta { get; } = MillisecondNumber.Zero(false);
+    public MillisecondNumber StartTime { get; } = MillisecondNumber.Zero(false);
 
     public bool CanUndo => _stackIndex > 0;
     public int UndoSize => _stackIndex;
     public bool CanRedo => RedoSize > 0;
     public int RedoSize => _stack.Count - _stackIndex;
 
-    public CommandStack(CommandAgent agent)
+    public CommandStack(CommandAgent agent, long startTime = 0)
     {
         Agent = agent;
+        if(startTime != 0)
+        {
+            StartTime.Focal.StartTick = startTime;
+            StartTime.Focal.EndTick = startTime;
+        }
     }
 
     public ICommand[] CurrentCommands => _stack.ToArray();
@@ -81,10 +92,10 @@ public class CommandStack : ICommandStack
 
         if (command.LiveTimeSpan == null)
         {
-            command.LiveTimeSpan = MillisecondNumber.Create(-LastTime.EndTick + command.DefaultDelay, command.DefaultDuration);
+            command.LiveTimeSpan = MillisecondNumber.Create(-CurrentTime.EndTick + command.Duration.StartTick, command.Duration.EndTick);
         }
 
-        if (command.DefaultDelay == 0)
+        if (command.Duration.StartTick == 0)
         {
             if (command.CanUndo)
             {
@@ -114,10 +125,12 @@ public class CommandStack : ICommandStack
 
         AddNewCommands(currentTime);
         UpdateLiveCommands(currentTime, deltaTime);
+        UpdateCurrentCommands(currentTime, deltaTime);
         PerformCommits();
         RemoveCompletedCommands();
 
-        LastTime.SetWith(currentTime);
+        CurrentTime.SetWith(currentTime);
+        CurrentDelta.SetWith(deltaTime);
     }
 
 
@@ -151,6 +164,8 @@ public class CommandStack : ICommandStack
             if (command.IsContinuous)
             {
                 _liveCommands.Add(command);
+                var curTicks = CurrentTime.EndTick;
+                command.LiveTimeSpan = MillisecondNumber.Create(curTicks, command.DurationMS + curTicks);
             }
 
             _stackIndex++;
@@ -198,6 +213,15 @@ public class CommandStack : ICommandStack
             }
         }
         return result;
+    }
+    private bool UpdateCurrentCommands(MillisecondNumber currentTime, MillisecondNumber deltaTime)
+    {
+        var curCommands = _stack.ToArray();
+        foreach (var command in curCommands)
+        {
+            command.Update(currentTime,deltaTime);
+        }
+        return true;
     }
     private bool PerformCommits() { return true; }
 

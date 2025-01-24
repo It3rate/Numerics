@@ -15,6 +15,8 @@ using Numerics.Primitives;
 using NumericsCore.Expressions;
 using NumericsCore.Interfaces;
 using Ornamental.Commands;
+using Numerics.CoreConcepts.Time;
+using NumericsCore.Sequencer;
 
 public class SymSlides : DemoBase
 {
@@ -51,13 +53,20 @@ public class SymSlides : DemoBase
 
     private SKMapper CommandTest()
     {
+        var xTrait = new Trait("X");
+        var yTrait = new Trait("Y");
+        var xDomain = new Domain(xTrait, _basisFocal, _limits);
+        var yDomain = new Domain(yTrait, _basisFocal, _limits);
+
         var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
         _origin = wm.Guideline.StartPoint;
 
-        var topFocal = new Focal(-1000, 40000);
+        var delayDuration = MillisecondNumber.Create(0, 3000);
+
+        var topFocal = new Focal(-1000, 105000);
         var bottomFocal = new Focal(-100, 100);
 
-        var dc = new CreateNumberCommand(_domain, topFocal, bottomFocal);
+        var dc = new NumberSequenceCommand(xDomain, topFocal, bottomFocal, delayDuration);
         _currentAgent.Stack.Do(dc);
 
         Init();

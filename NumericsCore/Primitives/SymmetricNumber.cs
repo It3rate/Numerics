@@ -62,6 +62,16 @@ namespace NumericsCore.Primitives
         // Comparisons
         // Conversions, align resolution, units etc
         // equality, tostring etc
+        public SymmetricNumber Interpolate(double start, double end, bool clamp = true)
+        {
+            start = clamp ? Math.Max(start, 0) : start;
+            end = clamp ? Math.Min(end, 1) : end;
+            var len = TopFocal.Length;
+            var startTick = TopFocal.StartTick + start * len;
+            var endTick = TopFocal.StartTick + end * len;
+            var result = new SymmetricNumber(Domain, new Focal((long)startTick, (long)endTick), BottomFocal);
+            return result;
+        }
     }
 
     public enum BitSymmetry
