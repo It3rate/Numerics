@@ -43,13 +43,34 @@ namespace Ornamental.Agent
             }
         }
 
+        float _x;
+        float _y;
+        float _prevX;
+        float _prevY;
+        List<SKPoint> _points = new List<SKPoint>();
         private void DrawNumberSequence(NumberSequenceCommand cnc)
         {
             var guide = Mapper.Guideline;
-            var interpNum = cnc.InProgressNumber;
-            var p0 = new SKPoint((float)interpNum.StartValue, 0) + guide.StartPoint;
-            var p1 = new SKPoint((float)(interpNum.EndValue), 0) + guide.StartPoint;
-            Renderer.DrawLine(p0, p1, Renderer.Pens.SegPenHighlight);
+            _x = guide.StartPoint.X;
+            _y = guide.StartPoint.Y;
+
+            foreach (var val in cnc.Values)
+            {
+                if (val.Key == "X")
+                {
+                    _x += (float)val.Value.EndValue;
+                }
+                else if (val.Key == "Y")
+                {
+                    _y += (float)val.Value.EndValue;
+                }
+            }
+            if(_x != _prevX || _y != _prevY)
+            {
+                _points.Add(new SKPoint(_x, _y));
+            }
+
+            Renderer.DrawPolyline(Renderer.Pens.SegPenHighlight, _points.ToArray());
         }
     }
 }

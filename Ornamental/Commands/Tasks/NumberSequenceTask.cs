@@ -16,8 +16,9 @@ namespace Ornamental.Commands.Tasks
 {
     public class NumberSequenceTask : TaskBase
     {
+        public string TraitName => Domain.Trait != null ? Domain.Trait.Name : "";
         public SymmetricNumber Number { get; private set; }
-        public SymmetricNumber? InProgressNumber { get; private set; }
+        public SymmetricNumber InProgressNumber { get; private set; }
         public Domain Domain { get; private set; }
         public Focal TopFocal { get; private set; }
         public Focal BottomFocal { get; private set; }
@@ -27,13 +28,13 @@ namespace Ornamental.Commands.Tasks
             Domain = domain;
             TopFocal = topFocal;
             BottomFocal = bottomFocal;
-            Number = new SymmetricNumber(domain, topFocal, bottomFocal);
         }
         public override void RunTask()
         {
             if (Number == null)
             {
                 Number = new SymmetricNumber(Domain, TopFocal, BottomFocal);
+                InProgressNumber = Number.Interpolate(0, 0); ;
             }
             //Domain.AddNumber(Number);
         }
@@ -42,12 +43,6 @@ namespace Ornamental.Commands.Tasks
         {
             base.Update(currentTime, deltaTime);
             InProgressNumber = Number.Interpolate(0, InterpolationT);
-
-            //var interp = currentTime.EndTick / (float)Timer.DurationValue;
-            //var interpNum = cnc.Number.Interpolate(0, interp, true);
-            //var p0 = new SKPoint((float)interpNum.StartValue, 0) + guide.StartPoint;
-            //var p1 = new SKPoint((float)(interpNum.EndValue), 0) + guide.StartPoint;
-            //Renderer.DrawLine(p0, p1, Renderer.Pens.SegPenHighlight);
         }
 
         public override void UnRunTask()

@@ -17,6 +17,7 @@ using NumericsCore.Interfaces;
 using Ornamental.Commands;
 using Numerics.CoreConcepts.Time;
 using NumericsCore.Sequencer;
+using Ornamental.Commands.Tasks;
 
 public class SymSlides : DemoBase
 {
@@ -62,12 +63,16 @@ public class SymSlides : DemoBase
         _origin = wm.Guideline.StartPoint;
 
         var delayDuration = MillisecondNumber.Create(0, 3000);
+        var delayDuration2 = MillisecondNumber.Create(0, 500);
 
         var topFocal = new Focal(-1000, 105000);
+        var topFocalY = new Focal(-1000, 12000);
         var bottomFocal = new Focal(-100, 100);
 
-        var dc = new NumberSequenceCommand(xDomain, topFocal, bottomFocal, delayDuration);
-        _currentAgent.Stack.Do(dc);
+        var dcx = new NumberSequenceTask(xDomain, topFocal, bottomFocal, delayDuration);
+        var dcy = new NumberSequenceTask(yDomain, topFocalY, bottomFocal, delayDuration2);
+        var dcm = new NumberSequenceCommand(delayDuration, dcx, dcy);
+        _currentAgent.Stack.Do(dcm);
 
         Init();
 

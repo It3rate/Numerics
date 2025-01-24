@@ -21,21 +21,25 @@ namespace Ornamental.Commands
         // start task
         // updates
         // end task
-        public Domain Domain => NumberSequenceTask.Domain;
-        public SymmetricNumber Number => NumberSequenceTask.Number;
-        public SymmetricNumber InProgressNumber => NumberSequenceTask.InProgressNumber ?? NumberSequenceTask.Number;
-        public NumberSequenceTask NumberSequenceTask { get; set; }
-        public NumberSequenceCommand(Domain domain, Focal topFocal, Focal bottomFocal, MillisecondNumber? duration = null) : base(duration)
-            //Trait trait, long basisStart, long basisEnd, long minMaxStart, long minMaxEnd, SKSegment guideline, SKSegment unitSegment, string name) : base(guideline)
+        public Domain Domain => NumberSequenceTasks.First().Domain;
+        public List<SymmetricNumber> Numbers { get; } = new List<SymmetricNumber>();
+        public Dictionary<string, SymmetricNumber> Values { get; } = new Dictionary<string, SymmetricNumber>();
+        public List<NumberSequenceTask> NumberSequenceTasks { get; } = new List<NumberSequenceTask>();
+        public NumberSequenceCommand(MillisecondNumber duration, params NumberSequenceTask[] tasks) : base(duration)
         {
-            NumberSequenceTask = new NumberSequenceTask(domain, topFocal, bottomFocal, Duration);
+            NumberSequenceTasks.AddRange(tasks);
         }
+        //public NumberSequenceCommand(Domain domain, Focal topFocal, Focal bottomFocal, MillisecondNumber? duration = null) : base(duration)
+        //    //Trait trait, long basisStart, long basisEnd, long minMaxStart, long minMaxEnd, SKSegment guideline, SKSegment unitSegment, string name) : base(guideline)
+        //{
+        //    NumberSequenceTasks = new NumberSequenceTask(domain, topFocal, bottomFocal, Duration);
+        //}
 
         public override void Execute()
         {
-            if (NumberSequenceTask != null)
+            foreach (var task in NumberSequenceTasks)
             {
-                Tasks.Add(NumberSequenceTask);
+                Tasks.Add(task);
             }
             base.Execute();
 
@@ -48,7 +52,12 @@ namespace Ornamental.Commands
         public override void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime)
         {
             base.Update(currentTime, deltaTime);
-            NumberSequenceTask.Update(currentTime, deltaTime);
+            Values.Clear();
+            foreach (var task in NumberSequenceTasks)
+            {
+                task.Update(currentTime, deltaTime);
+                Values.Add(task.TraitName, task.InProgressNumber);
+            }
         }
 
 
