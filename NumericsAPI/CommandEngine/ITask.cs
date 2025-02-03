@@ -11,6 +11,7 @@ public interface ITask
     float InterpolationT { get; }
     bool IsValid { get; }
     void RunTask();
+    void Completed();
     void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime);
     void UnRunTask();
     //void OnAddedToCommand(ICommand command);

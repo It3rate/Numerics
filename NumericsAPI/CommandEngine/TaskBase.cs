@@ -28,6 +28,7 @@ public abstract class TaskBase : ITask
         Timer.StartUpdate(currentTime.EndTick, deltaTime.EndTick);
         Timer.EndUpdate(currentTime.EndTick, deltaTime.EndTick);
     }
+    public virtual void Completed() { }
     public virtual void UnRunTask() { }
 
 }

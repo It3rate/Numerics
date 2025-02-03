@@ -1,0 +1,103 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Numerics.Primitives;
+
+namespace NumericsCore.Motions;
+
+public class SymmetricNumber : INumber // can be number with unit, or two 'tick only' measurements
+{
+    public Trait Trait;
+
+    public SymmetricNumber Number => this;
+    public Focal TopFocal { get; }
+    public Focal BottomFocal { get; }
+    public long ZeroOffset { get; } = 0; // running average, or unobstructed average
+
+    public Tuple<long, long, long, long> TickSet => new Tuple<long, long, long, long>(A_TR, B_TL, C_BR, D_BL);
+    private long A_TR => TopFocal.EndTick - ZeroOffset;
+    private long B_TL => -(TopFocal.StartTick - ZeroOffset); // positive is always in the direction of the unit
+    private long C_BR => BottomFocal.EndTick - ZeroOffset;
+    private long D_BL => -(BottomFocal.StartTick - ZeroOffset);
+
+    // landmark is two focals and a double?
+
+    public Number Segment => throw new NotImplementedException();
+
+    public SymmetricNumber(Trait trait, Focal topFocal, Focal bottomFocal, long zeroOffset = 0)
+    {
+        Trait = trait;
+        TopFocal = topFocal;
+        BottomFocal = bottomFocal;
+        ZeroOffset = zeroOffset;
+    }
+    public SymmetricNumber(Trait trait, long start, long end, long unitLength)
+    {
+        Trait = trait;
+        TopFocal = new Focal(-unitLength, end);
+        BottomFocal = new Focal(start, unitLength);
+        ZeroOffset = 0;
+    }
+    public SymmetricNumber(Trait trait, long start, long endUnit, long startUnit, long end, long zeroOffset = 0)
+    {
+        Trait = trait;
+        TopFocal = new Focal(endUnit + zeroOffset, end + zeroOffset);
+        BottomFocal = new Focal(start + zeroOffset, startUnit + zeroOffset);
+        ZeroOffset = zeroOffset;
+    }
+
+    public double StartValue => B_TL / (double)D_BL;
+    public double EndValue => A_TR / (double)C_BR;
+
+    public long[] GetLengthSet(BitMask mask)
+    {
+        List<long> result = new List<long>();
+        if (mask.GetBit1()) { result.Add(A_TR); }
+        if (mask.GetBit1()) { result.Add(B_TL); }
+        if (mask.GetBit1()) { result.Add(C_BR); }
+        if (mask.GetBit1()) { result.Add(D_BL); }
+        return result.ToArray();
+    }
+    public long GetSum(BitMask mask) =>  GetLengthSet(mask).Sum();
+    public long GetProduct(BitMask mask) => GetLengthSet(mask).Aggregate((long)1, (acc, next) => acc * next);
+    public long GetSumDifference(BitMask numerator, BitMask denominator) => GetSum(numerator) - GetSum(denominator);
+    public long GetProductDifference(BitMask numerator, BitMask denominator) => GetProduct(numerator) - GetProduct(denominator);
+    public double GetSumRatio(BitMask numerator, BitMask denominator) => GetSum(numerator) / (double)GetSum(denominator);
+    public double GetProductRatio(BitMask numerator, BitMask denominator) => GetProduct(numerator) - (double)GetProduct(denominator);
+
+    public long[] GetLengths => [A_TR, B_TL, C_BR, D_BL];
+    public long[] GetAreas => [
+        A_TR * C_BR, 
+        B_TL * C_BR, 
+        D_BL * A_TR, 
+        B_TL * D_BL]; // AB and CD are missing because not combining with self.
+    public double[] GetRatios => // Assumes top is values, bottom is units. [Start, unit ratio, value ratio, End]
+        [D_BL / (double)B_TL,
+         C_BR / (double)B_TL,
+         A_TR / (double)D_BL,
+         A_TR / (double)C_BR];
+
+    // Inverse is rearrange focals?
+    // four interpretations by changing Identity
+
+    // transform values of focals
+    // points of interest for calculating areas etc
+    // truths, is zero, equal units, equal resolution etc
+    // properties: length, tick length. All transform recipies?
+    // FUNCS for transforms and common operations
+    // Comparisons
+    // Conversions, align resolution, units etc
+    // equality, tostring etc
+    public SymmetricNumber Interpolate(double start, double end, bool clamp = true)
+    {
+        start = clamp ? Math.Max(start, 0) : start;
+        end = clamp ? Math.Min(end, 1) : end;
+        var len = TopFocal.Length;
+        var startTick = TopFocal.StartTick + start * len;
+        var endTick = TopFocal.StartTick + end * len;
+        var result = new SymmetricNumber(Trait, new Focal((long)startTick, (long)endTick), BottomFocal);
+        return result;
+    }
+}

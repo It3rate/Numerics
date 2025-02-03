@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Numerics.CoreConcepts.Time;
 using Numerics.Primitives;
 using NumericsAPI.CommandEngine;
-using NumericsCore.Primitives;
+using NumericsCore.Motions;
 using NumericsCore.Utils;
 using NumericsSkia.Mappers;
 using SkiaSharp;
@@ -42,7 +42,16 @@ namespace Ornamental.Commands.Tasks
         public override void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime)
         {
             base.Update(currentTime, deltaTime);
-            InProgressNumber = Number.Interpolate(0, InterpolationT);
+            if(InterpolationT >= 1f)
+            {
+                InProgressNumber = Number.Interpolate(0, 1f);
+                Number.TopFocal.Swap();
+                Timer.Restart();
+            }
+            else
+            {
+                InProgressNumber = Number.Interpolate(0, InterpolationT);
+            }
         }
 
         public override void UnRunTask()

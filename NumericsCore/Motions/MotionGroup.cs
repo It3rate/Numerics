@@ -11,8 +11,9 @@ namespace NumericsCore.Composites
     /// <summary>
     /// Multidimensional Motions like 2D paths or color, which are ultimately a form of integration/interpolation.
     /// </summary>
-    public class FusedMotions
+    public class MotionGroup
     {
+        // Motions can be abs, relative, or landmark based. Need to allow all three in parallel, with statistical goals.
         // each dimension gets a new domain? Like the same traits, but the domain is mallable to allow weighting, resolution and valence.
         // more than one domain. These can be related by:
         // ratio (division) - like miles per hour, one domain will be unit, the other the measure 

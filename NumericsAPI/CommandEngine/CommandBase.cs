@@ -12,6 +12,7 @@ public abstract class CommandBase : ICommand
     public int Id { get; }
     public CommandAgent Agent { get; set; } // Agent is set by the command stack.
 
+    public List<ITask> InputTasks { get; } = new List<ITask>();
     public List<ITask> Tasks { get; } = new List<ITask>();
     protected int _taskIndex = 0;
     public MillisecondNumber Duration { get; }
@@ -59,12 +60,13 @@ public abstract class CommandBase : ICommand
         // stamp times
         // run tasks
         // select new element
-        foreach (var task in Tasks)
-        {
-            task.Agent = Agent;
-            task.RunTask();
-            _taskIndex++;
-        }
+        AddTasksAndRun(InputTasks.ToArray());
+        //foreach (var task in Tasks)
+        //{
+        //    task.Agent = Agent;
+        //    task.RunTask();
+        //    _taskIndex++;
+        //}
     }
     public virtual void Update(MillisecondNumber currentTime, MillisecondNumber deltaTime)
     {

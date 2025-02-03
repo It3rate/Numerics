@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Numerics.CoreConcepts.Time;
 using Numerics.Primitives;
 using NumericsAPI.CommandEngine;
-using NumericsCore.Primitives;
+using NumericsCore.Motions;
 using NumericsSkia.Agent;
 using NumericsSkia.Drawing;
 using NumericsSkia.Mappers;
@@ -21,13 +22,11 @@ namespace Ornamental.Commands
         // start task
         // updates
         // end task
-        public Domain Domain => NumberSequenceTasks.First().Domain;
         public List<SymmetricNumber> Numbers { get; } = new List<SymmetricNumber>();
         public Dictionary<string, SymmetricNumber> Values { get; } = new Dictionary<string, SymmetricNumber>();
-        public List<NumberSequenceTask> NumberSequenceTasks { get; } = new List<NumberSequenceTask>();
         public NumberSequenceCommand(MillisecondNumber duration, params NumberSequenceTask[] tasks) : base(duration)
         {
-            NumberSequenceTasks.AddRange(tasks);
+            InputTasks.AddRange(tasks);
         }
         //public NumberSequenceCommand(Domain domain, Focal topFocal, Focal bottomFocal, MillisecondNumber? duration = null) : base(duration)
         //    //Trait trait, long basisStart, long basisEnd, long minMaxStart, long minMaxEnd, SKSegment guideline, SKSegment unitSegment, string name) : base(guideline)
@@ -37,10 +36,6 @@ namespace Ornamental.Commands
 
         public override void Execute()
         {
-            foreach (var task in NumberSequenceTasks)
-            {
-                Tasks.Add(task);
-            }
             base.Execute();
 
             //Mapper = MouseAgent.WorkspaceMapper.GetOrCreateDomainMapper(Domain, Guideline, UnitSegment);
@@ -53,10 +48,13 @@ namespace Ornamental.Commands
         {
             base.Update(currentTime, deltaTime);
             Values.Clear();
-            foreach (var task in NumberSequenceTasks)
+            foreach (var task in Tasks.ToArray())
             {
-                task.Update(currentTime, deltaTime);
-                Values.Add(task.TraitName, task.InProgressNumber);
+                if(task is NumberSequenceTask nst)
+                {
+                    task.Update(currentTime, deltaTime);
+                    Values.Add(nst.TraitName, nst.InProgressNumber);
+                }
             }
         }
 
@@ -69,6 +67,7 @@ namespace Ornamental.Commands
 
         public override void Completed()
         {
+            Trace.WriteLine("complete");
         }
     }
 }
