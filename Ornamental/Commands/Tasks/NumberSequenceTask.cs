@@ -33,7 +33,7 @@ namespace Ornamental.Commands.Tasks
         {
             if (Number == null)
             {
-                Number = new SymmetricNumber(Domain, TopFocal, BottomFocal);
+                Number = new SymmetricNumber(Domain.Trait, TopFocal, BottomFocal);
                 InProgressNumber = Number.Interpolate(0, 0); ;
             }
             //Domain.AddNumber(Number);
@@ -45,7 +45,9 @@ namespace Ornamental.Commands.Tasks
             if(InterpolationT >= 1f)
             {
                 InProgressNumber = Number.Interpolate(0, 1f);
+                
                 Number.TopFocal.Swap();
+                //Number.BottomFocal.EndTick = (long)(Number.BottomFocal.EndTick *1.02);
                 Timer.Restart();
             }
             else

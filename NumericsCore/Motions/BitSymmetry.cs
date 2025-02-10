@@ -1,4 +1,5 @@
-﻿using NumericsCore.Primitives;
+﻿using Numerics.Primitives;
+using NumericsCore.Primitives;
 
 namespace NumericsCore.Motions;
 
@@ -59,8 +60,50 @@ public static class BitMaskExtension
     public static bool GetBit2(this BitMask bits) => ((int)bits & 0x02) != 0;
     public static bool GetBit3(this BitMask bits) => ((int)bits & 0x04) != 0;
     public static bool GetBit4(this BitMask bits) => ((int)bits & 0x08) != 0;
+	public static long[] GetPositions(this BitMask bits, long[] positions)
+	{
+		var result = new List<long>();
+		if (positions.Length > 0 && GetBit1(bits)) { result.Add(positions[0]); }
+		if (positions.Length > 1 && GetBit2(bits)) { result.Add(positions[1]); }
+		if (positions.Length > 2 && GetBit3(bits)) { result.Add(positions[2]); }
+		if (positions.Length > 3 && GetBit4(bits)) { result.Add(positions[3]); }
+		return result.ToArray();
+	}
+	public static long CombinePositions(this BitMask bits, Ops op, long[] positions)
+	{
+        var pos = GetPositions(bits, positions);
+        long result = pos.Length > 0 ? pos[0] : 0;
+        if (pos.Length > 1)
+        {
+            switch (op)
+            {
+                case Ops.Add:
+                    result = pos.Sum();
+                    break;
+                case Ops.Subtract:
+                    result = pos.Skip(1).Aggregate(pos[0], (acc, num) => acc - num);
+                    break;
+                case Ops.Multiply:
+                    result = pos.Aggregate(1L, (acc, num) => acc * num);
+                    break;
+                case Ops.Divide:
+                    result = (long)pos.Skip(1).Aggregate((double)pos[0], (double acc, long num) => acc / (double)num);
+                    break;
+                case Ops.Pow:
+                    result = pos.Skip(1).Aggregate(pos[0], (acc, num) => (long)Math.Pow(acc, num));
+					break;
+				case Ops.Min:
+					result = pos.Min();
+					break;
+				case Ops.Max:
+					result = pos.Max();
+					break;
+			}
+        }
+        return result;
+	}
 }
-public enum Ops
+public enum Ops // todo: need an order to operations, as in multiplication is a pow of addition etc.
 {
     None,
     Add,
@@ -70,8 +113,10 @@ public enum Ops
     Pow,
     BoolOp,
     Comparison,
-    MinMax,
-    Delay,
+    Min,
+	Max,
+	MinMax,
+	Delay,
     IncDec,
     IncDecUnit,
     Invert,

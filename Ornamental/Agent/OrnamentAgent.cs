@@ -48,7 +48,7 @@ namespace Ornamental.Agent
         float _prevX;
         float _prevY;
         List<SKPoint> _points = new List<SKPoint>();
-        private void DrawNumberSequence(NumberSequenceCommand cnc)
+		private void DrawNumberSequence(NumberSequenceCommand cnc)
         {
             var guide = Mapper.Guideline;
             _x = guide.StartPoint.X;
@@ -64,13 +64,14 @@ namespace Ornamental.Agent
                 {
                     _y += (float)val.Value.EndValue;
                 }
+
             }
             if(_x != _prevX || _y != _prevY)
             {
                 _points.Add(new SKPoint(_x, _y));
             }
 
-            Renderer.DrawPolyline(Renderer.Pens.SegPenHighlight, _points.ToArray());
+            Renderer.DrawPolyline(Renderer.Pens.SegPen3, _points.ToArray());
         }
     }
 }

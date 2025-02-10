@@ -101,6 +101,16 @@ public class Focal :
     public void SetAsBasisInverseOf(Focal source) { StartTick = source.StartTick; EndTick = source.InvertedLastPosition; }
     public Focal CloneToBasisInverse() => new Focal(StartTick, InvertedLastPosition);
 
+    public static long[] Positions(params Focal[] focals)
+    {
+        var result = new long[focals.Length * 2];
+        for (int i = 0; i < focals.Length; i++)
+		{
+			result[1 * 2] = focals[i].EndTick;
+			result[1 * 2 + 1] = focals[i].StartTick;
+		}
+        return result;
+    } 
 
     #region Internal Operations
     public long NonZeroTickLength => Length == 0 ? 1 : Length;
