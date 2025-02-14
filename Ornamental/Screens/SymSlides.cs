@@ -18,6 +18,8 @@ using Ornamental.Commands;
 using Numerics.CoreConcepts.Time;
 using NumericsCore.Sequencer;
 using Ornamental.Commands.Tasks;
+using NumericsCore.Motions;
+using NumericsCore.Motions.Units;
 
 public class SymSlides : DemoBase
 {
@@ -40,6 +42,7 @@ public class SymSlides : DemoBase
         _testIndex = 0;// 
         Pages.AddRange(new PageCreator[]
         {
+			MotionTest,
             CommandTest,
             AnimationTest2,
             AnimationTest,
@@ -52,7 +55,38 @@ public class SymSlides : DemoBase
     int _hCount = 25;
     int _space = 80;
 
-    private SKMapper CommandTest()
+    private SKMapper MotionTest()
+	{
+        var xyUnit = new XYUnit();
+		var xTrait = new Trait("X");
+		var yTrait = new Trait("Y");
+		var xDomain = new Domain(xTrait, _basisFocal, _limits);
+		var yDomain = new Domain(yTrait, _basisFocal, _limits);
+        
+		var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
+		_origin = wm.Guideline.StartPoint;
+
+		var topFocal = new Focal(-1000, 105000);
+		var bottomFocal = new Focal(-100, 100);
+		var symNumX = new SymmetricNumber(xyUnit.XUnit, topFocal, bottomFocal);
+		var symNumY = new SymmetricNumber(xyUnit.YUnit, topFocal, bottomFocal);
+		var xFocal = new Focal(500, 900);
+		var refx0 = new ReferenceByFixedPosition(symNumX, xFocal);
+		var yFocal = new Focal(300, 1200);
+		var refy0 = new ReferenceByFixedPosition(symNumY, yFocal);
+
+		StackOp[] ops = [
+            new StackOp(BitMask.AC, Ops.Add),
+			new StackOp(BitMask.BD, Ops.Add),
+		];
+		var stack = new ExprStack(refx0, refy0, ops);
+        var mot = new Motion(stack);
+        var result = mot.Run();
+
+        return wm;
+	}
+
+	private SKMapper CommandTest()
     {
         var xTrait = new Trait("X");
         var yTrait = new Trait("Y");

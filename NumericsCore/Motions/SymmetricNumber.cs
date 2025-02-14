@@ -9,9 +9,9 @@ namespace NumericsCore.Motions;
 
 public class SymmetricNumber : INumber // can be number with unit, or two 'tick only' measurements
 {
-    public Trait Trait;
+    public IUnit Unit;
 
-    public SymmetricNumber Number => this;
+    public SymmetricNumber MinMax => this;
     public Focal TopFocal { get; }
     public Focal BottomFocal { get; }
     public long ZeroOffset { get; } = 0; // running average, or unobstructed average
@@ -26,23 +26,23 @@ public class SymmetricNumber : INumber // can be number with unit, or two 'tick 
 
     public Number Segment => throw new NotImplementedException();
 
-    public SymmetricNumber(Trait trait, Focal topFocal, Focal bottomFocal, long zeroOffset = 0)
+    public SymmetricNumber(IUnit trait, Focal topFocal, Focal bottomFocal, long zeroOffset = 0)
     {
-        Trait = trait;
+        Unit = trait;
         TopFocal = topFocal;
         BottomFocal = bottomFocal;
         ZeroOffset = zeroOffset;
     }
-    public SymmetricNumber(Trait trait, long start, long end, long unitLength)
+    public SymmetricNumber(IUnit trait, long start, long end, long unitLength)
     {
-        Trait = trait;
+        Unit = trait;
         TopFocal = new Focal(-unitLength, end);
         BottomFocal = new Focal(start, unitLength);
         ZeroOffset = 0;
     }
-    public SymmetricNumber(Trait trait, long start, long endUnit, long startUnit, long end, long zeroOffset = 0)
+    public SymmetricNumber(IUnit trait, long start, long endUnit, long startUnit, long end, long zeroOffset = 0)
     {
-        Trait = trait;
+        Unit = trait;
         TopFocal = new Focal(endUnit + zeroOffset, end + zeroOffset);
         BottomFocal = new Focal(start + zeroOffset, startUnit + zeroOffset);
         ZeroOffset = zeroOffset;
@@ -50,8 +50,18 @@ public class SymmetricNumber : INumber // can be number with unit, or two 'tick 
 
     public double StartValue => B_TL / (double)D_BL;
     public double EndValue => A_TR / (double)C_BR;
+	public double StartValueAtPosition(long pos)
+	{
+		var input = -(pos - ZeroOffset);
+		return input / (double)D_BL;
+	}
+	public double EndValueAtPosition(long pos)
+	{
+		var input = pos - ZeroOffset;
+		return input / (double)C_BR;
+	}
 
-    public long[] GetLengthSet(BitMask mask)
+	public long[] GetLengthSet(BitMask mask)
     {
         List<long> result = new List<long>();
         if (mask.GetBit1()) { result.Add(A_TR); }
@@ -97,7 +107,7 @@ public class SymmetricNumber : INumber // can be number with unit, or two 'tick 
         var len = TopFocal.Length;
         var startTick = TopFocal.StartTick + start * len;
         var endTick = TopFocal.StartTick + end * len;
-        var result = new SymmetricNumber(Trait, new Focal((long)startTick, (long)endTick), BottomFocal);
+        var result = new SymmetricNumber(Unit, new Focal((long)startTick, (long)endTick), BottomFocal);
         return result;
     }
 }

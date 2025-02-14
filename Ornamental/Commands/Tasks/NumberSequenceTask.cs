@@ -8,6 +8,7 @@ using Numerics.CoreConcepts.Time;
 using Numerics.Primitives;
 using NumericsAPI.CommandEngine;
 using NumericsCore.Motions;
+using NumericsCore.Motions.Units;
 using NumericsCore.Utils;
 using NumericsSkia.Mappers;
 using SkiaSharp;
@@ -23,6 +24,7 @@ namespace Ornamental.Commands.Tasks
         public Focal TopFocal { get; private set; }
         public Focal BottomFocal { get; private set; }
         public override bool IsValid => true;
+        public IUnit _tempUnit = new XYUnit();
         public NumberSequenceTask(Domain domain, Focal topFocal, Focal bottomFocal, MillisecondNumber duration) : base(duration)
         {
             Domain = domain;
@@ -33,7 +35,7 @@ namespace Ornamental.Commands.Tasks
         {
             if (Number == null)
             {
-                Number = new SymmetricNumber(Domain.Trait, TopFocal, BottomFocal);
+                Number = new SymmetricNumber(_tempUnit, TopFocal, BottomFocal);
                 InProgressNumber = Number.Interpolate(0, 0); ;
             }
             //Domain.AddNumber(Number);

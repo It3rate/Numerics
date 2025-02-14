@@ -6,22 +6,33 @@ using System.Threading.Tasks;
 using Numerics.CoreConcepts.Time;
 using NumericsCore.Interfaces;
 
-namespace NumericsCore.Motions
-{
-    /// <summary>
-    /// Operations that have a duration and wrap mode
-    /// </summary>
-    public class Motion
-    {
-        public SymmetricNumber Result { get; }
-        public SymmetricNumber InProgressNumber { get; private set; }
-        public int RepeatCount { get; } = -1;
-        public int _repeatIndex = 0;
-        public TileMode TileMode { get; } = TileMode.OneShot;
-        public MillisecondNumber? Duration { get; }
-        public float InterpolationT;
-        public bool IsRepeatsComplete => TileMode != TileMode.Continue && _repeatIndex >= RepeatCount;
-        public bool IsDynamic { get; set; } = false;
+namespace NumericsCore.Motions;
 
-    }
+/// <summary>
+/// Operations that have a duration and wrap mode
+/// </summary>
+public class Motion
+{
+	public ExprStack Stack { get; }
+	public MillisecondNumber? Duration { get; }
+
+	public Reference Left => Stack.Left;
+	public Reference Right => Stack.Right;
+	public Reference Output => Stack.Output;
+
+	public Motion(ExprStack stack)
+	{
+		Stack = stack;
+	}
+	public Reference Run() => Stack.Run();
+
+	public float InterpolationT { get; } // just do linear for now
+
+	public TileMode TileMode { get; } = TileMode.OneShot;
+	public bool IsDynamic { get; set; } = false;
+
+	public int RepeatCount { get; } = -1; // maybe based on max len?
+	public int _repeatIndex = 0;
+	public bool IsRepeatsComplete => TileMode != TileMode.Continue && _repeatIndex >= RepeatCount;
+
 }

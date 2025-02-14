@@ -60,6 +60,48 @@ public static class BitMaskExtension
     public static bool GetBit2(this BitMask bits) => ((int)bits & 0x02) != 0;
     public static bool GetBit3(this BitMask bits) => ((int)bits & 0x04) != 0;
     public static bool GetBit4(this BitMask bits) => ((int)bits & 0x08) != 0;
+	public static double[] GetValues(this BitMask bits, Reference left, Reference right)
+	{
+		var result = new List<double>();
+		if (GetBit1(bits)) { result.Add( left.EndValue); }
+		if (GetBit2(bits)) { result.Add( left.StartValue); }
+		if (GetBit3(bits)) { result.Add(right.EndValue); }
+		if (GetBit4(bits)) { result.Add(right.StartValue); }
+		return result.ToArray();
+	}
+	public static double CombineValues(this BitMask bits, Ops op, double[] values)
+	{
+		var result = values.Length > 0 ? values[0] : 0;
+		if (values.Length > 1)
+		{
+			switch (op)
+			{
+				case Ops.Add:
+					result = values.Sum();
+					break;
+				case Ops.Subtract:
+					result = values.Skip(1).Aggregate(values[0], (acc, num) => acc - num);
+					break;
+				case Ops.Multiply:
+					result = values.Aggregate(1.0, (acc, num) => acc * num);
+					break;
+				case Ops.Divide:
+					result = values.Skip(1).Aggregate(values[0], (acc, num) => acc / num);
+					break;
+				case Ops.Pow:
+                    // ultimately POW needs to work with derivitives using log, e etc (and probably all ops).
+					result = values.Skip(1).Aggregate(values[0], (acc, num) => (long)Math.Pow(acc, num));
+					break;
+				case Ops.Min:
+					result = values.Min();
+					break;
+				case Ops.Max:
+					result = values.Max();
+					break;
+			}
+		}
+		return result;
+	}
 	public static long[] GetPositions(this BitMask bits, long[] positions)
 	{
 		var result = new List<long>();
@@ -106,6 +148,9 @@ public static class BitMaskExtension
 public enum Ops // todo: need an order to operations, as in multiplication is a pow of addition etc.
 {
     None,
+    Push,
+    Pop,
+    Peek,
     Add,
     Subtract,
     Multiply,

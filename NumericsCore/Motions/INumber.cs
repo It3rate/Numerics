@@ -8,6 +8,6 @@ namespace NumericsCore.Motions
 {
     public interface INumber
     {
-        SymmetricNumber Number { get; }
+        SymmetricNumber MinMax { get; }
     }
 }

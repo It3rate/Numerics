@@ -8,11 +8,17 @@ using NumericsCore.Expressions;
 
 namespace NumericsCore.Motions
 {
-    public interface IUnits // Trait
+    public interface IUnit // Trait
     {
         string Name { get; }
         int SubUnitCount { get; }
-        IUnits[] SubUnits { get; } // X,Y,Z  R,G,B  etc These are unit 1, form the basis
+        IUnit[] SubUnits { get; } // X,Y,Z  R,G,B  etc These are unit 1, form the basis
+
+		Focal Denominator { get; }
+	}
+    public class Step
+    {
+        public List<SymmetricNumber> Numbers { get; } = new List<SymmetricNumber>();
     }
     public class UnitFocals
     {
@@ -20,7 +26,7 @@ namespace NumericsCore.Motions
     }
     public interface IMeasure // single measure, no units, no basis. X or Y or Red etc
     {
-        IUnits Unit { get; }
+        IUnit Unit { get; }
         Focal Focal { get; }
         int TickCount { get; }
         Focal GetSection(double startT, double endT);
