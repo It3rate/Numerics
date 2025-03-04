@@ -9,43 +9,38 @@ namespace NumericsCore.Motions;
 
 public class SymmetricNumber : INumber // can be number with unit, or two 'tick only' measurements
 {
-    public IUnit Unit;
-
-    public SymmetricNumber MinMax => this;
+    public INumberline Numberline {get;}
+    public IUnit Unit => Numberline.Unit;
+	public Focal MinMax => Unit.Resolution;
+    public Focal Basis => Numberline.Basis;
     public Focal TopFocal { get; }
-    public Focal BottomFocal { get; }
-    public long ZeroOffset { get; } = 0; // running average, or unobstructed average
+
+    public long ZeroOffset => Basis.StartTick; // running average, or unobstructed average. Calculated on Numberline.
 
     public Tuple<long, long, long, long> TickSet => new Tuple<long, long, long, long>(A_TR, B_TL, C_BR, D_BL);
     private long A_TR => TopFocal.EndTick - ZeroOffset;
     private long B_TL => -(TopFocal.StartTick - ZeroOffset); // positive is always in the direction of the unit
-    private long C_BR => BottomFocal.EndTick - ZeroOffset;
-    private long D_BL => -(BottomFocal.StartTick - ZeroOffset);
+    private long C_BR => Basis.EndTick - ZeroOffset;
+    private long D_BL => -(Basis.StartTick - ZeroOffset);
 
     // landmark is two focals and a double?
 
     public Number Segment => throw new NotImplementedException();
 
-    public SymmetricNumber(IUnit trait, Focal topFocal, Focal bottomFocal, long zeroOffset = 0)
+    public SymmetricNumber(IUnit unit, Focal topFocal, Focal bottomFocal, long zeroOffset = 0)
     {
-        Unit = trait;
+        Numberline = new Numberline(unit, bottomFocal);
         TopFocal = topFocal;
-        BottomFocal = bottomFocal;
-        ZeroOffset = zeroOffset;
     }
-    public SymmetricNumber(IUnit trait, long start, long end, long unitLength)
+    public SymmetricNumber(IUnit unit, long start, long end, long unitLength)
     {
-        Unit = trait;
+		Numberline = new Numberline(unit, new Focal(start, unitLength));
         TopFocal = new Focal(-unitLength, end);
-        BottomFocal = new Focal(start, unitLength);
-        ZeroOffset = 0;
     }
-    public SymmetricNumber(IUnit trait, long start, long endUnit, long startUnit, long end, long zeroOffset = 0)
-    {
-        Unit = trait;
+    public SymmetricNumber(IUnit unit, long start, long endUnit, long startUnit, long end, long zeroOffset = 0)
+	{
+		Numberline = new Numberline(unit, new Focal(start + zeroOffset, startUnit + zeroOffset));
         TopFocal = new Focal(endUnit + zeroOffset, end + zeroOffset);
-        BottomFocal = new Focal(start + zeroOffset, startUnit + zeroOffset);
-        ZeroOffset = zeroOffset;
     }
 
     public double StartValue => B_TL / (double)D_BL;
@@ -107,7 +102,7 @@ public class SymmetricNumber : INumber // can be number with unit, or two 'tick 
         var len = TopFocal.Length;
         var startTick = TopFocal.StartTick + start * len;
         var endTick = TopFocal.StartTick + end * len;
-        var result = new SymmetricNumber(Unit, new Focal((long)startTick, (long)endTick), BottomFocal);
+        var result = new SymmetricNumber(Unit, new Focal((long)startTick, (long)endTick), Basis);
         return result;
     }
 }

@@ -9,7 +9,7 @@ namespace NumericsCore.Motions
 {
 	public abstract class Reference
 	{
-		public SymmetricNumber Source { get; private set; }
+		public SymmetricNumber Source { get; private set; } // should be a numberline, maybe same thing? Yes.
 		public virtual double StartValue { get; }
 		public virtual double EndValue { get; }
 		public Reference(SymmetricNumber source)

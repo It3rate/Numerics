@@ -14,7 +14,7 @@ namespace NumericsCore.Motions
         int SubUnitCount { get; }
         IUnit[] SubUnits { get; } // X,Y,Z  R,G,B  etc These are unit 1, form the basis
 
-		Focal Denominator { get; }
+		Focal Resolution { get; }
 	}
     public class Step
     {

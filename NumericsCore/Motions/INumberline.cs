@@ -17,37 +17,39 @@ namespace NumericsCore.Motions;
 // OK, a numberline is what was a domain. It is different because it can be composed of multiple properties that are interpreted together (path, book pages, whatever).
 // It can have a multi dimensional basis, Like color defined with 3 properties (or a colorspace), and the numberline a path through it. The final Number is a section of that.
 public interface INumberline : INumber
-    {
-        IUnit Unit { get; }
-        long TotalTicks { get; }
-        SymmetricNumber MinMax { get; } // Encapsulates the Steps into a single dimensional range.
-        long ZeroPoint { get; }
-        List<Step> Steps { get; } // parallel ops
+{
+    IUnit Unit { get; }
+    Focal Basis { get; }
+    NumberPrimitive MinMax { get; } // Created with Unit MinMax and Basis, represents the calibreated numberline
+
+    long TotalTicks { get; }
+    long ZeroPoint { get; }
+    List<Step> Steps { get; } // parallel ops
 
 	List<Joint> Joints { get; } // maybe this isn't defined or stored in a property, but probably needs to be lookup-able.
         // need 'equation' to predict future points. For known equations the data can be generated rather than stored in steps.
 }
-
-public abstract class NumberlineBase : INumberline
+public class Numberline : INumberline
 {
-	public abstract IUnit Unit { get; }
-    public SymmetricNumber MinMax { get; private set; }
-    public long TotalTicks { get; private set; }
-    public long ZeroPoint { get; private set; }
+	public IUnit Unit { get; }
+	public Focal Basis { get; }
+	public NumberPrimitive MinMax { get; }
+    public long TotalTicks => MinMax.Unit.Resolution.Length;
+    public long ZeroPoint => MinMax.Basis.StartTick;
 	public List<Step> Steps { get; } = new List<Step>();
+	public List<Joint> Joints { get; } = new List<Joint>();
+	public Numberline(IUnit unit, Focal basis)
+	{
+		Unit = unit;
+        Basis = basis;
+        MinMax = new NumberPrimitive(unit, basis);
+	}
 
-	public List<Joint> Joints { get; private set; } = new List<Joint>();
-
-	public NumberlineBase(SymmetricNumber number)
-    {
-        MinMax = number;
-    }
 }
-public class XYPath : NumberlineBase
+public class XYPath : Numberline
 {
     public static IUnit _defaultUnit { get; private set; } = new XYUnit();
-	public override IUnit Unit => _defaultUnit;
-    public XYPath(params Step[] steps) : base(new SymmetricNumber(_defaultUnit, Focal.One, _defaultUnit.Denominator))
+    public XYPath(params Step[] steps) : base(_defaultUnit, Focal.One)
     {
         Steps.AddRange(steps);
     }

@@ -14,6 +14,10 @@ public class ExprStack
 	public Reference Output { get; private set; }
 	public List<StackOp> Ops { get; } = new List<StackOp>();
 
+
+	public double StartValue { get; } // start of output on Left numberline
+	public double EndValue { get; }   // end of output on Left numberline
+
 	private Stack<double> Stack { get; } = new Stack<double>();
 
 	public ExprStack(Reference left, Reference right, params StackOp[] ops)
@@ -27,10 +31,13 @@ public class ExprStack
 	{
 		foreach (StackOp op in Ops)
 		{
-			// ops come from the stack or input.
-			var values = op.Mask == BitMask.None ? PopTwo() : op.Mask.GetValues(Left, Right);
-			var result = op.Mask.CombineValues(op.Operation, values);
-			Push(result);
+			if (op.Mask != BitMask.None || Stack.Count > 1) // skip stack based ops without stack values
+			{
+				// ops come from the stack or input.
+				var values = op.Mask == BitMask.None ? PopTwo() : op.Mask.GetValues(Left, Right);
+				var result = op.Mask.CombineValues(op.Operation, values);
+				Push(result);
+			}
 		}
 		Output = new ReferenceByRatio(Left.Source, Pop(), Pop());
 		return Output;

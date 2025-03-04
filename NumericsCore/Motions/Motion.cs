@@ -14,11 +14,14 @@ namespace NumericsCore.Motions;
 public class Motion
 {
 	public ExprStack Stack { get; }
-	public MillisecondNumber? Duration { get; }
+	public MillisecondNumber? Duration { get; } 
 
-	public Reference Left => Stack.Left;
+	public Reference Left => Stack.Left; // these need to potentially be exprStacks, so some interface (or exprStack is a reference?)
 	public Reference Right => Stack.Right;
-	public Reference Output => Stack.Output;
+	public Reference Output => Stack.Output; // is a ref from this 'numberline'?
+
+	// internally track previous, current, predicted, history, algortihm, error, expected error/certainty, surprise, working resolution
+	// there can be more than two inputs, as in RGB (input) computing saturation (output)
 
 	public Motion(ExprStack stack)
 	{

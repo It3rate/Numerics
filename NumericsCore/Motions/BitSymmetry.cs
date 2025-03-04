@@ -3,31 +3,6 @@ using NumericsCore.Primitives;
 
 namespace NumericsCore.Motions;
 
-public enum BitSymmetry
-{
-    Stop = 0,           // 0000
-
-    Identity = 1,       // 0001
-    NegateValue = 2,    // 0010
-    NegateUnit = 4,     // 0100
-    Invert = 8,         // 1000
-
-    MoveRight = 5,      // 0101
-    MoveLeft = 10,      // 1010
-
-    LineRight = 9,      // 1001
-    LineLeft = 6,       // 0110
-
-    Split = 3,          // 0011
-    Join = 12,          // 1100
-
-    ReverseLeft = 14,   // 1110
-    ForwardRight = 13,  // 1101
-    ReverseRight = 11,  // 1011
-    ForwardLeft = 7,    // 0111
-
-    Continue = 15,      // 1111
-}
 
 public enum BitMask
 {
@@ -145,17 +120,46 @@ public static class BitMaskExtension
         return result;
 	}
 }
+
+public enum BitSymmetry
+{
+	Stop = 0,           // 0000
+
+	Identity = 1,       // 0001
+	NegateValue = 2,    // 0010
+	NegateUnit = 4,     // 0100
+	Invert = 8,         // 1000
+
+	MoveRight = 5,      // 0101
+	MoveLeft = 10,      // 1010
+
+	LineRight = 9,      // 1001
+	LineLeft = 6,       // 0110
+
+	Split = 3,          // 0011
+	Join = 12,          // 1100
+
+	ReverseLeft = 14,   // 1110
+	ForwardRight = 13,  // 1101
+	ReverseRight = 11,  // 1011
+	ForwardLeft = 7,    // 0111
+
+	Continue = 15,      // 1111
+}
+
 public enum Ops // todo: need an order to operations, as in multiplication is a pow of addition etc.
 {
     None,
-    Push,
-    Pop,
-    Peek,
+    Inc,
     Add,
-    Subtract,
     Multiply,
-    Divide,
     Pow,
+
+    Dec,
+    Subtract,
+    Divide,
+    Root,
+
     BoolOp,
     Comparison,
     Min,

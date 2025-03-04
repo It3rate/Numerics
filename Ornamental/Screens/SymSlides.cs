@@ -75,16 +75,35 @@ public class SymSlides : DemoBase
 		var yFocal = new Focal(300, 1200);
 		var refy0 = new ReferenceByFixedPosition(symNumY, yFocal);
 
-		StackOp[] ops = [
-            new StackOp(BitMask.AC, Ops.Add),
-			new StackOp(BitMask.BD, Ops.Add),
-		];
-		var stack = new ExprStack(refx0, refy0, ops);
+		//StackOp[] ops = [
+  //          new StackOp(BitMask.AC, Ops.Add),
+		//	new StackOp(BitMask.BD, Ops.Add),
+		//];
+		var stack = new ExprStack(refx0, refy0, AddOps);
         var mot = new Motion(stack);
-        var result = mot.Run();
+        var result0 = mot.Run();
 
-        return wm;
+		stack = new ExprStack(refx0, refy0, MultOps);
+		mot = new Motion(stack);
+		var result1 = mot.Run();
+
+		return wm;
 	}
+	private StackOp[] AddOps => [
+			new StackOp(BitMask.None, Ops.Subtract), // errer test
+			new StackOp(BitMask.AC, Ops.Add), // r
+			new StackOp(BitMask.BD, Ops.Add), // i
+		];
+
+	private StackOp[] MultOps => [
+			new StackOp(BitMask.BD, Ops.Multiply),
+			new StackOp(BitMask.AC, Ops.Multiply),
+			new StackOp(BitMask.None, Ops.Subtract), // r
+
+			new StackOp(BitMask.AD, Ops.Multiply),
+			new StackOp(BitMask.BC, Ops.Multiply),
+			new StackOp(BitMask.None, Ops.Add), // i
+		];
 
 	private SKMapper CommandTest()
     {
