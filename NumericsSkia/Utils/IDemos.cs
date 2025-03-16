@@ -9,7 +9,9 @@ public interface IDemos
     List<PageCreator> Pages { get; }
     SKMapper NextTest(RenderAgent agent);
     SKMapper PreviousTest(RenderAgent agent);
-    SKMapper Reload(RenderAgent agent);
+	SKMapper Reload(RenderAgent agent);
 
-    SKMapper LoadTest(int index, RenderAgent mouseAgent);
+	SKMapper LoadTest(int index, RenderAgent mouseAgent);
+
+	void Custom(int key);
 }

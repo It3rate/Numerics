@@ -20,6 +20,8 @@ using NumericsCore.Sequencer;
 using Ornamental.Commands.Tasks;
 using NumericsCore.Motions;
 using NumericsCore.Motions.Units;
+using System.Diagnostics;
+using System.IO;
 
 public class SymSlides : DemoBase
 {
@@ -28,8 +30,10 @@ public class SymSlides : DemoBase
     private Focal _limits = null!;
     private Domain _domain = null!;
     private static double _delta = 0.001;
+    private OrnamentMapper _curMapper => (OrnamentMapper)_currentAgent.Mapper;
 
-    public void Init()
+
+	public void Init()
     {
         _trait = new Trait("Tests");
         _basisFocal = new Focal(0, 100);
@@ -39,11 +43,12 @@ public class SymSlides : DemoBase
 
     public SymSlides()
     {
-        _testIndex = 0;// 
+		_testIndex = 0 ;// 
         Pages.AddRange(new PageCreator[]
-        {
+		{
+			SortTest,
 			MotionTest,
-            CommandTest,
+			CommandTest,
             AnimationTest2,
             AnimationTest,
             OrnamentTest,
@@ -54,10 +59,83 @@ public class SymSlides : DemoBase
     SKPoint _origin;
     int _hCount = 25;
     int _space = 80;
+	private List<Comparison<SymmetricNumber>> _sortFunctions;
+	private List<SymmetricNumber> _sortValues = new List<SymmetricNumber>();
+	private int _sortIndex = 0;
 
-    private SKMapper MotionTest()
+	private SKMapper SortTest()
 	{
-        var xyUnit = new XYUnit();
+        _space = 6;
+		var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
+        var domain = new Domain(Trait.ScalarTrait, Focal.One, Focal.MaxFocal);
+
+		_sortFunctions = new List<Comparison<SymmetricNumber>>
+		{
+            (a, b) => a.StartValue.CompareTo(b.StartValue),
+            (a, b) => a.EndValue.CompareTo(b.EndValue),
+		    (a, b) => a.Length.CompareTo(b.Length),
+		    (a, b) => a.GetQuotientSum(BitMask.AD, BitMask.BC).CompareTo(b.GetQuotientSum(BitMask.AD, BitMask.BC)),
+		    (a, b) => a.GetSum(BitMask.AB).CompareTo(b.GetSum(BitMask.AB)),
+		    (a, b) => a.GetSumDifference(BitMask.AB, BitMask.CD).CompareTo(b.GetSumDifference(BitMask.AB, BitMask.CD)),
+		    (a, b) => a.GetProductRatio(BitMask.AB, BitMask.CD).CompareTo(b.GetProductRatio(BitMask.AB, BitMask.CD)),
+		};
+        _currentAgent.Mapper = wm;
+		CreateValues();
+		SortAll();
+
+		return wm;
+	}
+    private void CreateValues()
+    {
+		_sortValues.Clear();
+		var xyUnit = new XYUnit();
+		var count = 130;
+		var bottomFocal = new Focal(-100, 100);
+
+		for (int i = 0; i < count; i++)
+		{
+			var topFocal = new Focal(RndLong(), RndLong());
+			bottomFocal = new Focal(-RndShort(), RndShort());
+			var nm = new SymmetricNumber(xyUnit.XUnit, topFocal, bottomFocal);
+			_sortValues.Add(nm);
+		}
+        SortAll();
+	}
+    private void SortAll()
+	{
+		_origin = _curMapper.Guideline.StartPoint + new SKPoint(500, 0);
+		_sortValues.Sort(_sortFunctions[_sortIndex]);
+		_currentAgent.Mapper.Paths.Clear();
+		foreach (var nm in _sortValues)
+		{
+			var p = EmptyPath();
+			AddLine(p, nm);
+			_curMapper.Paths.Add(p);
+		}
+	}
+	public override void Custom(int key)
+	{
+		base.Custom(key);
+        if (key == 0)
+        {
+            _sortIndex = _sortIndex >= _sortFunctions.Count - 1 ? 0 : _sortIndex + 1;
+            SortAll();
+        }
+        else if (key == 1)
+        {
+            CreateValues();
+		}
+	}
+
+	Random _rnd = new Random();
+	private long Rnd(int min, int max) => (long)_rnd.Next(max - min) + min;
+	private long RndLong() => Rnd(-100000, 100000);
+	private long RndShort() => Rnd(000, 300) + 150;
+
+	private SKMapper MotionTest()
+	{
+		_space = 80;
+		var xyUnit = new XYUnit();
 		var xTrait = new Trait("X");
 		var yTrait = new Trait("Y");
 		var xDomain = new Domain(xTrait, _basisFocal, _limits);
@@ -106,8 +184,9 @@ public class SymSlides : DemoBase
 		];
 
 	private SKMapper CommandTest()
-    {
-        var xTrait = new Trait("X");
+	{
+		_space = 80;
+		var xTrait = new Trait("X");
         var yTrait = new Trait("Y");
         var xDomain = new Domain(xTrait, _basisFocal, _limits);
         var yDomain = new Domain(yTrait, _basisFocal, _limits);
@@ -134,8 +213,9 @@ public class SymSlides : DemoBase
     }
 
     private SKMapper AnimationTest2()
-    {
-        var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
+	{
+		_space = 80;
+		var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
         _origin = wm.Guideline.StartPoint;
 
         Init();
@@ -176,8 +256,9 @@ public class SymSlides : DemoBase
 
 
     private SKMapper AnimationTest()
-    {
-        var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
+	{
+		_space = 80;
+		var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
         _origin = wm.Guideline.StartPoint;
 
         Init();
@@ -368,8 +449,9 @@ public class SymSlides : DemoBase
 
 
     private SKMapper OrnamentTest()
-    {
-        var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
+	{
+		_space = 80;
+		var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
         _origin = wm.Guideline.StartPoint;
         Init();
 
@@ -408,41 +490,48 @@ public class SymSlides : DemoBase
     }
 
 
+	private SKPath NextPath()
+	{
+		Reset();
+		_origin.Y += _space;
+		var result = new SKPath();
+		result.MoveTo(_origin);
+		return result;
+	}
+	private SKPath EmptyPath()
+	{
+		_origin.Y += _space;
+		var result = new SKPath();
+		return result;
+	}
 
-
-
-
-
-
-
-
-    private SKPath NextPath()
-    {
-        Reset();
-        _origin.Y += _space;
-        var result = new SKPath();
-        result.MoveTo(_origin);
-        return result;
-    }
-
-    private void Reset()
-    {
-        foreach (var expr in _xList)
+	private void Reset()
+	{
+		if (_xList != null)
         {
-            expr.Reset();
+            foreach (var expr in _xList)
+            {
+                expr.Reset();
+            }
+            foreach (var expr in _yList)
+            {
+                expr.Reset();
+            }
         }
-        foreach (var expr in _yList)
-        {
-            expr.Reset();
-        }
+        
     }
 
-    private void AddLine(SKPath result)
-    {
-        var x = (float)(_xList.Select(x => x.CurrentResult.EndValue).Sum() + _origin.X);
-        var y = (float)(_yList.Select(y => -y.CurrentResult.StartValue).Sum() + _origin.Y);
-        result.LineTo(x, y);
-    }
+	private void AddLine(SKPath result)
+	{
+		var x = (float)(_xList.Select(x => x.CurrentResult.EndValue).Sum() + _origin.X);
+		var y = (float)(_yList.Select(y => -y.CurrentResult.StartValue).Sum() + _origin.Y);
+		result.LineTo(x, y);
+	}
+	private void AddLine(SKPath result, SymmetricNumber nm)
+	{
+		result.MoveTo((float)nm.StartValue + _origin.X, _origin.Y);
+		result.LineTo((float)nm.EndValue + _origin.X, _origin.Y);
+	}
 
 
 }

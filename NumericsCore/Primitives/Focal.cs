@@ -129,8 +129,10 @@ public class Focal :
 
 
     public double Ratio_d() => EndTick / (double)StartTick;
-    public long[] PointsOfIntrest() => new long[] { StartTick, EndTick };
-    public long HalfLength => (long)(Length / 2);
+	public long[] PointsOfIntrest() => [StartTick, MidTick, EndTick, DoubleTick];
+	public long MidTick => (StartTick + HalfLength);
+	public long DoubleTick => (StartTick + DoubleLength);
+	public long HalfLength => (long)(Length / 2);
     public long DoubleLength => (long)(Length * 2);
 
     #endregion

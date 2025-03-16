@@ -13,7 +13,8 @@ public abstract class SKMapper : IDrawableElement
     public int Id { get; set; }
     protected static int idCounter = 0;
 
-    public RenderAgent Agent { get; }
+	public List<SKPath> Paths { get; } = new List<SKPath>();
+	public RenderAgent Agent { get; }
     public CoreRenderer Renderer => Agent.Renderer;
     public SKCanvas Canvas => Renderer.Canvas;
     protected CorePens Pens => Renderer.Pens;
@@ -55,6 +56,11 @@ public abstract class SKMapper : IDrawableElement
     //public abstract SKPoint EndPoint { get; set; }
 
     public abstract void Draw();
+
+    public virtual void Clear()
+    {
+        Paths.Clear();
+    }
 
 
 }

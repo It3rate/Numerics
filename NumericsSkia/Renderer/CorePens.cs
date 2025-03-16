@@ -194,7 +194,7 @@ public class CorePens
         SegPen0 = GetPen(SKColors.Black, DefaultWidth * 4f);
         SegPen1 = GetPen(new SKColor(50, 250, 210, 255), DefaultWidth * 4f);
         SegPen2 = GetPen(new SKColor(50, 50, 250, 255), DefaultWidth * 4f);
-        SegPen3 = GetPen(new SKColor(50, 250, 50, 255), DefaultWidth * 4f);
+        SegPen3 = GetPen(new SKColor(250, 70, 50, 255), DefaultWidth * 4f);
         SegPens = new List<SKPaint>() { SegPen0, SegPen1, SegPen2, SegPen3 };
         SegPenHighlight = GetPen(SKColor.Parse("#B0B0FF"), DefaultWidth * 8f);
         DomainPenHighlight = GetPen(SKColor.Parse("#80EEEE22"), DefaultWidth * 8f);

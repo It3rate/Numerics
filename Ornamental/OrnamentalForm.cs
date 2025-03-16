@@ -1,7 +1,5 @@
 using SkiaSharp.Views.Desktop;
 using NumericsSkia.Renderer;
-using Numerics.Primitives;
-using NumericsSkia.Agent;
 using Ornamental.Utils;
 using Sys = System.Windows.Forms;
 using NumericsCore.Sequencer;
@@ -108,12 +106,46 @@ public partial class OrnamentalForm : Form
             var ea = new KeyEventArgs(e.KeyData);
             //if (_mouseAgent.KeyDown(ea.ToKeyArgs())) { NeedsUpdate(); }
         }
-    }
-    private void OnKeyDown(object? sender, KeyEventArgs e)
-    {
-        //if (_mouseAgent.KeyDown(e.ToKeyArgs())) { NeedsUpdate(); }
-        e.SuppressKeyPress = true; // ### Don't do this if eventually using menus etc. This supresses the alt'n sound the system gives thinking it can't find a menu item.
-    }
+	}
+	private bool _isControlDown;
+	private bool _isShiftDown;
+	private bool _isAltDown;
+	public Keys CurrentKey { get; private set; }
+	public bool IsPaused { get; set; } = false;
+	private void OnKeyDown(object? sender, KeyEventArgs e)
+	{
+		if (CurrentKey == Keys.Escape)
+		{
+			IsPaused = !IsPaused;
+		}
+		if (IsPaused) { return; }
+
+
+		if (e.KeyCode != Keys.Control && e.KeyCode != Keys.Shift && e.KeyCode != Keys.Alt)
+		{
+			CurrentKey = e.KeyCode;
+		}
+		_isControlDown = e.Control;
+		_isShiftDown = e.Shift;
+		_isAltDown = e.Alt;
+        switch (CurrentKey)
+		{
+			case Keys.Left:
+				PreviousTest();
+				break;
+			case Keys.Right:
+				NextTest();
+				break;
+			case Keys.Space:
+				_demos.Custom(0);
+				break;
+			case Keys.B:
+				_demos.Custom(1);
+				break;
+		}
+		//if (_mouseAgent.KeyDown(e.ToKeyArgs())) { NeedsUpdate(); }
+		e.SuppressKeyPress = true; // ### Don't do this if eventually using menus etc. This supresses the alt'n sound the system gives thinking it can't find a menu item.
+	}
     private void OnKeyUp(object? sender, KeyEventArgs e) 
     { 
         if (_renderAgent == null)// || _mouseAgent.KeyUp(e.ToKeyArgs())) 

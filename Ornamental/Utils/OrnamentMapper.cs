@@ -14,7 +14,7 @@ namespace Ornamental.Utils
 {
     public class OrnamentMapper : SKMapper
     {
-        public List<SKPath> Paths { get; } = new List<SKPath>();
+        //public List<SKPath> Paths { get; } = new List<SKPath>();
         public OrnamentMapper(RenderAgent agent, float left, float top, float width, float height) : base(agent)
         {
             Reset(new SKPoint(left, top), new SKPoint(left + width, top + height));
@@ -25,7 +25,9 @@ namespace Ornamental.Utils
             Renderer.DrawLine(Guideline, Pens.SegPen0);
             foreach (SKPath path in Paths)
             {
-                Renderer.DrawPolyline(Pens.SegPen1, path.Points);
+                var pen = path.Points[0].X < path.Points[1].X ? Pens.SegPen1 : Pens.SegPen3;
+
+				Renderer.DrawPolyline(pen, path.Points);
             }
         }
     }

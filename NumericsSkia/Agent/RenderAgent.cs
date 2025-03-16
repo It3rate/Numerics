@@ -243,6 +243,7 @@ public class RenderAgent : CommandAgent, IMouseAgent
     {
         base.ClearAll();
         ClearMouse();
+        Mapper?.Clear();
         Runner.Clear();
     }
 }

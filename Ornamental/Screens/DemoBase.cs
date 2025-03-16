@@ -37,7 +37,7 @@ public abstract class DemoBase : IDemos
 
         SKMapper wm = Pages[_testIndex]();
         //wm.EnsureRenderers();
-        _currentAgent.IsPaused = false;
         return wm;
     }
+    public virtual void Custom(int key) { }
 }
