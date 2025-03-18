@@ -32,7 +32,6 @@ public class SymSlides : DemoBase
     private static double _delta = 0.001;
     private OrnamentMapper _curMapper => (OrnamentMapper)_currentAgent.Mapper;
 
-
 	public void Init()
     {
         _trait = new Trait("Tests");
@@ -40,9 +39,9 @@ public class SymSlides : DemoBase
         _limits = new Focal(-10000, 10000);
         _domain = new Domain(_trait, _basisFocal, _limits);
     }
-
     public SymSlides()
     {
+
 		_testIndex = 0 ;// 
         Pages.AddRange(new PageCreator[]
 		{
@@ -60,6 +59,9 @@ public class SymSlides : DemoBase
     int _hCount = 25;
     int _space = 80;
 	private List<Comparison<SymmetricNumber>> _sortFunctions;
+	private List<string> _labels;
+    private enum CancelKind { None, StartToZero, StartOnly, Midpoint, EndToZero, EndOnly, StartPlus, Fin}
+    private CancelKind _cancelKind;
 	private List<SymmetricNumber> _sortValues = new List<SymmetricNumber>();
 	private int _sortIndex = 0;
 
@@ -67,21 +69,34 @@ public class SymSlides : DemoBase
 	{
         _space = 6;
 		var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
-        var domain = new Domain(Trait.ScalarTrait, Focal.One, Focal.MaxFocal);
+		wm.Label = "Simulation";
+		var domain = new Domain(Trait.ScalarTrait, Focal.One, Focal.MaxFocal);
 
 		_sortFunctions = new List<Comparison<SymmetricNumber>>
 		{
-            (a, b) => a.StartValue.CompareTo(b.StartValue),
-            (a, b) => a.EndValue.CompareTo(b.EndValue),
+			(a, b) => 0,
+			(a, b) => a.StartValue.CompareTo(b.StartValue),
+			(a, b) => a.EndValue.CompareTo(b.EndValue),
 		    (a, b) => a.Length.CompareTo(b.Length),
 		    (a, b) => a.GetQuotientSum(BitMask.AD, BitMask.BC).CompareTo(b.GetQuotientSum(BitMask.AD, BitMask.BC)),
 		    (a, b) => a.GetSum(BitMask.AB).CompareTo(b.GetSum(BitMask.AB)),
-		    (a, b) => a.GetSumDifference(BitMask.AB, BitMask.CD).CompareTo(b.GetSumDifference(BitMask.AB, BitMask.CD)),
+		    (a, b) => a.GetSumDifference(BitMask.AD, BitMask.BC).CompareTo(b.GetSumDifference(BitMask.AD, BitMask.BC)),
 		    (a, b) => a.GetProductRatio(BitMask.AB, BitMask.CD).CompareTo(b.GetProductRatio(BitMask.AB, BitMask.CD)),
+		};
+        _labels = new List<string>
+        {
+            "None",
+            "Start Value",
+            "End Value",
+            "Length",
+            "Quotient Sum A/D + B/C",
+			"Sum",
+			"Sum Difference AD-BC",
+			"Product Ratio AB/CD",
 		};
         _currentAgent.Mapper = wm;
 		CreateValues();
-		SortAll();
+		ArrangeValues();
 
 		return wm;
 	}
@@ -99,31 +114,71 @@ public class SymSlides : DemoBase
 			var nm = new SymmetricNumber(xyUnit.XUnit, topFocal, bottomFocal);
 			_sortValues.Add(nm);
 		}
-        SortAll();
+        ArrangeValues();
 	}
-    private void SortAll()
+    private void ArrangeValues()
 	{
-		_origin = _curMapper.Guideline.StartPoint + new SKPoint(500, 0);
 		_sortValues.Sort(_sortFunctions[_sortIndex]);
+        AdjustDisplay();
+	}
+    private void AdjustDisplay()
+    {
+        _curMapper.Label = "Sort by: " + _labels[_sortIndex] + " :: " + _cancelKind;
+		_origin = _curMapper.Guideline.StartPoint + new SKPoint(500, 0);
 		_currentAgent.Mapper.Paths.Clear();
 		foreach (var nm in _sortValues)
 		{
 			var p = EmptyPath();
-			AddLine(p, nm);
+            var start = nm.StartValue;
+            var end = nm.EndValue;
+            switch (_cancelKind)
+			{
+				case CancelKind.None:
+					break;
+				case CancelKind.StartToZero:
+					end = end - start;
+					start = 0;
+					break;
+				case CancelKind.EndToZero:
+					start = end - start;
+					end = 0;
+					break;
+				case CancelKind.StartOnly:
+					end = 0;
+					break;
+				case CancelKind.EndOnly:
+					start = 0;
+					break;
+				case CancelKind.Midpoint:
+                    var len = (end - start) / 2f;
+					start = -len;
+					end = len;
+					break;
+				case CancelKind.StartPlus:
+					end = start + 10;
+					break;
+			}
+			AddLine(p, start, end);
 			_curMapper.Paths.Add(p);
 		}
-	}
+    }
 	public override void Custom(int key)
 	{
 		base.Custom(key);
         if (key == 0)
         {
             _sortIndex = _sortIndex >= _sortFunctions.Count - 1 ? 0 : _sortIndex + 1;
-            SortAll();
+            ArrangeValues();
         }
         else if (key == 1)
         {
             CreateValues();
+		}
+		else if (key == 2)
+		{
+            int next = (int)_cancelKind + 1;
+            _cancelKind = (next >= (int)CancelKind.Fin) ? (CancelKind)0 : (CancelKind)next;
+            AdjustDisplay();
 		}
 	}
 
@@ -527,10 +582,10 @@ public class SymSlides : DemoBase
 		var y = (float)(_yList.Select(y => -y.CurrentResult.StartValue).Sum() + _origin.Y);
 		result.LineTo(x, y);
 	}
-	private void AddLine(SKPath result, SymmetricNumber nm)
+	private void AddLine(SKPath result, double start, double end)
 	{
-		result.MoveTo((float)nm.StartValue + _origin.X, _origin.Y);
-		result.LineTo((float)nm.EndValue + _origin.X, _origin.Y);
+		result.MoveTo((float)start + _origin.X, _origin.Y);
+		result.LineTo((float)end + _origin.X, _origin.Y);
 	}
 
 

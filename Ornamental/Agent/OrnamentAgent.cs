@@ -71,7 +71,7 @@ namespace Ornamental.Agent
                 _points.Add(new SKPoint(_x, _y));
             }
 
-            Renderer.DrawPolyline(Renderer.Pens.SegPen3, _points.ToArray());
+            Renderer.DrawPolyline(Renderer.Pens.SegPen1, _points.ToArray());
         }
     }
 }

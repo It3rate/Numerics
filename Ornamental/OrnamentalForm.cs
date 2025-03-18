@@ -142,6 +142,9 @@ public partial class OrnamentalForm : Form
 			case Keys.B:
 				_demos.Custom(1);
 				break;
+			case Keys.C:
+				_demos.Custom(2);
+				break;
 		}
 		//if (_mouseAgent.KeyDown(e.ToKeyArgs())) { NeedsUpdate(); }
 		e.SuppressKeyPress = true; // ### Don't do this if eventually using menus etc. This supresses the alt'n sound the system gives thinking it can't find a menu item.

@@ -25,10 +25,15 @@ namespace Ornamental.Utils
             Renderer.DrawLine(Guideline, Pens.SegPen0);
             foreach (SKPath path in Paths)
             {
-                var pen = path.Points[0].X < path.Points[1].X ? Pens.SegPen1 : Pens.SegPen3;
+                var pen = path.Points[0].X <= path.Points[1].X ? Pens.SegPen1 : Pens.SegPen3;
 
 				Renderer.DrawPolyline(pen, path.Points);
             }
+            if(Label != "")
+            {
+                Renderer.DrawTextAt(new SKPoint(30, 50), Label, Pens.LabelBrush);
+            }
+
         }
     }
 }

@@ -11,9 +11,9 @@ public abstract class DemoBase : IDemos
     protected int Count => Pages.Count;
     protected int _testIndex = 0;
     protected RenderAgent _currentAgent;
-    //protected List<int> _tests{get;} = new List<int>();
+	//protected List<int> _tests{get;} = new List<int>();
 
-    public SKMapper PreviousTest(RenderAgent mouseAgent)
+	public SKMapper PreviousTest(RenderAgent mouseAgent)
     {
         int index = _testIndex >= 1 ? _testIndex - 1 : Pages.Count - 1;
         return LoadTest(index, mouseAgent);

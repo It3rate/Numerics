@@ -18,8 +18,9 @@ public abstract class SKMapper : IDrawableElement
     public CoreRenderer Renderer => Agent.Renderer;
     public SKCanvas Canvas => Renderer.Canvas;
     protected CorePens Pens => Renderer.Pens;
+	public string Label { get; set; } = "";
 
-    public bool Do2DRender { get; set; } = false;
+	public bool Do2DRender { get; set; } = false;
 
     public SKSegment Guideline { get; set; } = new SKSegment(0, 0, 1, 1);
     public SKSegment InvertedGuideline => new SKSegment(Guideline.StartPoint, Guideline.StartPoint - (Guideline.EndPoint - Guideline.StartPoint));
