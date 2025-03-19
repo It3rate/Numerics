@@ -34,7 +34,7 @@ public class Numberline : INumberline
 	public IUnit Unit { get; }
 	public Focal Basis { get; }
 	public NumberPrimitive MinMax { get; }
-    public long TotalTicks => MinMax.Unit.Resolution.Length;
+    public long TotalTicks => MinMax.Unit.Limits.Length;
     public long ZeroPoint => MinMax.Basis.StartTick;
 	public List<Step> Steps { get; } = new List<Step>();
 	public List<Joint> Joints { get; } = new List<Joint>();

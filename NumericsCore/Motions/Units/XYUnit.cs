@@ -12,10 +12,10 @@ public class XYUnit : IUnit
 	public string Name => "XY";
 	public int SubUnitCount => 2;
 	public IUnit[] SubUnits => new[] { XUnit, YUnit };
-	public Focal Resolution { get; private set; }
+	public Focal Limits { get; private set; }
 
-	public IUnit XUnit { get; }
-	public IUnit YUnit { get; }
+	public IUnit XUnit { get; } = new DefaultUnit("X", new Focal(-10000000, 10000000));
+	public IUnit YUnit { get; } = new DefaultUnit("Y", new Focal(-10000000, 10000000));
 	public Focal XDenominator { get; private set; }
 	public Focal YDenominator { get; private set; }
 
@@ -23,11 +23,6 @@ public class XYUnit : IUnit
 	{
 		XDenominator = new Focal(-1000, 1000);
 		YDenominator = XDenominator.Clone();
-		Resolution = XDenominator.Clone();
-	}
-
-	public SymmetricNumber CreateNumber(Focal numerator, Focal? denominator = null)
-	{
-		return new SymmetricNumber(this, numerator, denominator);
+		Limits = XDenominator.Clone();
 	}
 }

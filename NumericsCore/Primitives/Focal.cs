@@ -101,6 +101,10 @@ public class Focal :
     public void SetAsBasisInverseOf(Focal source) { StartTick = source.StartTick; EndTick = source.InvertedLastPosition; }
     public Focal CloneToBasisInverse() => new Focal(StartTick, InvertedLastPosition);
 
+    public long InteriorSample(Random rnd)
+    {
+        return rnd.Next(0, (int)AbsLength) + (StartTick * Direction);
+    }
     public static long[] Positions(params Focal[] focals)
     {
         var result = new long[focals.Length * 2];

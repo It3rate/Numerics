@@ -14,9 +14,21 @@ namespace NumericsCore.Motions
         int SubUnitCount { get; }
         IUnit[] SubUnits { get; } // X,Y,Z  R,G,B  etc These are unit 1, form the basis
 
-		Focal Resolution { get; }
+		Focal Limits { get; }
 	}
-    public class Step
+	public class DefaultUnit : IUnit
+	{
+		public string Name { get; }
+		public int SubUnitCount => SubUnits.Length;
+		public IUnit[] SubUnits { get; } = Array.Empty<IUnit>();
+		public Focal Limits { get; }
+        public DefaultUnit(string name, Focal limits)
+		{
+			Name = name;
+			Limits = limits;
+		}
+	}
+	public class Step
     {
         public List<SymmetricNumber> Numbers { get; } = new List<SymmetricNumber>();
     }

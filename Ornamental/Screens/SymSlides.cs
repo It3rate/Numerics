@@ -22,6 +22,7 @@ using NumericsCore.Motions;
 using NumericsCore.Motions.Units;
 using System.Diagnostics;
 using System.IO;
+using NumericsAPI.GA;
 
 public class SymSlides : DemoBase
 {
@@ -45,6 +46,7 @@ public class SymSlides : DemoBase
 		_testIndex = 0 ;// 
         Pages.AddRange(new PageCreator[]
 		{
+			GATest,
 			SortTest,
 			MotionTest,
 			CommandTest,
@@ -65,6 +67,12 @@ public class SymSlides : DemoBase
 	private List<SymmetricNumber> _sortValues = new List<SymmetricNumber>();
 	private int _sortIndex = 0;
 
+    private SKMapper GATest()
+	{
+		var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
+		var world = new GAWorld(8, 1000);
+        return wm;
+    }
 	private SKMapper SortTest()
 	{
         _space = 6;

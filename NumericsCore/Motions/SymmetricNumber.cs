@@ -11,7 +11,7 @@ public class SymmetricNumber : INumber // can be number with unit, or two 'tick 
 {
     public INumberline Numberline {get;}
     public IUnit Unit => Numberline.Unit;
-	public Focal MinMax => Unit.Resolution;
+	public Focal MinMax => Unit.Limits;
     public Focal Basis => Numberline.Basis;
     public Focal TopFocal { get; }
 
