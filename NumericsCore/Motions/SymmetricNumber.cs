@@ -23,6 +23,7 @@ public class SymmetricNumber : INumber // can be number with unit, or two 'tick 
     private long C_BR => Basis.EndTick - ZeroOffset;
     private long D_BL => -(Basis.StartTick - ZeroOffset);
 
+    public bool IsPositiveDirection => StartValue >= EndValue;
     // landmark is two focals and a double?
 
     public Number Segment => throw new NotImplementedException();
@@ -35,13 +36,13 @@ public class SymmetricNumber : INumber // can be number with unit, or two 'tick 
     }
     public SymmetricNumber(IUnit unit, long start, long end, long unitLength)
     {
-		Numberline = new Numberline(unit, new Focal(start, unitLength));
-        TopFocal = new Focal(-unitLength, end);
+		Numberline = new Numberline(unit, new Focal(-unitLength, unitLength));
+        TopFocal = new Focal(start, end);
     }
     public SymmetricNumber(IUnit unit, long start, long endUnit, long startUnit, long end, long zeroOffset = 0)
 	{
-		Numberline = new Numberline(unit, new Focal(start + zeroOffset, startUnit + zeroOffset));
-        TopFocal = new Focal(endUnit + zeroOffset, end + zeroOffset);
+		Numberline = new Numberline(unit, new Focal(endUnit + zeroOffset, startUnit + zeroOffset));
+        TopFocal = new Focal(start + zeroOffset, end + zeroOffset);
     }
 
     public double StartValue => B_TL / (double)D_BL;

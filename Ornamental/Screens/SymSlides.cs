@@ -66,11 +66,12 @@ public class SymSlides : DemoBase
     private CancelKind _cancelKind;
 	private List<SymmetricNumber> _sortValues = new List<SymmetricNumber>();
 	private int _sortIndex = 0;
+    private GAWorld _world;
 
-    private SKMapper GATest()
+	private SKMapper GATest()
 	{
 		var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
-		var world = new GAWorld(8, 1000);
+		wm.World = new GAWorld(2, 200);
         return wm;
     }
 	private SKMapper SortTest()
@@ -133,7 +134,7 @@ public class SymSlides : DemoBase
     {
         _curMapper.Label = "Sort by: " + _labels[_sortIndex] + " :: " + _cancelKind;
 		_origin = _curMapper.Guideline.StartPoint + new SKPoint(500, 0);
-		_currentAgent.Mapper.Paths.Clear();
+		_curMapper.Paths.Clear();
 		foreach (var nm in _sortValues)
 		{
 			var p = EmptyPath();
@@ -581,8 +582,8 @@ public class SymSlides : DemoBase
                 expr.Reset();
             }
         }
-        
-    }
+        _curMapper.World = null;
+	}
 
 	private void AddLine(SKPath result)
 	{

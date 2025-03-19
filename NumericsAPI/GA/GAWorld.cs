@@ -21,25 +21,25 @@ namespace NumericsAPI.GA
 		// EnergizeAndExpire
 		// Display
 
-		public Random RND = new Random(1000);
+		public Random RND = new Random(1234);
 		public SymmetricNumber DefaultEnergy() => new SymmetricNumber(WorkingScalar, 0, 10000, Resolution);
 		public ScalarUnit WorkingScalar = ScalarUnit.Scalar10K;
-		public long Resolution = 100;
-		public Focal TraitFocal = new Focal(-1000, 1000);
-		public List<IUnit> Traits { get; } = new List<IUnit>();
+		public long Resolution = 16;
+		public Focal UnitLimits = new Focal(-10000, 10000);
+		public List<IUnit> Units { get; } = new List<IUnit>();
 
 		public List<Individual> Population = new List<Individual>();
 		public GAWorld(int traits, int population) 
 		{
-			CreateTraits(traits);
+			CreateUnits(traits);
 			CreatePopulation(population);
 		}
-		private void CreateTraits(int count)
+		private void CreateUnits(int count)
 		{
-			Traits.Clear();
+			Units.Clear();
 			for (int i = 0; i < count; i++)
 			{
-				Traits.Add(new DefaultUnit( ((char)(i + 65)).ToString(), TraitFocal) );
+				Units.Add(new DefaultUnit( ((char)(i + 65)).ToString(), UnitLimits) );
 			}
 		}
 
@@ -48,7 +48,7 @@ namespace NumericsAPI.GA
 			Population.Clear();
 			for (int i = 0; i < count; i++)
 			{
-				Population.Add(Individual.RandomIndividual(this, Traits));
+				Population.Add(Individual.RandomIndividual(this, Units));
 			}
 		}
 

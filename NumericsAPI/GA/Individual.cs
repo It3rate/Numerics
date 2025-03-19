@@ -32,9 +32,9 @@ namespace NumericsAPI.GA
 			var nums = new List<SymmetricNumber>();
 			foreach(var unit in units)
 			{
-				var start = unit.Limits.InteriorSample(world.RND);
-				var end = unit.Limits.InteriorSample(world.RND);
-				var sn = new SymmetricNumber(unit, start, end, world.Resolution);
+				var midPoint = (long)(unit.Limits.InteriorSample(world.RND) * 0.8);
+				var len = (long)(unit.Limits.InteriorSample(world.RND) * 0.2);//world.RND.Next(100);// 
+				var sn = new SymmetricNumber(unit, -(midPoint - len), midPoint + len, world.Resolution);
 				nums.Add(sn);
 			}
 			return new Individual(world, nums.ToArray());

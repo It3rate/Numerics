@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Numerics.Primitives;
+using NumericsAPI.GA;
 using NumericsSkia.Agent;
 using NumericsSkia.Drawing;
 using NumericsSkia.Mappers;
@@ -14,6 +15,7 @@ namespace Ornamental.Utils
 {
     public class OrnamentMapper : SKMapper
     {
+        public GAWorld? World { get; set; }
         //public List<SKPath> Paths { get; } = new List<SKPath>();
         public OrnamentMapper(RenderAgent agent, float left, float top, float width, float height) : base(agent)
         {
@@ -34,6 +36,15 @@ namespace Ornamental.Utils
                 Renderer.DrawTextAt(new SKPoint(30, 50), Label, Pens.LabelBrush);
             }
 
-        }
+            if(World != null)
+			{
+                int y = 100;
+				foreach (var individual in World.Population)
+				{
+					individual.DrawAt(Agent, 650, y+=4);
+				}
+			}
+
+		}
     }
 }
