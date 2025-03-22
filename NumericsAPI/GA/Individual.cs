@@ -91,13 +91,13 @@ namespace NumericsAPI.GA
 				{
 				var max = IndexWeights.Max();
 				var index = IndexWeights.IndexOf(max);
-				max += 0.02;
+				//max += 0.02;
 				var mid = (TraitSamples[index] - other.TraitSamples[index]) / 2.0 + TraitSamples[index];
 				for (int i = 0; i < IndexWeights.Count; i++)
 				{
 					if (_lastCompareIndexes.Contains(i))
 					{
-						//var max = Math.Max(IndexWeights[i], other.IndexWeights[i]) * 4;
+						max = Math.Max(IndexWeights[i], other.IndexWeights[i]) + 2;
 						IndexWeights[i] = Math.Min(MaxWeight, max);
 						other.IndexWeights[i] = Math.Min(MaxWeight, max);
 
@@ -106,7 +106,7 @@ namespace NumericsAPI.GA
 					}
 					else
 					{
-						var min = Math.Min(IndexWeights[i], other.IndexWeights[i]) * 0.4;
+						var min = Math.Min(IndexWeights[i], other.IndexWeights[i]) * 0.5;
 						IndexWeights[i] = Math.Max(0, min);
 						other.IndexWeights[i] = Math.Max(0, min);
 					}
