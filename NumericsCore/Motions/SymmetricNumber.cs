@@ -48,6 +48,7 @@ public class SymmetricNumber : INumber // can be number with unit, or two 'tick 
     public double StartValue => B_TL / (double)D_BL;
     public double EndValue => A_TR / (double)C_BR;
 	public double Length => EndValue - StartValue;
+	public double AbsLength => Math.Abs(Length);
 	public double StartValueAtPosition(long pos)
 	{
 		var input = -(pos - ZeroOffset);
@@ -59,6 +60,10 @@ public class SymmetricNumber : INumber // can be number with unit, or two 'tick 
 		return input / (double)C_BR;
 	}
 
+	public double InteriorSample(Random rnd)
+	{
+		return rnd.Next(0, (int)AbsLength) + StartValue;
+	}
 	public long[] GetLengthSet(BitMask mask)
     {
         List<long> result = new List<long>();

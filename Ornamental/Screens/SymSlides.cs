@@ -71,7 +71,7 @@ public class SymSlides : DemoBase
 	private SKMapper GATest()
 	{
 		var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
-		wm.World = new GAWorld(2, 200);
+		wm.World = new GAWorld(8, 200);
         return wm;
     }
 	private SKMapper SortTest()
@@ -176,9 +176,16 @@ public class SymSlides : DemoBase
 		base.Custom(key);
         if (key == 0)
         {
-            _sortIndex = _sortIndex >= _sortFunctions.Count - 1 ? 0 : _sortIndex + 1;
-            ArrangeValues();
-        }
+            if(_sortFunctions != null)
+			{
+				_sortIndex = _sortIndex >= _sortFunctions.Count - 1 ? 0 : _sortIndex + 1;
+				ArrangeValues();
+			}
+            else if (_curMapper.World != null)
+			{
+				_curMapper.World.Reset();
+			}
+		}
         else if (key == 1)
         {
             CreateValues();

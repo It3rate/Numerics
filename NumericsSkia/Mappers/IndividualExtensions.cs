@@ -18,18 +18,30 @@ namespace NumericsSkia.Mappers
 		public static void DrawAt(this Individual individual, RenderAgent agent, int x, int y)
 		{
 			var renderer = agent.Renderer;
-			foreach (var num in individual.TraitRanges)
+			for (int i = 0; i < individual.TraitRanges.Count; i++)
 			{
+				var weight = individual.IndexWeights[i];
+				var alpha = (byte)(weight * (255 / individual.MaxWeight));
+				var num = individual.TraitRanges[i];
+				var pen1 = CorePens.GetPen(new SKColor(100, 50, 50, alpha), 2f);
+
+				renderer.DrawLine(
+					new SKPoint((float)num.StartValue + x, y),
+					new SKPoint((float)num.EndValue + x, y),
+					pen1);
 				//var sn = trait.SymmetricNumber;
 				//var path = renderer.CreatePath(sn, x, y);
 				//renderer.DrawPath(path, renderer.Pens.SegPen0);
-				var pen = num.IsPositiveDirection ? PosPen : NegPen;
+				//var pen = num.IsPositiveDirection ? PosPen : NegPen;
+				var sample = individual.TraitValueAt(i);
+				var pen = CorePens.GetPen(new SKColor((byte)(128 - weight * 4), (byte)(50 + weight * 8), 100, alpha), 2f);
 
 				renderer.DrawLine(
-					new SKPoint((float)num.StartValue + x, y), 
-					new SKPoint((float)num.EndValue + x, y), 
+					new SKPoint((float)(sample - 2) + x, y),
+					new SKPoint((float)(sample + 2) + x, y),
 					pen);
 			}
 		}
+		
 	}
 }

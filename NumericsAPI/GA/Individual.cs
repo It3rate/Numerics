@@ -11,42 +11,51 @@ namespace NumericsAPI.GA
 {
 	public class Individual
 	{
+		private static int _nextID = 0;
+		public int ID { get; }
 		private GAWorld _world { get; }
 		public List<SymmetricNumber> TraitRanges { get; } = new List<SymmetricNumber>();
-		public List<Focal> TraitValues { get; } = new List<Focal>();
+		private List<double> TraitShifts { get; } = new List<double>();
+		private List<double> TraitSamples { get; } = new List<double>();
+
 		public SymmetricNumber EnergyLevel { get; set; }
-		private List<double> IndexWeights;
+		public List<double> IndexWeights;
 
 		public Dictionary<Individual, double> InteractionScores { get; } = new Dictionary<Individual, double>();
 
 		public Individual(GAWorld world, params SymmetricNumber[] traits)
 		{
+			ID = _nextID++;
 			TraitRanges = traits.ToList();
 			_world = world;
 			EnergyLevel = world.DefaultEnergy();
 			IndexWeights = Enumerable.Repeat(1.0, traits.Length).ToList();
 			SampleValues();
 		}
+		public double TraitValueAt(int index) => TraitSamples[index] + TraitShifts[index];
 		public static Individual RandomIndividual(GAWorld world, IEnumerable<IUnit> units)
 		{
 			var nums = new List<SymmetricNumber>();
 			foreach(var unit in units)
 			{
-				var midPoint = (long)(unit.Limits.InteriorSample(world.RND) * 0.8);
-				var len = (long)(unit.Limits.InteriorSample(world.RND) * 0.2);//world.RND.Next(100);// 
+				var midPoint = unit.Limits.InteriorSample(world.RND);
+				midPoint = (long)(midPoint * 0.8 + midPoint * 0.1);
+				var len = (long)(unit.Limits.InteriorSample(world.RND) * 0.1);//world.RND.Next(100);// 
 				var sn = new SymmetricNumber(unit, -(midPoint - len), midPoint + len, world.Resolution);
 				nums.Add(sn);
 			}
 			return new Individual(world, nums.ToArray());
 		}
 
-		private void SampleValues() 
-		{ 
-			TraitValues.Clear();
-			foreach(var trait in TraitRanges)
+		private void SampleValues()
+		{
+			TraitShifts.Clear();
+			TraitSamples.Clear();
+			foreach (var trait in TraitRanges)
 			{
-				var sample = trait.TopFocal.InteriorSample(_world.RND);
-				TraitValues.Add(new Focal(sample, sample));
+				var sample = trait.InteriorSample(_world.RND);
+				TraitSamples.Add(sample);
+				TraitShifts.Add(0);
 			}
 		}
 
@@ -57,12 +66,12 @@ namespace NumericsAPI.GA
 			var pos = 0.0;
 			var neg = 0.0;
 			_lastCompareIndexes.Clear();
-			var compareCount = 4;
+			var compareCount = Math.Min(TraitSamples.Count, 4);
 			for (var i = 0; i < compareCount; i++)
 			{
-				var index = _world.RND.Next(0, TraitValues.Count);
+				var index = _world.RND.Next(0, TraitSamples.Count);
 				_lastCompareIndexes.Add(index);
-				var dif = other.TraitValues[index].EndTick - TraitValues[index].EndTick;
+				var dif = other.TraitSamples[index] - TraitSamples[index];
 				if(dif >= 0)
 				{
 					pos += dif * IndexWeights[i];
@@ -74,20 +83,32 @@ namespace NumericsAPI.GA
 			}
 			return new SymmetricNumber(_world.WorkingScalar, (long)-neg, (long)pos, _world.Resolution);
 		}
+		public double MaxWeight = 25.5;
 		public void CombineWith(Individual other) 
 		{
-			var bump = 0.1;
+			var shift = 1;
 			if (_lastCompareIndexes.Count > 0)
-			{
+				{
+				var max = IndexWeights.Max();
+				var index = IndexWeights.IndexOf(max);
+				max += 0.02;
+				var mid = (TraitSamples[index] - other.TraitSamples[index]) / 2.0 + TraitSamples[index];
 				for (int i = 0; i < IndexWeights.Count; i++)
 				{
 					if (_lastCompareIndexes.Contains(i))
 					{
-						IndexWeights[i] = Math.Min(2.0, IndexWeights[i] + bump);
+						//var max = Math.Max(IndexWeights[i], other.IndexWeights[i]) * 4;
+						IndexWeights[i] = Math.Min(MaxWeight, max);
+						other.IndexWeights[i] = Math.Min(MaxWeight, max);
+
+						TraitShifts[i] += TraitValueAt(i) > mid ?  -shift : shift;
+						other.TraitShifts[i] += other.TraitValueAt(i) > mid ? -shift : shift;
 					}
 					else
 					{
-						IndexWeights[i] = Math.Max(0.1, IndexWeights[i] - bump);
+						var min = Math.Min(IndexWeights[i], other.IndexWeights[i]) * 0.4;
+						IndexWeights[i] = Math.Max(0, min);
+						other.IndexWeights[i] = Math.Max(0, min);
 					}
 				}
 			}
@@ -95,6 +116,10 @@ namespace NumericsAPI.GA
 		}
 		public void Mutate() { }
 
+		public override string ToString()
+		{
+			return "I:" + ID.ToString() + " " + TraitSamples[0].ToString();
+		}
 		// Create
 		// EnergyLevel
 		// TraitRanges

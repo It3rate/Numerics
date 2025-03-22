@@ -41,7 +41,7 @@ namespace Ornamental.Utils
                 int y = 100;
 				foreach (var individual in World.Population)
 				{
-					individual.DrawAt(Agent, 650, y+=4);
+					individual.DrawAt(Agent, 50, y+=4);
 				}
 			}
 
