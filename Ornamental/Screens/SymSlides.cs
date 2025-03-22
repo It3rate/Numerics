@@ -70,6 +70,26 @@ public class SymSlides : DemoBase
 
 	private SKMapper GATest()
 	{
+		/* With one measure, the only information you get is exists as opposed to doesn't exist.
+		 * With a second measure, you get the potential of equal and not equal.
+		 * If you impose an order, you get the potential of greater than and less than. This can go either way.
+		 * one of the points could be our perspective, making all points 'away' from us, and we are 'negative away' from the point.
+		 * You also get a segment, but can say nothing about its length, only direction (start and end point).
+		 * A 'point' in this system is two equal measures, where you can't tell the direction.
+		 * A third measure gives you a ratio, where one is zero, one is unit, and the last is relative to the first segment.
+		 * These can also be any order, thus you can have negative ratios. 
+		 * Although they can have either direction positive, they must choose one or the other and stick with it.
+		 * Our numbers are 0, unit, number - like these.
+		 * The 'zero' could be our perspective, or it could be a new point.
+         * A fourth point allows zero, one, start and end measures. This is a naive segment, in that the positions are all measured off the same unit.
+         * You can describe segments from 3 to 7, but all points must be use the same unit.
+         * A fifth meausure (or half measure as it can be calculated) allows both directional units. Complex numbers.
+         * If this is a full measure (a true zero) this becomes symmetric numbers, where the unit in each direction can be different.
+         * This allows symmetry transforms with bool ops, as in paper, which allow transistions to other orthogonal dimensions.
+         * This zero can be thought of as personal perspective, which importantly comes with minimum and maximum ranges (ticks and limits).
+         * These ticks and limits can be chosen or hard limits, but they are also a 5 measure symmetric number.
+         * The self zero seems like extra information, but we normally would 'line up two sticks' to get a zero, which is also extra work/infomation.
+         */
 		var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
 		wm.World = new GAWorld(8, 200);
         return wm;
