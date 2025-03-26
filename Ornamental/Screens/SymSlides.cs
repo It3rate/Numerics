@@ -91,7 +91,7 @@ public class SymSlides : DemoBase
          * The self zero seems like extra information, but we normally would 'line up two sticks' to get a zero, which is also extra work/infomation.
          */
 		var wm = new OrnamentMapper(_currentAgent, 100, 100, 1050, 0);
-		wm.World = new GAWorld(8, 200);
+		wm.World = new GAWorld(12, 200, 4, 100000);
         return wm;
     }
 	private SKMapper SortTest()

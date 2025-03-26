@@ -29,19 +29,24 @@ namespace NumericsAPI.GA
 		public List<IUnit> Units { get; } = new List<IUnit>();
 
 		public List<Individual> Population = new List<Individual>();
-		public int _traitCount;
-		public int _populationCount;
-		public GAWorld(int traits, int population) 
+		public int TraitCount;
+		public int PopulationCount;
+		public int CompareCount = 4;
+		public int LoopCount;
+		public Individual TempTarget;
+		public GAWorld(int traits, int population, int compareCount, int loopCount) 
 		{
-			_traitCount = traits;
-			_populationCount = population;
+			TraitCount = traits;
+			PopulationCount = population;
+			CompareCount = compareCount;
+			LoopCount = loopCount;
 			Reset();
 		}
 		public void Reset()
 		{
-			CreateUnits(_traitCount);
-			CreatePopulation(_populationCount);
-			for (int i = 0; i < loopCount; i++)
+			CreateUnits(TraitCount);
+			CreatePopulation(PopulationCount);
+			for (int i = 0; i < LoopCount; i++)
 			{
 				Step();
 			}
@@ -60,8 +65,16 @@ namespace NumericsAPI.GA
 			Population.Clear();
 			for (int i = 0; i < count; i++)
 			{
-				Population.Add(Individual.RandomIndividual(this, Units));
+				if(true)//RND.Next(2) == 0)
+				{
+					Population.Add(Individual.RandomIndividual(this, Units));
+				}
+				else
+				{
+					Population.Add(Individual.AlignedIndividual(this, Units));
+				}
 			}
+			TempTarget = Individual.AlignedIndividual(this, Units);
 		}
 		public void Step()
 		{
@@ -81,32 +94,30 @@ namespace NumericsAPI.GA
 			var result = (ca.AbsLength <= cb.AbsLength) ? a : b;
 			return result;
 		}
-		int loopCount = 1000000;
 		public void MoveCloserTo(int source, int target)
 		{
 			if(source != target)
 			{
-				Population[source].CombineWith(Population[target]);
-				Population[target].CombineWith(Population[source]);
+				var src = Population[source];
+				var trg = Population[target];
+
+				src.CombineWith(trg);
+				trg.CombineWith(src);
 				var dir = source > target ? -1 : 1;
-				var anchor = source;
-				//dir = dir * (int)(Math.Abs(source - target) * 0.2);
-				if (anchor + dir < Population.Count && anchor + dir >= 0)
-				{
-					var temp = Population[anchor + dir];
-					Population[anchor + dir] = Population[anchor];
-					Population[anchor] = temp;
-				}
-				anchor = target;
-				dir = -dir;
-				//dir = dir * (int)(Math.Abs(source - target) * 0.2);
-				if (anchor + dir < Population.Count && anchor + dir >= 0)
-				{
-					var temp = Population[anchor + dir];
-					Population[anchor + dir] = Population[anchor];
-					Population[anchor] = temp;
-				}
+				MovePosition(source, dir);
+				MovePosition(target, -dir);
 			}
+		}
+		private void MovePosition(int src, int shift)
+		{
+			var srcPop = Population[src];
+			if (src + shift < Population.Count && src + shift >= 0)
+			{
+				var temp = Population[src + shift];
+				Population[src + shift] = srcPop;
+				Population[src] = temp;
+			}
+			srcPop.ResampleValues();
 		}
 	}
 }

@@ -20,8 +20,8 @@ namespace NumericsSkia.Mappers
 			var renderer = agent.Renderer;
 			for (int i = 0; i < individual.TraitRanges.Count; i++)
 			{
-				var weight = individual.IndexWeights[i];
-				var alpha = (byte)(weight * (255 / individual.MaxWeight));
+				var weight = Math.Min(255, Math.Max(50, (510.0 / individual.TraitRanges[i].AbsLength)));
+				var alpha = (byte)(weight);// * (255 / individual.MaxWeight));
 				var num = individual.TraitRanges[i];
 				var pen1 = CorePens.GetPen(new SKColor(100, 50, 50, alpha), 2f);
 

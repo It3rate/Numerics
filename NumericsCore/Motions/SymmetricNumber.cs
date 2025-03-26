@@ -45,7 +45,7 @@ public class SymmetricNumber : INumber // can be number with unit, or two 'tick 
         TopFocal = new Focal(start + zeroOffset, end + zeroOffset);
     }
 
-    public double StartValue => B_TL / (double)D_BL;
+    public double StartValue => -(B_TL / (double)D_BL);
     public double EndValue => A_TR / (double)C_BR;
 	public double Length => EndValue - StartValue;
 	public double AbsLength => Math.Abs(Length);
@@ -62,7 +62,8 @@ public class SymmetricNumber : INumber // can be number with unit, or two 'tick 
 
 	public double InteriorSample(Random rnd)
 	{
-		return rnd.Next(0, (int)AbsLength) + StartValue;
+        int rndVal = (int)AbsLength > 0 ? rnd.Next(0, (int)AbsLength) : 0;
+		return rndVal + StartValue;
 	}
 	public long[] GetLengthSet(BitMask mask)
     {
@@ -115,4 +116,24 @@ public class SymmetricNumber : INumber // can be number with unit, or two 'tick 
         var result = new SymmetricNumber(Unit, new Focal((long)startTick, (long)endTick), Basis);
         return result;
     }
+
+	public void ShiftFromCenter(double shift)
+	{
+		TopFocal.StartTick += (long)(shift * D_BL);
+		TopFocal.EndTick += (long)(shift * C_BR);
+	}
+	public void ExpandFromCenter(double additiveExpansion)
+	{
+		var halfExpansionStart = (long)(D_BL * additiveExpansion);
+		var halfExpansionEnd = (long)(C_BR * additiveExpansion);
+		TopFocal.StartTick -= halfExpansionStart;
+		TopFocal.EndTick += halfExpansionEnd;
+	}
+	public void ScaleFromCenter(double scale)
+	{
+		var halfExpansionStart = (long)(B_TL * scale);
+		var halfExpansionEnd = (long)(A_TR * scale);
+		TopFocal.StartTick -= halfExpansionStart;
+		TopFocal.EndTick += halfExpansionEnd;
+	}
 }
